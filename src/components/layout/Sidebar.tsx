@@ -28,7 +28,7 @@ export function Sidebar() {
   return (
     <aside className="side">
       <div className="brand">
-        <img src="/lplogo.png" alt="LayerProof" className="brand-logo-img" />
+        <img src={`${import.meta.env.BASE_URL}lplogo.png`} alt="LayerProof" className="brand-logo-img" />
         <button className="side-icon-btn" style={{ marginLeft: 'auto' }}><I.Grid style={{ width: 16, height: 16 }} /></button>
       </div>
 
