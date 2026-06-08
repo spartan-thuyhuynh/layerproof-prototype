@@ -57,8 +57,9 @@ export function Detail({ kit }: DetailProps) {
   const prevOnboarding = useRef(kit.onboarding)
 
   // Kit-menu (three-dot) state
-  const [menuOpen, setMenuOpen]         = useState(false)
+  const [menuOpen, setMenuOpen]             = useState(false)
   const [designMenuOpen, setDesignMenuOpen] = useState(false)
+  const [devToast, setDevToast]             = useState(false)
   const [editingName, setEditingName]   = useState(false)
   const [editingDesc, setEditingDesc]   = useState(false)
   const [nameDraft, setNameDraft]       = useState(kit.name)
@@ -305,7 +306,7 @@ export function Detail({ kit }: DetailProps) {
               className="btn primary sm"
               onClick={() => setDesignMenuOpen((o) => !o)}
             >
-              {isApplied ? 'Applied ✓' : 'Use in a design'}
+              Use in a design
               <svg viewBox="0 0 12 12" fill="currentColor" style={{ width: 11, height: 11, marginLeft: 5, opacity: 0.8, flexShrink: 0 }}>
                 <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </svg>
@@ -340,7 +341,11 @@ export function Detail({ kit }: DetailProps) {
                   <button
                     key={id}
                     className="design-menu-item"
-                    onClick={() => { setAppliedId(kit.id); setDesignMenuOpen(false) }}
+                    onClick={() => {
+                      setDesignMenuOpen(false)
+                      setDevToast(true)
+                      setTimeout(() => setDevToast(false), 3000)
+                    }}
                   >
                     <span className="design-menu-item-icon">{icon}</span>
                     <span className="design-menu-item-label">{label}</span>
@@ -390,6 +395,16 @@ export function Detail({ kit }: DetailProps) {
         <GuidelineModal kit={kit} onClose={() => setShowDoc(false)} />
       )}
 
+      {/* "In development" nudge toast */}
+      {devToast && (
+        <div className="dev-toast">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0, color: 'var(--accent)' }}>
+            <circle cx="8" cy="8" r="6" />
+            <path d="M8 5v3M8 11h.01" />
+          </svg>
+          This feature is in development
+        </div>
+      )}
     </div>
   )
 }
