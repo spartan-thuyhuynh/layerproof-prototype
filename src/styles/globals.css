@@ -1126,6 +1126,58 @@ button { font-family: inherit; cursor: pointer; }
 .kit-header-sub-input:focus { border-bottom-color: var(--accent); }
 
 /* three-dot kit menu */
+/* ── Design-type dropdown ──────────────────────────────────────── */
+.design-menu-wrap { position: relative; flex: none; }
+.design-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 200;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 6px;
+  min-width: 210px;
+  box-shadow: 0 12px 36px rgba(0,0,0,.6);
+}
+.design-menu-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--t3);
+  padding: 6px 10px 4px;
+}
+.design-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--t1);
+  text-align: left;
+  transition: background .12s;
+}
+.design-menu-item:hover { background: #2c2c2c; }
+.design-menu-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #2a2a2a;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--t2);
+}
+.design-menu-item:hover .design-menu-item-icon { background: #353535; color: var(--t1); }
+.design-menu-item-label { font-size: 13.5px; font-weight: 600; }
+
+/* ── Kit three-dot menu ──────────────────────────────────────── */
 .kit-more-wrap { position: relative; flex: none; }
 .kit-more-menu {
   position: absolute;

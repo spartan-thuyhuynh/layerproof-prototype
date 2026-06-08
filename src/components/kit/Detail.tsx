@@ -57,12 +57,14 @@ export function Detail({ kit }: DetailProps) {
   const prevOnboarding = useRef(kit.onboarding)
 
   // Kit-menu (three-dot) state
-  const [menuOpen, setMenuOpen]       = useState(false)
-  const [editingName, setEditingName] = useState(false)
-  const [editingDesc, setEditingDesc] = useState(false)
-  const [nameDraft, setNameDraft]     = useState(kit.name)
-  const [descDraft, setDescDraft]     = useState(kit.tagline)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const [menuOpen, setMenuOpen]         = useState(false)
+  const [designMenuOpen, setDesignMenuOpen] = useState(false)
+  const [editingName, setEditingName]   = useState(false)
+  const [editingDesc, setEditingDesc]   = useState(false)
+  const [nameDraft, setNameDraft]       = useState(kit.name)
+  const [descDraft, setDescDraft]       = useState(kit.tagline)
+  const menuRef       = useRef<HTMLDivElement>(null)
+  const designMenuRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
   const descRef = useRef<HTMLInputElement>(null)
 
@@ -70,10 +72,11 @@ export function Detail({ kit }: DetailProps) {
   useEffect(() => { setNameDraft(kit.name) },    [kit.name])
   useEffect(() => { setDescDraft(kit.tagline) }, [kit.tagline])
 
-  // Close menu on outside click
+  // Close menus on outside click
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+      if (designMenuRef.current && !designMenuRef.current.contains(e.target as Node)) setDesignMenuOpen(false)
     }
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
@@ -295,12 +298,57 @@ export function Detail({ kit }: DetailProps) {
             </div>
           </div>
           <div className="grow" />
-          <button
-            className="btn primary sm"
-            onClick={() => setAppliedId(isApplied ? '' : kit.id)}
-          >
-            {isApplied ? 'Applied ✓' : 'Use in a design'}
-          </button>
+
+          {/* "Use in a design" dropdown */}
+          <div className="design-menu-wrap" ref={designMenuRef}>
+            <button
+              className="btn primary sm"
+              onClick={() => setDesignMenuOpen((o) => !o)}
+            >
+              {isApplied ? 'Applied ✓' : 'Use in a design'}
+              <svg viewBox="0 0 12 12" fill="currentColor" style={{ width: 11, height: 11, marginLeft: 5, opacity: 0.8, flexShrink: 0 }}>
+                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </svg>
+            </button>
+
+            {designMenuOpen && (
+              <div className="design-menu">
+                <div className="design-menu-label">Create new design</div>
+                {[
+                  {
+                    id: 'presentation',
+                    label: 'Presentation',
+                    icon: (
+                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                        <rect x="2" y="3" width="16" height="11" rx="1.5" />
+                        <path d="M7 17h6M10 14v3" />
+                      </svg>
+                    ),
+                  },
+                  {
+                    id: 'social',
+                    label: 'Social Post',
+                    icon: (
+                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                        <rect x="3" y="3" width="14" height="14" rx="2" />
+                        <circle cx="7.5" cy="7.5" r="1.5" />
+                        <path d="M3 13l4-4 3 3 2-2 5 5" />
+                      </svg>
+                    ),
+                  },
+                ].map(({ id, label, icon }) => (
+                  <button
+                    key={id}
+                    className="design-menu-item"
+                    onClick={() => { setAppliedId(kit.id); setDesignMenuOpen(false) }}
+                  >
+                    <span className="design-menu-item-icon">{icon}</span>
+                    <span className="design-menu-item-label">{label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* three-dot menu */}
           <div className="kit-more-wrap" ref={menuRef}>
