@@ -1,6 +1,6 @@
 import type { BrandKit } from '@/types/brand'
 import type { EditorActions } from './types'
-import { ArrowRight, File } from '@/icons'
+import { ArrowRight, File, X } from '@/icons'
 import { OnboardingOverview } from './OnboardingOverview'
 
 /* ── shared logo mark ─────────────────────────────────────── */
@@ -36,6 +36,8 @@ interface OverviewProps {
   go: (id: string) => void
   onNew: () => void
   ed?: EditorActions
+  showWelcomeBanner?: boolean
+  onDismissBanner?: () => void
 }
 
 /* ── card: Logos ──────────────────────────────────────────── */
@@ -189,7 +191,7 @@ function ImageryCard({ kit, go }: { kit: BrandKit; go: () => void }) {
 }
 
 /* ── main ─────────────────────────────────────────────────── */
-export function Overview({ kit, go, ed }: OverviewProps) {
+export function Overview({ kit, go, ed, showWelcomeBanner, onDismissBanner }: OverviewProps) {
   if (kit.onboarding && ed) {
     return <OnboardingOverview kit={kit} ed={ed} go={go} />
   }
@@ -205,6 +207,33 @@ export function Overview({ kit, go, ed }: OverviewProps) {
           <div className="ov-banner-right">
             Explore how this sample Brand Kit controls design, voice, and content consistency. Then create one tailored to your brand!
           </div>
+        </div>
+      )}
+
+      {showWelcomeBanner && (
+        <div className="ov-banner" style={{ position: 'relative' }}>
+          <div className="ov-banner-left">
+            <div className="ov-banner-tag">✦ BRAND KIT CREATED</div>
+            <h2 className="ov-banner-title">Your brand kit<br />is ready!</h2>
+          </div>
+          <div className="ov-banner-right">
+            Keep building — add your logos, fill in colors, set your typography, and define your voice for a complete brand foundation.
+          </div>
+          <button
+            onClick={onDismissBanner}
+            title="Dismiss"
+            style={{
+              position: 'absolute', top: 14, right: 14,
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--t3)', padding: 4, lineHeight: 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 6,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--t1)'; e.currentTarget.style.background = 'rgba(255,255,255,.06)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--t3)'; e.currentTarget.style.background = 'none' }}
+          >
+            <X style={{ width: 14, height: 14 }} />
+          </button>
         </div>
       )}
 

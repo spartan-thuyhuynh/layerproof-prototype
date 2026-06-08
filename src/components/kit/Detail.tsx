@@ -53,6 +53,8 @@ export function Detail({ kit }: DetailProps) {
   const [section, setSection] = useState('overview')
   const [showAddCat, setShowAddCat] = useState(false)
   const [showDoc, setShowDoc] = useState(false)
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
+  const prevOnboarding = useRef(kit.onboarding)
 
   // Kit-menu (three-dot) state
   const [menuOpen, setMenuOpen]       = useState(false)
@@ -81,6 +83,15 @@ export function Detail({ kit }: DetailProps) {
   useEffect(() => { if (editingName) nameRef.current?.select() }, [editingName])
   useEffect(() => { if (editingDesc) descRef.current?.select() }, [editingDesc])
 
+  // Detect onboarding completion → show welcome banner on overview
+  useEffect(() => {
+    if (prevOnboarding.current && !kit.onboarding) {
+      setSection('overview')
+      setShowWelcomeBanner(true)
+    }
+    prevOnboarding.current = kit.onboarding
+  }, [kit.onboarding])
+
   function commitName() {
     const v = nameDraft.trim()
     if (v) updateKit(kit.id, (k) => ({ ...k, name: v }))
@@ -99,11 +110,15 @@ export function Detail({ kit }: DetailProps) {
     if (remaining.length > 0) useUIStore.getState().focusKit(remaining[0].id)
   }
 
-  // If the user leaves an onboarding kit without completing any action,
+  // If the user navigates away from an onboarding kit without completing it,
   // discard it so it isn't saved as a blank "Untitled" entry.
+  // Guard: only delete when focus has actually moved elsewhere, so React
+  // StrictMode's simulated unmount/remount cycle doesn't delete the new kit.
   useEffect(() => {
     const kitId = kit.id
     return () => {
+      const { focusedId } = useUIStore.getState()
+      if (focusedId === kitId) return          // StrictMode re-mount or still here
       const current = useBrandStore.getState().kits.find((k) => k.id === kitId)
       if (current?.onboarding) {
         useBrandStore.getState().deleteKit(kitId)
@@ -174,7 +189,7 @@ export function Detail({ kit }: DetailProps) {
 
   function renderBody() {
     switch (section) {
-      case 'overview': return <Overview kit={kit} go={setSection} onNew={() => setModal({ type: 'new' })} ed={ed} />
+      case 'overview': return <Overview kit={kit} go={setSection} onNew={() => setModal({ type: 'new' })} ed={ed} showWelcomeBanner={showWelcomeBanner} onDismissBanner={() => setShowWelcomeBanner(false)} />
       case 'colors': return <Colors kit={kit} ed={ed} />
       case 'typography': return <Typography kit={kit} ed={ed} />
       case 'logos': return <Logos kit={kit} ed={ed} />
@@ -326,6 +341,7 @@ export function Detail({ kit }: DetailProps) {
       {showDoc && (
         <GuidelineModal kit={kit} onClose={() => setShowDoc(false)} />
       )}
+
     </div>
   )
 }

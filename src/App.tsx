@@ -31,7 +31,7 @@ export default function App() {
       <div className="app">
         <Sidebar />
         <main className="main">
-          <Detail kit={focusedKit} />
+          <Detail key={focusedKit.id} kit={focusedKit} />
         </main>
       </div>
 

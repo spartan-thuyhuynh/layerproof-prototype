@@ -2,6 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import type { BrandKit } from '@/types/brand'
 import type { EditorActions } from './types'
 import { CategoryUploadModal } from '@/components/modals/CategoryUploadModal'
+import { ColorPickerModal } from '@/components/modals/ColorPickerModal'
+import { TypographyPickerModal } from '@/components/modals/TypographyPickerModal'
+import { VoicePickerModal } from '@/components/modals/VoicePickerModal'
+import { ProcessingToast } from '@/components/modals/ProcessingToast'
 
 interface OnboardingOverviewProps {
   kit: BrandKit
@@ -16,7 +20,7 @@ const SECTION_TILES = [
   {
     id: 'logos',
     label: 'Logo',
-    imageSrc: '/onboarding/logo.png',
+    imageSrc: `${import.meta.env.BASE_URL}onboarding/logo.png`,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
         strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
@@ -29,7 +33,7 @@ const SECTION_TILES = [
   {
     id: 'colors',
     label: 'Colors',
-    imageSrc: '/onboarding/colors.png',
+    imageSrc: `${import.meta.env.BASE_URL}onboarding/colors.png`,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
         strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
@@ -45,7 +49,7 @@ const SECTION_TILES = [
   {
     id: 'typography',
     label: 'Typography',
-    imageSrc: '/onboarding/typography.png',
+    imageSrc: `${import.meta.env.BASE_URL}onboarding/typography.png`,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
         strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
@@ -59,7 +63,7 @@ const SECTION_TILES = [
   {
     id: 'tone',
     label: 'Voices',
-    imageSrc: '/onboarding/voices.png',
+    imageSrc: `${import.meta.env.BASE_URL}onboarding/voices.png`,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
         strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
@@ -74,7 +78,7 @@ const SECTION_TILES = [
   {
     id: 'imagery',
     label: 'Image Assets',
-    imageSrc: '/onboarding/imagery.png',
+    imageSrc: `${import.meta.env.BASE_URL}onboarding/imagery.png`,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
         strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
@@ -141,7 +145,7 @@ function IllustrationSlot() {
     <div className="ob-illus-slot">
       {!errored && (
         <img
-          src="/onboarding/illustration.png"
+          src={`${import.meta.env.BASE_URL}onboarding/illustration.png`}
           className="ob-illus-img"
           alt="illustration"
           onLoad={() => setLoaded(true)}
@@ -192,6 +196,7 @@ function Tile({ label, icon, defaultImage, onClick }: TileProps) {
 export function OnboardingOverview({ kit, ed, go }: OnboardingOverviewProps) {
   const [url, setUrl] = useState('')
   const [activeModal, setActiveModal] = useState<string | null>(null)   // categoryId
+  const [toastCategory, setToastCategory] = useState<string | null>(null)
 
   // Load Anton for the hero title
   useEffect(() => {
@@ -205,14 +210,19 @@ export function OnboardingOverview({ kit, ed, go }: OnboardingOverviewProps) {
     }
   }, [])
 
-  function finishOnboarding(targetSection?: string) {
+  function finishOnboarding(category = 'general') {
+    setToastCategory(category)
+  }
+
+  function completeOnboarding() {
     ed.setVal(['onboarding'], false)
-    if (targetSection) go(targetSection)
+    go('overview')
+    setToastCategory(null)
   }
 
   function handleUrlImport() {
     if (!url.trim()) return
-    finishOnboarding('overview')
+    finishOnboarding('url')
   }
 
   return (
@@ -253,7 +263,7 @@ export function OnboardingOverview({ kit, ed, go }: OnboardingOverviewProps) {
             <UploadIcon />
             Upload Guideline PDF
             <input type="file" accept=".pdf" style={{ display: 'none' }}
-              onChange={() => finishOnboarding('overview')} />
+              onChange={() => finishOnboarding('pdf')} />
           </label>
         </div>
 
@@ -280,16 +290,45 @@ export function OnboardingOverview({ kit, ed, go }: OnboardingOverviewProps) {
         ))}
       </div>
 
-      {/* ── category upload modal ── */}
-      {activeModal && (
+      {/* ── category modals ── */}
+      {activeModal === 'colors' && (
+        <ColorPickerModal
+          kit={kit}
+          ed={ed}
+          onClose={() => setActiveModal(null)}
+          onDone={() => { setActiveModal(null); finishOnboarding('colors') }}
+        />
+      )}
+      {activeModal === 'typography' && (
+        <TypographyPickerModal
+          kit={kit}
+          ed={ed}
+          onClose={() => setActiveModal(null)}
+          onDone={() => { setActiveModal(null); finishOnboarding('typography') }}
+        />
+      )}
+      {activeModal === 'tone' && (
+        <VoicePickerModal
+          kit={kit}
+          ed={ed}
+          onClose={() => setActiveModal(null)}
+          onDone={() => { setActiveModal(null); finishOnboarding('tone') }}
+        />
+      )}
+      {activeModal && activeModal !== 'colors' && activeModal !== 'typography' && activeModal !== 'tone' && (
         <CategoryUploadModal
           categoryId={activeModal}
           initialImage={null}
           onClose={() => setActiveModal(null)}
-          onDone={() => {
-            setActiveModal(null)
-            finishOnboarding(activeModal)
-          }}
+          onDone={() => { setActiveModal(null); finishOnboarding(activeModal) }}
+        />
+      )}
+
+      {toastCategory && (
+        <ProcessingToast
+          category={toastCategory}
+          duration={5000}
+          onDismiss={completeOnboarding}
         />
       )}
     </div>
