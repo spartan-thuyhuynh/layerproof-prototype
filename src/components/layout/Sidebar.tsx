@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+import { ChevronLeft } from 'lucide-react'
 import * as I from '@/icons'
 
 const mainNav = [
@@ -24,9 +26,21 @@ const tools = [
   { icon: 'Calendar', label: 'Schedule' },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  showBack?: boolean
+}
+
+export function Sidebar({ showBack }: SidebarProps) {
+  const navigate = useNavigate()
+
   return (
     <aside className="side">
+      {showBack && (
+        <button className="side-back-btn" onClick={() => navigate('/')}>
+          <ChevronLeft size={14} />
+          All Prototypes
+        </button>
+      )}
       <div className="brand">
         <img src={`${import.meta.env.BASE_URL}lplogo.png`} alt="LayerProof" className="brand-logo-img" />
         <button className="side-icon-btn" style={{ marginLeft: 'auto' }}><I.Grid style={{ width: 16, height: 16 }} /></button>
