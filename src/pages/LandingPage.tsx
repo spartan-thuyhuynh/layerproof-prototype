@@ -18,14 +18,14 @@ const PROTOS = [
   },
   {
     title: 'New Onboarding',
-    status: 'coming-soon' as const,
+    status: 'live' as const,
     thumbnail: heroImg,
     to: '/onboarding',
     flows: [
-      'Import brand from URL',
-      'Set up colors & typography',
-      'Add logos & imagery',
-      'Define tone of voice',
+      'Sign up & choose a product',
+      'Import brand from URL or PDF',
+      'Review & refine extracted brand kit',
+      'Create your first project',
     ],
   },
   {

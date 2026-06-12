@@ -7,6 +7,7 @@ import { Detail } from '@/components/kit/Detail'
 import { ApplyModal } from '@/components/modals/ApplyModal'
 import { NewKitModal } from '@/components/modals/NewKitModal'
 import { IntroModal } from '@/components/modals/IntroModal'
+import { NewThemeModal } from '@/components/modals/NewThemeModal'
 import { TweaksPanel } from '@/components/tweaks/TweaksPanel'
 
 const INTRO_KEY = 'bk_intro_seen'
@@ -48,6 +49,10 @@ export function BrandKitPage() {
 
       {modal?.type === 'new' && (
         <NewKitModal onClose={() => setModal(null)} />
+      )}
+
+      {modal?.type === 'new-theme' && (
+        <NewThemeModal kit={focusedKit} onClose={() => setModal(null)} />
       )}
 
       <TweaksPanel />

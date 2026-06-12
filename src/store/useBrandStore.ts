@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { BRAND_KITS } from '@/data/brand-kits'
-import type { BrandKit } from '@/types/brand'
+import type { BrandKit, BrandTheme } from '@/types/brand'
 import { deepClone } from '@/lib/utils'
 
 interface BrandStore {
@@ -10,6 +10,9 @@ interface BrandStore {
   updateKit: (id: string, updater: (k: BrandKit) => BrandKit) => void
   createKit: () => string
   deleteKit: (id: string) => void
+  addTheme: (kitId: string, theme: BrandTheme) => void
+  updateTheme: (kitId: string, themeId: string, updater: (t: BrandTheme) => BrandTheme) => void
+  deleteTheme: (kitId: string, themeId: string) => void
 }
 
 function makeEmptyKit(): BrandKit {
@@ -44,6 +47,7 @@ function makeEmptyKit(): BrandKit {
       { id: 'tone',       label: 'Brand Voice',  icon: 'mic',     fixed: true, hidden: false },
       { id: 'imagery',    label: 'Image Assets', icon: 'photo',   fixed: true, hidden: false },
     ],
+    themes: [],
   }
 }
 
@@ -62,4 +66,26 @@ export const useBrandStore = create<BrandStore>((set) => ({
   },
   deleteKit: (id) =>
     set((state) => ({ kits: state.kits.filter((k) => k.id !== id) })),
+  addTheme: (kitId, theme) =>
+    set((state) => ({
+      kits: state.kits.map((k) =>
+        k.id === kitId ? { ...k, themes: [...(k.themes ?? []), theme] } : k
+      ),
+    })),
+  updateTheme: (kitId, themeId, updater) =>
+    set((state) => ({
+      kits: state.kits.map((k) =>
+        k.id === kitId
+          ? { ...k, themes: (k.themes ?? []).map((t) => (t.id === themeId ? updater(t) : t)) }
+          : k
+      ),
+    })),
+  deleteTheme: (kitId, themeId) =>
+    set((state) => ({
+      kits: state.kits.map((k) =>
+        k.id === kitId
+          ? { ...k, themes: (k.themes ?? []).filter((t) => t.id !== themeId) }
+          : k
+      ),
+    })),
 }))

@@ -46,7 +46,7 @@ export function Sidebar({ showBack }: SidebarProps) {
         <button className="side-icon-btn" style={{ marginLeft: 'auto' }}><I.Grid style={{ width: 16, height: 16 }} /></button>
       </div>
 
-      <button className="create">
+      <button className="create" onClick={() => navigate('/onboarding')}>
         Create new design
         <I.Chevron style={{ width: 15, height: 15, marginLeft: 'auto' }} />
       </button>

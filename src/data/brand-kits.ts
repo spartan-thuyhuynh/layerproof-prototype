@@ -107,6 +107,47 @@ export const BRAND_KITS: BrandKit[] = [
       ],
     },
     categories: [],
+    themes: [
+      {
+        id: 'theme-lp-campaign',
+        name: 'Product Launch Campaign',
+        description: 'High-impact campaign theme using gradient energy and bold headlines for product announcements.',
+        thumbnailSrc: undefined,
+        rules: [
+          { id: 'r1', label: 'Color Usage', content: 'Lead with the Hot Pink → Signal Yellow gradient (#EC4899 → #FFDE42) for hero sections and CTAs. Use Ink (#0A0A0A) for all backgrounds.' },
+          { id: 'r2', label: 'Typography', content: 'Headlines in Archivo ExtraBold at 52–72px. Use uppercase for eyebrow labels. Body copy stays 15–16px regular.' },
+          { id: 'r3', label: 'Imagery Style', content: 'Dark, spotlight-lit scenes with a single neon accent. Generous negative space. Never use bright flat stock photography.' },
+          { id: 'r4', label: 'CTA Buttons', content: 'Primary CTA: yellow fill (#FFDE42) with black text. Pill-shape (24px radius). No secondary outline buttons in hero areas.' },
+        ],
+        createdAt: '2026-05-10',
+      },
+      {
+        id: 'theme-lp-social',
+        name: 'Social Post Template',
+        description: 'Square and story formats for social media with minimal layout and brand mark always present.',
+        thumbnailSrc: undefined,
+        rules: [
+          { id: 'r1', label: 'Format', content: '1080×1080px for feed posts, 1080×1920px for stories. Always include the LayerProof symbol mark in the top-left corner.' },
+          { id: 'r2', label: 'Background', content: 'Use Ink (#0A0A0A) or the brand gradient as background. Avoid white or light backgrounds.' },
+          { id: 'r3', label: 'Text Density', content: 'Keep copy to 1–2 short lines maximum. Let visuals carry the message — text is a label, not a paragraph.' },
+          { id: 'r4', label: 'Brand Voice', content: 'Confident, precise. One bold claim per post. No hashtag soup — max 3 relevant hashtags.' },
+        ],
+        createdAt: '2026-05-18',
+      },
+      {
+        id: 'theme-lp-deck',
+        name: 'Pitch Deck',
+        description: 'Investor and partner presentation with structured grid, restrained palette, and editorial imagery.',
+        thumbnailSrc: undefined,
+        rules: [
+          { id: 'r1', label: 'Slide Layout', content: 'Use 12-column grid with 24px gutter. Full-bleed imagery slides alternate with text-heavy data slides. Generous padding — min 48px on all sides.' },
+          { id: 'r2', label: 'Color Role', content: 'Signal Yellow only for data highlights and key numbers. Pink only for gradient accents on title slides. All other text on dark backgrounds.' },
+          { id: 'r3', label: 'Typography Hierarchy', content: 'Slide title: 38px ExtraBold. Section label eyebrow: 11px uppercase, 0.1em tracking, var(--t2). Body: 16px Regular. Data callout: 52px Bold.' },
+          { id: 'r4', label: 'Chart Style', content: 'Charts use yellow (#FFDE42) as the primary series color on dark (#1b1b1b) backgrounds. Hairline grid lines (#2a2a2a), no fill.' },
+        ],
+        createdAt: '2026-06-01',
+      },
+    ],
   },
   {
     id: 'northwind',
@@ -209,6 +250,7 @@ export const BRAND_KITS: BrandKit[] = [
       ],
     },
     categories: [],
+    themes: [],
   },
   {
     id: 'voltspace',
@@ -320,5 +362,6 @@ export const BRAND_KITS: BrandKit[] = [
       ],
     },
     categories: [],
+    themes: [],
   },
 ]

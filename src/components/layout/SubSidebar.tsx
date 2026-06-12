@@ -16,6 +16,7 @@ interface SubSidebarProps {
 
 const BUILT_IN_SECTIONS = [
   { id: 'overview',    label: 'Overview' },
+  { id: 'themes',      label: 'Brand Themes' },
   { id: 'logos',       label: 'Logos' },
   { id: 'colors',      label: 'Colors' },
   { id: 'typography',  label: 'Typography' },
@@ -112,13 +113,15 @@ export function SubSidebar({
       <nav className="subnav">
         <div className="subnav-group-label">Brand sections</div>
         {BUILT_IN_SECTIONS.map(({ id, label }) => (
-          <button
-            key={id}
-            className={`navitem sub${activeSection === id ? ' active' : ''}`}
-            onClick={() => onSection(id)}
-          >
-            <span className="grow">{label}</span>
-          </button>
+          <div key={id}>
+            <button
+              className={`navitem sub${activeSection === id ? ' active' : ''}`}
+              onClick={() => onSection(id)}
+            >
+              <span className="grow">{label}</span>
+            </button>
+            {id === 'themes' && <div style={{ height: 1, background: 'var(--line)', margin: '6px 0' }} />}
+          </div>
         ))}
 
         {customCats.length > 0 && (

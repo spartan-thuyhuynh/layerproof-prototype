@@ -1,7 +1,8 @@
 import type { BrandKit } from '@/types/brand'
 import type { EditorActions } from './types'
-import { ArrowRight, File, X } from '@/icons'
+import { ArrowRight, File } from '@/icons'
 import { OnboardingOverview } from './OnboardingOverview'
+import { Banner } from './shared'
 
 /* ── shared logo mark ─────────────────────────────────────── */
 function Mark({ kit, size = 40 }: { kit: BrandKit; size?: number }) {
@@ -159,6 +160,43 @@ function VoiceCard({ kit, go }: { kit: BrandKit; go: () => void }) {
   )
 }
 
+/* ── card: Brand Themes ───────────────────────────────────── */
+const THEME_GRADS = [
+  'linear-gradient(135deg,#ec4899,#ffde42)',
+  'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+  'linear-gradient(135deg,#14b8a6,#3b82f6)',
+  'linear-gradient(135deg,#f97316,#ec4899)',
+]
+
+function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
+  const themes = kit.themes ?? []
+  const count = themes.length
+  return (
+    <div className="ov-card" onClick={go}>
+      <div className="ov-card-left">
+        <div className="ov-card-title">Brand Themes</div>
+        <div className="ov-card-count">{count} theme{count !== 1 ? 's' : ''}</div>
+        <button className="ov-link">View all <ArrowRight style={{ width: 12, height: 12 }} /></button>
+      </div>
+      <div className="ov-thumbs">
+        {count > 0
+          ? themes.slice(0, 4).map((t, i) => {
+              const grad = THEME_GRADS[t.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % THEME_GRADS.length]
+              return (
+                <div key={t.id} className="ov-thumb" style={{ background: grad, position: 'relative', overflow: 'hidden' }}>
+                  {t.thumbnailSrc && i === 0 && <img src={t.thumbnailSrc} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />}
+                </div>
+              )
+            })
+          : THEME_GRADS.slice(0, 4).map((g, i) => (
+              <div key={i} className="ov-thumb" style={{ background: g, opacity: 0.25 + i * 0.1 }} />
+            ))
+        }
+      </div>
+    </div>
+  )
+}
+
 /* ── card: Image Assets ───────────────────────────────────── */
 const IMG_ACCENTS = ['#ec4899', '#ffde42', '#a78bfa', '#34d399']
 
@@ -199,42 +237,20 @@ export function Overview({ kit, go, ed, showWelcomeBanner, onDismissBanner }: Ov
   return (
     <div className="fade-in ov-wrap">
       {kit.sample && (
-        <div className="ov-banner">
-          <div className="ov-banner-left">
-            <div className="ov-banner-tag">SAMPLE BRAND KIT</div>
-            <h2 className="ov-banner-title">Discover the power<br />of Brand Kit</h2>
-          </div>
-          <div className="ov-banner-right">
-            Explore how this sample Brand Kit controls design, voice, and content consistency. Then create one tailored to your brand!
-          </div>
-        </div>
+        <Banner
+          tag="SAMPLE BRAND KIT"
+          title={<>Discover the power<br />of Brand Kit</>}
+          description="Explore how this sample Brand Kit controls design, voice, and content consistency. Then create one tailored to your brand!"
+        />
       )}
 
       {showWelcomeBanner && (
-        <div className="ov-banner" style={{ position: 'relative' }}>
-          <div className="ov-banner-left">
-            <div className="ov-banner-tag">✦ BRAND KIT CREATED</div>
-            <h2 className="ov-banner-title">Your brand kit<br />is ready!</h2>
-          </div>
-          <div className="ov-banner-right">
-            Keep building — add your logos, fill in colors, set your typography, and define your voice for a complete brand foundation.
-          </div>
-          <button
-            onClick={onDismissBanner}
-            title="Dismiss"
-            style={{
-              position: 'absolute', top: 14, right: 14,
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--t3)', padding: 4, lineHeight: 1,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderRadius: 6,
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--t1)'; e.currentTarget.style.background = 'rgba(255,255,255,.06)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--t3)'; e.currentTarget.style.background = 'none' }}
-          >
-            <X style={{ width: 14, height: 14 }} />
-          </button>
-        </div>
+        <Banner
+          tag="✦ BRAND KIT CREATED"
+          title={<>Your brand kit<br />is ready!</>}
+          description="Keep building — add your logos, fill in colors, set your typography, and define your voice for a complete brand foundation."
+          onDismiss={onDismissBanner}
+        />
       )}
 
       <div className="ov-head-row">
@@ -248,6 +264,7 @@ export function Overview({ kit, go, ed, showWelcomeBanner, onDismissBanner }: Ov
       </div>
 
       <div className="ov-grid">
+        <ThemesCard kit={kit} go={() => go('themes')} />
         <LogosCard kit={kit} go={() => go('logos')} />
         <ColorsCard kit={kit} go={() => go('colors')} />
         <TypographyCard kit={kit} go={() => go('typography')} />

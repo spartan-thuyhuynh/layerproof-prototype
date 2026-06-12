@@ -111,6 +111,22 @@ export interface LogoStyle {
   border?: string
 }
 
+export interface ThemeRule {
+  id: string
+  label: string
+  content: string
+}
+
+export interface BrandTheme {
+  id: string
+  name: string
+  description: string
+  thumbnailSrc?: string
+  rules: ThemeRule[]
+  prompt?: string
+  createdAt: string
+}
+
 export interface BrandKit {
   id: string
   name: string
@@ -131,6 +147,7 @@ export interface BrandKit {
   tone: ToneData
   layout: LayoutData
   categories: Category[]
+  themes: BrandTheme[]
 }
 
 export interface Category {
@@ -143,7 +160,7 @@ export interface Category {
   rules?: Rule[]
 }
 
-export type ModalType = 'apply' | 'new' | 'doc'
+export type ModalType = 'apply' | 'new' | 'doc' | 'new-theme'
 
 export interface ModalState {
   type: ModalType

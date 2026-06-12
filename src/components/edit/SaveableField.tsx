@@ -72,7 +72,6 @@ export function SaveableField({
         }
         <button className="sf-edit-btn" onClick={() => setEditing(true)} title="Edit">
           <Pencil style={{ width: 13, height: 13 }} />
-          Edit
         </button>
       </div>
     )
