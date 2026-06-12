@@ -161,16 +161,27 @@ function VoiceCard({ kit, go }: { kit: BrandKit; go: () => void }) {
 }
 
 /* ── card: Brand Themes ───────────────────────────────────── */
-const THEME_GRADS = [
-  'linear-gradient(135deg,#ec4899,#ffde42)',
-  'linear-gradient(135deg,#3b82f6,#8b5cf6)',
-  'linear-gradient(135deg,#14b8a6,#3b82f6)',
-  'linear-gradient(135deg,#f97316,#ec4899)',
-]
+const ANGLES_OV = [135, 150, 120, 160]
+
+function kitThemeGrads(kit: BrandKit): string[] {
+  const colors = kit.colors.palettes.flatMap((p) => p.colors).map((c) => c.hex).filter(Boolean)
+  if (colors.length < 2) return [
+    'linear-gradient(135deg,#ec4899,#ffde42)',
+    'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+    'linear-gradient(135deg,#14b8a6,#3b82f6)',
+    'linear-gradient(135deg,#f97316,#ec4899)',
+  ]
+  return ANGLES_OV.map((angle, i) => {
+    const a = colors[i % colors.length]
+    const b = colors[(i + 1) % colors.length]
+    return `linear-gradient(${angle}deg,${a},${b})`
+  })
+}
 
 function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
   const themes = kit.themes ?? []
   const count = themes.length
+  const grads = kitThemeGrads(kit)
   return (
     <div className="ov-card" onClick={go}>
       <div className="ov-card-left">
@@ -181,15 +192,15 @@ function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
       <div className="ov-thumbs">
         {count > 0
           ? themes.slice(0, 4).map((t, i) => {
-              const grad = THEME_GRADS[t.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % THEME_GRADS.length]
+              const grad = grads[t.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % grads.length]
               return (
                 <div key={t.id} className="ov-thumb" style={{ background: grad, position: 'relative', overflow: 'hidden' }}>
                   {t.thumbnailSrc && i === 0 && <img src={t.thumbnailSrc} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />}
                 </div>
               )
             })
-          : THEME_GRADS.slice(0, 4).map((g, i) => (
-              <div key={i} className="ov-thumb" style={{ background: g, opacity: 0.25 + i * 0.1 }} />
+          : grads.slice(0, 4).map((g, i) => (
+              <div key={i} className="ov-thumb" style={{ background: g, opacity: 0.3 + i * 0.1 }} />
             ))
         }
       </div>

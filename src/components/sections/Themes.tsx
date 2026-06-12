@@ -6,7 +6,7 @@ import { ThemeDetailModal } from '@/components/modals/ThemeDetailModal'
 import { useBrandStore } from '@/store/useBrandStore'
 import { useUIStore } from '@/store/useUIStore'
 
-const THEME_GRADIENTS = [
+const FALLBACK_GRADIENTS = [
   'linear-gradient(135deg,#ec4899,#ffde42)',
   'linear-gradient(135deg,#3b82f6,#8b5cf6)',
   'linear-gradient(135deg,#14b8a6,#3b82f6)',
@@ -14,9 +14,25 @@ const THEME_GRADIENTS = [
   'linear-gradient(135deg,#22c55e,#14b8a6)',
 ]
 
-function gradientForTheme(id: string) {
-  const idx = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % THEME_GRADIENTS.length
-  return THEME_GRADIENTS[idx]
+const ANGLES = [135, 150, 120, 160, 145]
+
+/** Build gradient variants from the kit's palette colors */
+function buildBrandGradients(kit: BrandKit): string[] {
+  const colors = kit.colors.palettes.flatMap((p) => p.colors).map((c) => c.hex).filter(Boolean)
+  if (colors.length < 2) return FALLBACK_GRADIENTS
+  // Build pairs: rotate through available colors with different angles
+  const pairs: [string, string][] = []
+  for (let i = 0; i < Math.max(colors.length, 5); i++) {
+    const a = colors[i % colors.length]
+    const b = colors[(i + 1) % colors.length]
+    pairs.push([a, b])
+  }
+  return pairs.map(([a, b], i) => `linear-gradient(${ANGLES[i % ANGLES.length]}deg,${a},${b})`)
+}
+
+function gradientForTheme(id: string, gradients: string[]) {
+  const idx = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % gradients.length
+  return gradients[idx]
 }
 
 interface ThemesProps {
@@ -31,6 +47,7 @@ export function Themes({ kit }: ThemesProps) {
   const [bannerDismissed, setBannerDismissed] = useState(() => localStorage.getItem('themes_banner_dismissed') === '1')
 
   const themes = kit.themes ?? []
+  const brandGradients = buildBrandGradients(kit)
 
   function handleCreateWithTheme() {
     setSelectedTheme(null)
@@ -96,6 +113,7 @@ export function Themes({ kit }: ThemesProps) {
             <ThemeCard
               key={theme.id}
               theme={theme}
+              gradients={brandGradients}
               onClick={() => setSelectedTheme(theme)}
               onDelete={() => deleteTheme(kit.id, theme.id)}
             />
@@ -149,11 +167,12 @@ export function Themes({ kit }: ThemesProps) {
 
 interface ThemeCardProps {
   theme: BrandTheme
+  gradients: string[]
   onClick: () => void
   onDelete: () => void
 }
 
-function ThemeCard({ theme, onClick, onDelete }: ThemeCardProps) {
+function ThemeCard({ theme, gradients, onClick, onDelete }: ThemeCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -173,7 +192,7 @@ function ThemeCard({ theme, onClick, onDelete }: ThemeCardProps) {
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
-          <div style={{ width: '100%', height: '100%', background: gradientForTheme(theme.id) }} />
+          <div style={{ width: '100%', height: '100%', background: gradientForTheme(theme.id, gradients) }} />
         )}
       </div>
 
