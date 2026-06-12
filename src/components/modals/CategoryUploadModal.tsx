@@ -82,9 +82,11 @@ function AddCard({ accept, onFiles }: { accept: string; onFiles: (files: File[])
       onDragLeave={() => setDragging(false)}
       onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
     >
-      <div className="cum-add-inner">
-        <div className="cum-add-plus">+</div>
-        <div className="cum-add-label">Add new</div>
+      <div className="cum-card-preview">
+        <div className="cum-add-inner">
+          <div className="cum-add-plus">+</div>
+          <div className="cum-add-label">Add new</div>
+        </div>
       </div>
       <input
         ref={inputRef}
@@ -130,7 +132,7 @@ export function CategoryUploadModal({
   return (
     <Portal>
     <div className="scrim" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal" style={{ maxWidth: 560, height: 480 }} onClick={(e) => e.stopPropagation()}>
         {/* header */}
         <div className="mhead" style={{ paddingBottom: 18 }}>
           <button className="x" onClick={onClose}>

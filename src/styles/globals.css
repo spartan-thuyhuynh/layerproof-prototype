@@ -1012,7 +1012,7 @@ button { font-family: inherit; cursor: pointer; }
 .modal .mhead { padding: 22px 24px 0; }
 .modal .mhead .x { float: right; background: #1e1e1e; border: 1px solid var(--line); color: var(--t2); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; }
 .modal .mhead .x:hover { color: var(--t1); }
-.modal .mbody { padding: 18px 24px; overflow-y: auto; }
+.modal .mbody { padding: 18px 24px; overflow-y: auto; overflow-x: hidden; }
 .modal .mfoot { padding: 16px 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 
 .kitpick { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; transition: all .12s; margin-bottom: 10px; }
@@ -1740,6 +1740,7 @@ button { font-family: inherit; cursor: pointer; }
   flex-direction: column;
   gap: 7px;
   cursor: pointer;
+  min-width: 0;
 }
 .cum-card-preview {
   position: relative;
