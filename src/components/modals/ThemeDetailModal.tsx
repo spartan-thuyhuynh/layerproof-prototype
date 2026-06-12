@@ -338,10 +338,46 @@ interface ThemeDetailModalProps {
   onCreateWithTheme: () => void
 }
 
+const CREATE_MENU_ITEMS = [
+  {
+    id: 'presentation',
+    label: 'Presentation',
+    desc: 'Slides & pitch decks',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+        <rect x="2" y="3" width="16" height="11" rx="1.5" />
+        <path d="M7 17h6M10 14v3" />
+      </svg>
+    ),
+  },
+  {
+    id: 'social',
+    label: 'Social Post',
+    desc: 'Instagram, LinkedIn, X',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+        <rect x="3" y="3" width="14" height="14" rx="2" />
+        <circle cx="7.5" cy="7.5" r="1.5" />
+        <path d="M3 13l4-4 3 3 2-2 5 5" />
+      </svg>
+    ),
+  },
+]
+
 export function ThemeDetailModal({ theme, kit, kitId, onClose, onCreateWithTheme }: ThemeDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [prompt, setPrompt] = useState(theme.prompt ?? rulesAsPrompt(theme))
   const [saved, setSaved] = useState(false)
+  const [createMenuOpen, setCreateMenuOpen] = useState(false)
+  const createMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (createMenuRef.current && !createMenuRef.current.contains(e.target as Node)) setCreateMenuOpen(false)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [])
 
   useEffect(() => {
     setPrompt(theme.prompt ?? rulesAsPrompt(theme))
@@ -431,12 +467,33 @@ export function ThemeDetailModal({ theme, kit, kitId, onClose, onCreateWithTheme
                 <Pencil style={{ width: 13, height: 13 }} />
                 Edit theme
               </button>
-              <button className="btn primary" onClick={onCreateWithTheme}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-                  <path d="M2 14L9 2l3 7 3-3" /><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
-                </svg>
-                Create with this theme
-              </button>
+              <div className="design-menu-wrap" ref={createMenuRef}>
+                <button className="btn primary" onClick={() => setCreateMenuOpen((o) => !o)}>
+                  Create with this theme
+                  <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10, marginLeft: 4, opacity: 0.7, flexShrink: 0, transition: 'transform .15s', transform: createMenuOpen ? 'rotate(180deg)' : 'none' }}>
+                    <path d="M2 4l4 4 4-4" />
+                  </svg>
+                </button>
+
+                {createMenuOpen && (
+                  <div className="design-menu" style={{ bottom: 'calc(100% + 8px)', top: 'auto' }}>
+                    <div className="design-menu-label">Choose a format</div>
+                    {CREATE_MENU_ITEMS.map(({ id, label, desc, icon }) => (
+                      <button
+                        key={id}
+                        className="design-menu-item"
+                        onClick={() => { setCreateMenuOpen(false); onCreateWithTheme() }}
+                      >
+                        <span className="design-menu-item-icon">{icon}</span>
+                        <span>
+                          <span className="design-menu-item-label">{label}</span>
+                          <span style={{ display: 'block', fontSize: 11, color: 'var(--t3)', marginTop: 1 }}>{desc}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
