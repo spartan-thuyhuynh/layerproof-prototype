@@ -37,37 +37,37 @@ interface SidebarProps {
 
 const CREATE_PRODUCTS = [
   {
-    icon: 'Social', label: 'Social Post', color: '#f97316',
+    icon: 'Social', label: 'Social Post', color: '#f97316', slug: 'social-post',
     desc: 'Create eye-catching content for every social platform.',
     features: ['X, LinkedIn, Instagram & more', 'Brand-consistent templates', 'AI caption & hashtag writer'],
     sampleBg: 'linear-gradient(135deg, #431407 0%, #7c2d12 100%)',
   },
   {
-    icon: 'Docs', label: 'Docs', color: '#14b8a6',
+    icon: 'Docs', label: 'Docs', color: '#14b8a6', slug: 'docs',
     desc: 'Write polished documents and reports with AI assistance.',
     features: ['Smart writing assistant', 'Real-time collaboration', 'Export to PDF or DOCX'],
     sampleBg: 'linear-gradient(135deg, #042f2e 0%, #134e4a 100%)',
   },
   {
-    icon: 'Layers', label: 'Space', color: '#22c55e',
+    icon: 'Layers', label: 'Space', color: '#22c55e', slug: 'space',
     desc: "Organize and share your team's creative assets in one place.",
     features: ['Brand asset library', 'Team permissions', 'Version history'],
     sampleBg: 'linear-gradient(135deg, #052e16 0%, #14532d 100%)',
   },
   {
-    icon: 'Present', label: 'Presentation', color: '#8b5cf6',
+    icon: 'Present', label: 'Presentation', color: '#8b5cf6', slug: 'presentation',
     desc: 'Build stunning slide decks that captivate any audience.',
     features: ['100+ slide templates', 'Animate & present live', 'AI content suggestions'],
     sampleBg: 'linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)',
   },
   {
-    icon: 'Sparkle', label: 'Design', color: '#3b82f6',
+    icon: 'Sparkle', label: 'Design', color: '#3b82f6', slug: 'design',
     desc: 'Create graphics, visuals, and brand assets at scale.',
     features: ['Drag-and-drop canvas', 'Brand kit integration', 'Export any format'],
     sampleBg: 'linear-gradient(135deg, #172554 0%, #1e3a8a 100%)',
   },
   {
-    icon: 'Globe', label: 'App', color: '#ec4899',
+    icon: 'Globe', label: 'App', color: '#ec4899', slug: 'app',
     desc: 'Build interactive web experiences and landing pages.',
     features: ['No-code builder', 'Responsive layouts', 'Publish instantly'],
     sampleBg: 'linear-gradient(135deg, #500724 0%, #831843 100%)',
@@ -141,7 +141,7 @@ export function Sidebar({ showBack }: SidebarProps) {
                   className={`create-dropdown-item${hoveredProduct?.label === p.label ? ' hovered' : ''}`}
                   onMouseEnter={() => setHoveredProduct(p)}
                   onMouseLeave={() => setHoveredProduct(null)}
-                  onClick={() => { setCreateOpen(false); setHoveredProduct(null); navigate('/onboarding') }}
+                  onClick={() => { setCreateOpen(false); setHoveredProduct(null); navigate(`/create/${p.slug}`) }}
                 >
                   <span className="create-dropdown-icon" style={{ background: `${p.color}22`, color: p.color }}>
                     {Icon && <Icon style={{ width: 14, height: 14 }} />}

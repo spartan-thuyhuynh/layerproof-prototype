@@ -1,4 +1,5 @@
 import * as I from '@/shared/icons'
+import { useNavigate } from 'react-router-dom'
 import { Sidebar } from '@/shared/components/layout/Sidebar'
 import { RECENT_PROJECTS } from '@/data/recent-projects'
 import type { RecentProject } from '@/data/recent-projects'
@@ -6,18 +7,18 @@ import type { RecentProject } from '@/data/recent-projects'
 const base = import.meta.env.BASE_URL
 
 const FEATURE_CARDS = [
-  { product: 'Social Post', title: 'Launch a social media campaign',     desc: 'Brand-consistent content across every channel', icon: 'Social',  color: '#f97316', img: `${base}home/card-social-post.png`, thumbPos: 'center top' },
-  { product: 'Docs',        title: 'Write & share team reports',         desc: 'Create and share polished documents',           icon: 'Docs',    color: '#14b8a6', img: `${base}home/card-docs.png`,       thumbPos: 'center top' },
-  { product: 'Space',       title: 'Build a collaborative brand space',  desc: 'Design collaborative spaces for your team',     icon: 'Layers',  color: '#22c55e', img: `${base}home/card-space.png`,      thumbPos: 'center top' },
+  { product: 'Social Post', slug: 'social-post',   title: 'Generate Social Media Content',      desc: 'Create consistent, high-performing social content that keeps your brand active across channels.', icon: 'Social',  color: '#f97316', img: `${base}home/card-social-post.png`, thumbPos: 'center top' },
+  { product: 'Docs',        slug: 'docs',           title: 'Generate Blogs & Articles',          desc: 'Write in-depth content faster with AI-powered drafting, editing, and content expansion.',   icon: 'Docs',    color: '#14b8a6', img: `${base}home/card-docs.png`,       thumbPos: 'center top' },
+  { product: 'Space',       slug: 'space',          title: 'Combine Images & Ideas',             desc: 'Use multiple references and prompts to create exactly what you envision.', icon: 'Layers',  color: '#22c55e', img: `${base}home/card-space.png`,      thumbPos: 'center top' },
 ]
 
 const COMMUNITY = [
-  { id: 'c1', title: 'Mastering Modern Kotlin: From Basics to Coroutines',         type: 'Presentation', thumbBg: 'linear-gradient(135deg,#1e1b4b,#312e81)', thumbIcon: 'Present', thumbIconColor: '#8b5cf6', date: 'May 7, 2026',  likes: 4 },
-  { id: 'c2', title: 'Decoding the Feline Friend',                                 type: 'Presentation', thumbBg: 'linear-gradient(135deg,#422006,#78350f)', thumbIcon: 'Present', thumbIconColor: '#f97316', date: 'May 7, 2026',  likes: 1 },
-  { id: 'c3', title: 'Differentiating Apex Predators: T-Rex, Spinosaurus, Giga…', type: 'Presentation', thumbBg: 'linear-gradient(135deg,#14532d,#166534)', thumbIcon: 'Present', thumbIconColor: '#22c55e', date: 'May 7, 2026',  likes: 1 },
-  { id: 'c4', title: 'The Enduring Mystery of The Buzzer',                         type: 'Presentation', thumbBg: 'linear-gradient(135deg,#1e3a5f,#1d4ed8)', thumbIcon: 'Present', thumbIconColor: '#3b82f6', date: 'May 7, 2026',  likes: 1 },
-  { id: 'c5', title: 'Mastering Design Thinking Methodology',                      type: 'Presentation', thumbBg: 'linear-gradient(135deg,#3b0764,#7e22ce)', thumbIcon: 'Present', thumbIconColor: '#a855f7', date: 'May 7, 2026',  likes: 1 },
-  { id: 'c6', title: 'Choosing React State Management Solutions',                  type: 'Presentation', thumbBg: 'linear-gradient(135deg,#0c4a6e,#0369a1)', thumbIcon: 'Present', thumbIconColor: '#38bdf8', date: 'May 20, 2026', likes: 0 },
+  { id: 'c1', title: 'Mastering Modern Kotlin: From Basics to Coroutines',         type: 'Presentation', thumbBg: 'var(--card-2)', thumbIcon: 'Present', thumbIconColor: 'var(--t3)', date: 'May 7, 2026',  likes: 4 },
+  { id: 'c2', title: 'Decoding the Feline Friend',                                 type: 'Presentation', thumbBg: 'var(--card-2)', thumbIcon: 'Present', thumbIconColor: 'var(--t3)', date: 'May 7, 2026',  likes: 1 },
+  { id: 'c3', title: 'Differentiating Apex Predators: T-Rex, Spinosaurus, Giga…', type: 'Presentation', thumbBg: 'var(--card-2)', thumbIcon: 'Present', thumbIconColor: 'var(--t3)', date: 'May 7, 2026',  likes: 1 },
+  { id: 'c4', title: 'The Enduring Mystery of The Buzzer',                         type: 'Presentation', thumbBg: 'var(--card-2)', thumbIcon: 'Present', thumbIconColor: 'var(--t3)', date: 'May 7, 2026',  likes: 1 },
+  { id: 'c5', title: 'Mastering Design Thinking Methodology',                      type: 'Presentation', thumbBg: 'var(--card-2)', thumbIcon: 'Present', thumbIconColor: 'var(--t3)', date: 'May 7, 2026',  likes: 1 },
+  { id: 'c6', title: 'Choosing React State Management Solutions',                  type: 'Presentation', thumbBg: 'var(--card-2)', thumbIcon: 'Present', thumbIconColor: 'var(--t3)', date: 'May 20, 2026', likes: 0 },
 ]
 
 function RecentCard({ project }: { project: RecentProject }) {
@@ -42,6 +43,8 @@ function RecentCard({ project }: { project: RecentProject }) {
 }
 
 export function HomePage() {
+  const navigate = useNavigate()
+
   return (
     <div className="app">
       <Sidebar showBack />
@@ -61,7 +64,7 @@ export function HomePage() {
               {FEATURE_CARDS.map((card) => {
                 const Icon = I.Icons[card.icon]
                 return (
-                  <button key={card.product} className="hp-feature-card">
+                  <button key={card.product} className="hp-feature-card" onClick={() => navigate(`/create/${card.slug}`)}>
                     <div className="hp-feature-thumb">
                       {card.img
                         ? <img src={card.img} alt={card.product} className="hp-feature-img" style={{ objectPosition: card.thumbPos }} />
@@ -80,14 +83,14 @@ export function HomePage() {
 
             <div className="hp-sub-products">
               {[
-                { icon: 'Present', label: 'Presentation', desc: 'Slides & decks for any audience',    chevron: false },
-                { icon: 'Sparkle', label: 'Design',        desc: 'Graphics, visuals & brand assets',  chevron: false },
-                { icon: 'Globe',   label: 'App',           desc: 'Interactive web experiences',        chevron: false },
-                { icon: 'Zap',     label: 'AI Tools',      desc: 'Generate content with AI',           chevron: true  },
+                { icon: 'Present', label: 'Presentation', slug: 'presentation', desc: 'Slides & decks for any audience',   chevron: false },
+                { icon: 'Sparkle', label: 'Design',        slug: 'design',       desc: 'Graphics, visuals & brand assets',  chevron: false },
+                { icon: 'Globe',   label: 'App',           slug: 'app',          desc: 'Interactive web experiences',        chevron: false },
+                { icon: 'Zap',     label: 'AI Tools',      slug: null,           desc: 'Generate content with AI',           chevron: true  },
               ].map((item) => {
                 const Icon = I.Icons[item.icon]
                 return (
-                  <button key={item.label} className="hp-sub-pill">
+                  <button key={item.label} className="hp-sub-pill" onClick={() => item.slug && navigate(`/create/${item.slug}`)}>
                     <span className="hp-sub-pill-icon">{Icon && <Icon />}</span>
                     <span className="hp-sub-pill-text">
                       <span className="hp-sub-pill-label">{item.label}</span>

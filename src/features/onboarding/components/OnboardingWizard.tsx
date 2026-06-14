@@ -176,9 +176,7 @@ export function OnboardingWizard() {
   }
 
   return (
-    <div className="onb-shell">
-      <LeftPanel />
-
+    <div className="onb-shell onb-shell--no-left">
       <div className="onb-right">
         {/* Back to all prototypes — always visible at top */}
         <BackToPrototypes />
