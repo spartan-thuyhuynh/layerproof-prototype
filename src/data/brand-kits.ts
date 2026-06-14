@@ -1,4 +1,4 @@
-import type { BrandKit } from '@/types/brand'
+import type { BrandKit } from '@/features/brand-kit/types/brand'
 
 export const BRAND_KITS: BrandKit[] = [
   {

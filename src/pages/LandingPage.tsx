@@ -1,5 +1,5 @@
 import heroImg from '@/assets/hero.png'
-import { ProtoScroller } from '@/components/landing/ProtoScroller'
+import { ProtoScroller } from '@/features/landing/components/ProtoScroller'
 
 const base = import.meta.env.BASE_URL
 

@@ -1,4 +1,11 @@
 /* ============================================================
+   Global Styles — LayerProof Brand Kit
+   ============================================================ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
    LayerProof — Brand Kit
    Visual system extracted from product dashboard
    ============================================================ */
@@ -1709,15 +1716,6 @@ button { font-family: inherit; cursor: pointer; }
     width: 100%;
   }
 }
-
-/* ============================================================  TAILWIND + SHADCN BRIDGE
-   Maps shadcn's expected HSL tokens to our existing design system.
-   shadcn components (Dialog, Badge, etc.) render using these tokens.
-   ============================================================ */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* ── Category Upload Modal ────────────────────────────────────── */
 .cum-title {
   font-size: 16px;
@@ -2515,13 +2513,27 @@ button { font-family: inherit; cursor: pointer; }
   flex: none;
 }
 .onb-back-proto:hover { background: var(--card); }
-.onb-back-proto-logo {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  flex: none;
-}
 .onb-back-proto-chevron { color: var(--accent); flex: none; }
+
+/* Logo in auth form */
+.onb-auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.onb-auth-logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+.onb-auth-wordmark {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--t1);
+  letter-spacing: -0.3px;
+}
 .onb-step-pill {
   font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
   font-weight: 700; color: var(--t3);
@@ -2980,12 +2992,13 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .onb-auth-headline {
-  font-size: 26px;
-  font-weight: 800;
+  font-family: 'Anton', sans-serif;
+  font-size: 40px;
+  font-weight: 400; /* Anton is display-bold by design */
   color: var(--t1);
   text-align: center;
   margin: 0 0 24px;
-  line-height: 1.2;
+  line-height: 1.15;
   letter-spacing: -0.3px;
 }
 

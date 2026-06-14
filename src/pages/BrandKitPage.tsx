@@ -1,31 +1,28 @@
-import { useState } from 'react'
-import { useBrandStore } from '@/store/useBrandStore'
-import { useUIStore } from '@/store/useUIStore'
-import { useTweaks } from '@/hooks/useTweaks'
-import { Sidebar } from '@/components/layout/Sidebar'
-import { Detail } from '@/components/kit/Detail'
-import { ApplyModal } from '@/components/modals/ApplyModal'
-import { NewKitModal } from '@/components/modals/NewKitModal'
-import { IntroModal } from '@/components/modals/IntroModal'
-import { NewThemeModal } from '@/components/modals/NewThemeModal'
-import { TweaksPanel } from '@/components/tweaks/TweaksPanel'
-
-const INTRO_KEY = 'bk_intro_seen'
+import { useBrandKit } from '@/features/brand-kit/hooks/useBrandKit'
+import { Detail } from '@/features/brand-kit/components/Detail'
+import { ApplyModal } from '@/features/brand-kit/components/modals/ApplyModal'
+import { IntroModal } from '@/features/brand-kit/components/modals/IntroModal'
+import { NewKitModal } from '@/features/brand-kit/components/modals/NewKitModal'
+import { NewThemeModal } from '@/features/brand-kit/components/modals/NewThemeModal'
+import { Sidebar } from '@/shared/components/layout/Sidebar'
+import { TweaksPanel } from '@/shared/components/tweaks/TweaksPanel'
+import { useTweaks } from '@/shared/hooks/useTweaks'
 
 export function BrandKitPage() {
-  const { kits, appliedId, setAppliedId } = useBrandStore()
-  const { modal, tweaks, setModal } = useUIStore()
-  const focusedId = useUIStore((s) => s.focusedId)
-  const [showIntro, setShowIntro] = useState(() => !localStorage.getItem(INTRO_KEY))
+  const {
+    kits,
+    appliedId,
+    setAppliedId,
+    modal,
+    tweaks,
+    setModal,
+    closeModal,
+    focusedKit,
+    showIntro,
+    dismissIntro,
+  } = useBrandKit()
 
   useTweaks(tweaks)
-
-  const focusedKit = kits.find((k) => k.id === focusedId) ?? kits[0]
-
-  function dismissIntro() {
-    localStorage.setItem(INTRO_KEY, '1')
-    setShowIntro(false)
-  }
 
   return (
     <>
@@ -42,17 +39,17 @@ export function BrandKitPage() {
         <ApplyModal
           kits={kits}
           current={appliedId}
-          onClose={() => setModal(null)}
-          onConfirm={(id) => { setAppliedId(id); setModal(null) }}
+          onClose={closeModal}
+          onConfirm={(id) => { setAppliedId(id); closeModal() }}
         />
       )}
 
       {modal?.type === 'new' && (
-        <NewKitModal onClose={() => setModal(null)} />
+        <NewKitModal onClose={closeModal} />
       )}
 
       {modal?.type === 'new-theme' && (
-        <NewThemeModal kit={focusedKit} onClose={() => setModal(null)} />
+        <NewThemeModal kit={focusedKit} onClose={closeModal} />
       )}
 
       <TweaksPanel />
