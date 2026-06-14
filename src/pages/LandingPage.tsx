@@ -5,6 +5,18 @@ const base = import.meta.env.BASE_URL
 
 const PROTOS = [
   {
+    title: 'New Homepage',
+    status: 'live' as const,
+    thumbnail: undefined,
+    to: '/home',
+    flows: [
+      'Canva-style dashboard with welcome header',
+      'Quick-create content type picker',
+      'Recent projects grid with type badges',
+      'Updated sidebar with workspace navigation',
+    ],
+  },
+  {
     title: 'Brand Kit',
     status: 'live' as const,
     thumbnail: `${base}onboarding/illustration.png`,
@@ -47,7 +59,10 @@ export function LandingPage() {
   return (
     <div className="lp-page">
       <header className="lp-header">
-        <img src={`${base}lplogo.png`} alt="LayerProof" className="lp-logo" />
+        <div className="lp-logo">
+          <img src={`${base}logos/symbol.png`} alt="" className="lp-logo-symbol" />
+          <span className="lp-logo-text">LayerProof</span>
+        </div>
         <span className="lp-eyebrow">Prototype Launcher</span>
       </header>
 

@@ -47,11 +47,8 @@ export function Step1_SignUp() {
     <div className="onb-auth-form fade-in">
       {/* Logo */}
       <div className="onb-auth-logo">
-        <img
-          src={`${import.meta.env.BASE_URL}lplogo.png`}
-          alt="LayerProof"
-          className="onb-auth-logo-img"
-        />
+        <img src={`${import.meta.env.BASE_URL}logos/symbol.png`} alt="" className="onb-auth-logo-img" />
+        <span className="onb-auth-logo-text">LayerProof</span>
       </div>
 
       <h1 className="onb-auth-headline">Get started in seconds</h1>

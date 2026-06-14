@@ -72,10 +72,11 @@ export const Star = S(['M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3 1.2-6.8L2
 export const ChevronUp = S(['m18 15-6-6-6 6'])
 export const ChevronDown = S(['m6 9 6 6 6-6'])
 export const Pencil = S(['M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'])
+export const MessageSquare = S(['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'])
 
 export const Icons: Record<string, (props: IconProps) => React.ReactElement> = {
   Home, Folder, Present, Social, Docs, Sparkle, Calendar, Library, Settings,
   Palette, Layers, Type, Image, Mic, Grid, Lock, Unlock, Shield, Check, CheckCircle,
   X, Plus, ArrowLeft, ArrowRight, Chevron, ChevronUp, ChevronDown, Clock, Bell, Download, File,
-  Eye, EyeOff, Trash, Zap, Ruler, Copy, Info, Wand, Globe, Dot, Star, Pencil,
+  Eye, EyeOff, Trash, Zap, Ruler, Copy, Info, Wand, Globe, Dot, Star, Pencil, MessageSquare,
 }
