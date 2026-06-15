@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore'
@@ -127,7 +128,9 @@ function BackToPrototypes() {
 }
 
 export function OnboardingWizard() {
-  const { step, prevStep, importPath } = useOnboardingStore()
+  const { step, prevStep, importPath, reset } = useOnboardingStore()
+
+  useLayoutEffect(() => { reset() }, [])
 
   // Step 6 (Processing) is skipped on blank path:
   const displayStep = (step === 6 && importPath === 'blank') ? 7 : step
@@ -149,26 +152,21 @@ export function OnboardingWizard() {
   // Step 1: full-page auth layout (image left, form right)
   if (displayStep === 1) {
     return (
-      <div className="onb-auth-shell">
-        <div className="onb-auth-left">
-          <img
-            src={`${base}onboarding/auth-hero.png`}
-            alt=""
-            className="onb-auth-hero-img"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-          />
-          <div className="onb-auth-left-overlay" />
-          <div className="onb-auth-tagline">
-            <p className="onb-auth-tagline-title">Your brand, consistent across every output.</p>
-            <p className="onb-auth-tagline-sub">One kit. Infinite possibilities.</p>
-            <div className="onb-auth-tagline-line" />
+      <div className="onb-auth-page">
+        <BackToPrototypes />
+        <div className="onb-auth-shell">
+          <div className="onb-auth-left">
+            <img
+              src={`${base}auth-hero.png`}
+              alt=""
+              className="onb-auth-hero-img"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            />
           </div>
-        </div>
-        <div className="onb-auth-right">
-          {/* Back nav — matches sidebar style */}
-          <BackToPrototypes />
-          <div className="onb-auth-form-wrap">
-            <Step1_SignUp />
+          <div className="onb-auth-right">
+            <div className="onb-auth-form-wrap">
+              <Step1_SignUp />
+            </div>
           </div>
         </div>
       </div>

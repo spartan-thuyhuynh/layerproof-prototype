@@ -54,7 +54,10 @@ export function HomePage() {
             <div className="hp-welcome">
               <button className="hp-new-chip">
                 <span className="hp-new-chip-badge">New</span>
-                Introducing Brand Kit
+                <span className="hp-new-chip-roll">
+                  <span>Introducing Brand Kit</span>
+                  <span>Introducing Brand Kit</span>
+                </span>
                 <I.ArrowRight style={{ width: 13, height: 13, opacity: 0.7 }} />
               </button>
               <p className="hp-welcome-sub">What do you want to create today?</p>

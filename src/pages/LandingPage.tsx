@@ -7,7 +7,7 @@ const PROTOS = [
   {
     title: 'New Homepage',
     status: 'live' as const,
-    thumbnail: undefined,
+    thumbnail: `${base}home/homepage-thumb.png`,
     to: '/home',
     flows: [
       'Canva-style dashboard with welcome header',

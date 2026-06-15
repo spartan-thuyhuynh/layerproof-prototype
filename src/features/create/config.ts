@@ -11,18 +11,25 @@ export type ProductConfig = {
   color: string
   icon: string
   gradient: string
+  promptTitle: string
+  promptSub: string
   promptPlaceholder: string
   agentScript: AgentTurn[]
   editorType: 'canvas' | 'document' | 'builder'
 }
 
+const GRADIENT = 'radial-gradient(ellipse at 10% 65%, rgba(236,72,153,0.65) 0%, transparent 50%), radial-gradient(ellipse at 82% 18%, rgba(200,145,0,0.28) 0%, transparent 42%), #060106'
+const COLOR = '#F5C518'
+
 export const PRODUCT_CONFIGS: Record<string, ProductConfig> = {
   'social-post': {
     label: 'Social Post',
     slug: 'social-post',
-    color: '#f97316',
+    color: COLOR,
     icon: 'Social',
-    gradient: 'radial-gradient(ellipse at 30% 50%, #2d1500 0%, #0d0500 60%, #0a0300 100%)',
+    gradient: GRADIENT,
+    promptTitle: 'What {post} will your audience love?',
+    promptSub: 'Tell us what to say — we\'ll craft posts that stop the scroll and build your brand.',
     promptPlaceholder: 'e.g. Summer sale campaign for a coffee brand, warm and inviting tone…',
     editorType: 'canvas',
     agentScript: [
@@ -47,9 +54,11 @@ export const PRODUCT_CONFIGS: Record<string, ProductConfig> = {
   'docs': {
     label: 'Docs',
     slug: 'docs',
-    color: '#14b8a6',
+    color: COLOR,
     icon: 'Docs',
-    gradient: 'radial-gradient(ellipse at 30% 50%, #001f1c 0%, #000d0b 60%, #000807 100%)',
+    gradient: GRADIENT,
+    promptTitle: 'What idea should be {written} down?',
+    promptSub: 'Describe the document — we\'ll structure it with your voice and ship it faster.',
     promptPlaceholder: 'e.g. Q3 product roadmap for a SaaS startup, executive summary style…',
     editorType: 'document',
     agentScript: [
@@ -74,9 +83,11 @@ export const PRODUCT_CONFIGS: Record<string, ProductConfig> = {
   'space': {
     label: 'Space',
     slug: 'space',
-    color: '#22c55e',
+    color: COLOR,
     icon: 'Layers',
-    gradient: 'radial-gradient(ellipse at 30% 50%, #001a09 0%, #000d04 60%, #000802 100%)',
+    gradient: GRADIENT,
+    promptTitle: 'What image will you {generate} today?',
+    promptSub: 'Describe your vision — we\'ll generate stunning on-brand visuals in seconds.',
     promptPlaceholder: 'e.g. Brand asset hub for a design team, organized by campaign…',
     editorType: 'document',
     agentScript: [
@@ -101,9 +112,11 @@ export const PRODUCT_CONFIGS: Record<string, ProductConfig> = {
   'presentation': {
     label: 'Presentation',
     slug: 'presentation',
-    color: '#8b5cf6',
+    color: COLOR,
     icon: 'Present',
-    gradient: 'radial-gradient(ellipse at 30% 50%, #120030 0%, #08001a 60%, #050010 100%)',
+    gradient: GRADIENT,
+    promptTitle: 'What idea will you {present} next?',
+    promptSub: 'Tell us what to pitch — we\'ll build a deck that commands the room.',
     promptPlaceholder: 'e.g. Investor pitch deck for a Series A startup, 10 slides, modern style…',
     editorType: 'canvas',
     agentScript: [
@@ -128,9 +141,11 @@ export const PRODUCT_CONFIGS: Record<string, ProductConfig> = {
   'design': {
     label: 'Design',
     slug: 'design',
-    color: '#3b82f6',
+    color: COLOR,
     icon: 'Sparkle',
-    gradient: 'radial-gradient(ellipse at 30% 50%, #00102e 0%, #000814 60%, #00050e 100%)',
+    gradient: GRADIENT,
+    promptTitle: 'What brand will you {design} today?',
+    promptSub: 'Describe the visual — we\'ll create brand-perfect assets at any scale.',
     promptPlaceholder: 'e.g. Banner ads for a product launch, 3 sizes, minimalist look…',
     editorType: 'canvas',
     agentScript: [
@@ -155,9 +170,11 @@ export const PRODUCT_CONFIGS: Record<string, ProductConfig> = {
   'app': {
     label: 'App',
     slug: 'app',
-    color: '#ec4899',
+    color: COLOR,
     icon: 'Globe',
-    gradient: 'radial-gradient(ellipse at 30% 50%, #2a0018 0%, #120009 60%, #0a0005 100%)',
+    gradient: GRADIENT,
+    promptTitle: 'What experience will you {build} next?',
+    promptSub: 'Describe the experience — we\'ll build the page that converts visitors into customers.',
     promptPlaceholder: 'e.g. Landing page for a SaaS product, conversion-focused with demo CTA…',
     editorType: 'builder',
     agentScript: [

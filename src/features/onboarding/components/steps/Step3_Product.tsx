@@ -48,23 +48,25 @@ const PRODUCTS = [
   },
   {
     slug: 'design',
-    name: 'LayerProof Canvas',
+    name: 'LayerProof Design',
     sub: 'Graphic Design',
     desc: 'Create graphics, visuals, and brand assets at scale',
     icon: 'Sparkle',
     color: '#3b82f6',
     img: `${base}home/card-design.png`,
     recommended: false,
+    comingSoon: true,
   },
   {
     slug: 'app',
-    name: 'LayerProof Build',
+    name: 'LayerProof App',
     sub: 'App Builder',
     desc: 'Build interactive web experiences and landing pages',
     icon: 'Globe',
     color: '#ec4899',
     img: `${base}home/card-app.png`,
     recommended: false,
+    comingSoon: true,
   },
 ]
 
@@ -102,7 +104,7 @@ export function Step3_Product() {
         <h1 className="onb-step-title" style={{ fontSize: 36, marginBottom: 8 }}>How would you like to get started?</h1>
         <p className="onb-step-sub" style={{ fontSize: 16, marginBottom: 28 }}>Pick a product to dive into — you can explore everything else from your dashboard.</p>
         <div className="onb-product-grid onb-product-grid--6" style={showNudge ? { paddingTop: 56 } : undefined}>
-          {PRODUCTS.map(({ slug, name, sub, desc, icon, color, img, recommended }) => {
+          {PRODUCTS.map(({ slug, name, sub, desc, icon, color, img, recommended, comingSoon }) => {
             const Icon = I.Icons[icon]
             const isNudged = showNudge && recommended
             return (
@@ -114,10 +116,11 @@ export function Step3_Product() {
                   </div>
                 )}
                 <button
-                  className={`onb-product-card card hover${isNudged ? ' onb-product-card--nudged' : ''}`}
-                  onClick={() => handleCardClick(slug)}
+                  className={`onb-product-card card hover${isNudged ? ' onb-product-card--nudged' : ''}${comingSoon ? ' onb-product-card--coming-soon' : ''}`}
+                  onClick={() => !comingSoon && handleCardClick(slug)}
                 >
                   <div className="onb-product-thumb">
+                    {comingSoon && <span className="onb-coming-soon-badge">Coming Soon</span>}
                     <img
                       src={img}
                       alt={name}
@@ -131,16 +134,13 @@ export function Step3_Product() {
                     />
                     <div
                       className="onb-product-thumb-placeholder"
-                      style={{ background: `${color}18`, display: 'none' }}
-                    >
-                      {Icon && <Icon style={{ width: 36, height: 36, color, opacity: 0.4 }} />}
-                    </div>
+                      style={{ background: comingSoon ? `${color}35` : `${color}18`, display: 'none' }}
+                    />
                   </div>
                   <div className="onb-product-body">
-                    <div className="onb-product-icon" style={{ color }}>
-                      {Icon && <Icon style={{ width: 22, height: 22 }} />}
+                    <div className="onb-product-header">
+                      <div className="onb-product-name">{name}</div>
                     </div>
-                    <div className="onb-product-name">{name}</div>
                     <div className="onb-product-sub">{sub}</div>
                     <div className="onb-product-desc">{desc}</div>
                   </div>
