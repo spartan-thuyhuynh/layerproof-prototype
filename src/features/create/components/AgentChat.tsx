@@ -461,7 +461,7 @@ function OutlineEditor({
   const [posts, setPosts] = useState<PostOutline[]>(() => generateOutline(brief))
   const [chatInput, setChatInput] = useState('')
   const [showJson, setShowJson] = useState(false)
-  const [genPhase, setGenPhase] = useState<'idle' | 'confirming'>('confirming')
+  const [genPhase, setGenPhase] = useState<'idle' | 'rewriting' | 'rewrite-done' | 'confirming'>('idle')
   const [chatLabel, setChatLabel] = useState('')
   const sidebarThreadRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLInputElement>(null)
@@ -471,8 +471,13 @@ function OutlineEditor({
   const theme   = formValues.theme   ?? 'No theme selected'
   const platform = formValues.platform ?? '1:1 Square'
 
+  useEffect(() => {
+    setTimeout(() => setGenPhase('rewriting'), 400)
+    setTimeout(() => setGenPhase('rewrite-done'), 1400)
+    setTimeout(() => setGenPhase('confirming'), 2000)
+  }, [])
+
   function handleGenerateClick() {
-    setGenPhase('confirming')
     setTimeout(() => {
       if (sidebarThreadRef.current) {
         sidebarThreadRef.current.scrollTo({ top: sidebarThreadRef.current.scrollHeight, behavior: 'smooth' })
@@ -550,12 +555,68 @@ function OutlineEditor({
             </button>
           )}
 
-          {/* Update messages */}
-          <div className="oe-updates">
-            <div className="oe-update">Tone updated <strong>Auto · Concise · {tone}</strong></div>
-            <div className="oe-update">Theme updated <strong>{theme}</strong></div>
-            <div className="oe-update">Aspect ratios updated <strong>1:1 Square</strong></div>
-          </div>
+          {/* Brief rewrite tool call */}
+          {(genPhase === 'rewriting' || genPhase === 'rewrite-done' || genPhase === 'confirming') && (
+            <div className="oe-tool-row">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              <span className="oe-tool-name">rewrite_brief</span>
+              {genPhase === 'rewriting'
+                ? <span className="ac2-tool-running"><span /><span /><span /></span>
+                : <span className="oe-tool-done"><Check size={10} strokeWidth={3} /></span>
+              }
+            </div>
+          )}
+
+          {/* Rewritten brief summary */}
+          {(genPhase === 'rewrite-done' || genPhase === 'confirming') && (() => {
+            const themeEntry  = brief.meta.find(([k]) => k === 'Theme')
+            const themeName   = themeEntry?.[1] ?? theme
+            const themeOption = [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName)
+            const themeColors = themeOption?.colors ?? ['#09090b', '#ffffff', '#fbbf24']
+            const otherMeta   = brief.meta.filter(([k]) => k !== 'Theme')
+            return (
+              <div className="oe-rewrite-brief">
+                <div className="oe-rewrite-brief-title">{brief.title}</div>
+
+                {/* Theme + aspect ratio visual row */}
+                <div className="oe-rewrite-visual-row">
+                  <div className="oe-rewrite-visual-cell">
+                    <div className="oe-rewrite-visual-label">Theme</div>
+                    <div className="oe-rewrite-theme-preview-wrap">
+                      <ThemePreview colors={themeColors} />
+                    </div>
+                    <div className="oe-rewrite-visual-val">{themeName}</div>
+                  </div>
+                  <div className="oe-rewrite-visual-cell">
+                    <div className="oe-rewrite-visual-label">Aspect ratio</div>
+                    <div className="oe-rewrite-aspect-box">
+                      <div className="oe-rewrite-aspect-square" />
+                    </div>
+                    <div className="oe-rewrite-visual-val">1:1 Square</div>
+                  </div>
+                </div>
+
+                {/* Remaining meta */}
+                <div className="oe-rewrite-brief-meta">
+                  {otherMeta.map(([k, v]) => (
+                    <div key={k} className="oe-rewrite-brief-row">
+                      <span className="oe-rewrite-brief-key">{k}</span>
+                      <span className="oe-rewrite-brief-val">{v}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Edit guide */}
+                <div className="oe-rewrite-guide">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  Click any field in the outline to edit directly, or ask the agent below.
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Generation confirmation */}
           {genPhase === 'confirming' && (
@@ -635,23 +696,6 @@ function OutlineEditor({
 
       {/* ── Right: Content outline ── */}
       <main className="oe-main">
-        {/* Top toolbar */}
-        <div className="oe-toolbar">
-          {[
-            { icon: '≡', label: 'Text Format', val: `Auto · Concise · ${tone}` },
-            { icon: '◑', label: 'Theme', val: theme },
-            { icon: '⊡', label: 'Aspect Ratio', val: '1:1 Square' },
-          ].map(item => (
-            <button key={item.label} className="oe-toolbar-chip">
-              <span className="oe-toolbar-icon">{item.icon}</span>
-              <span>
-                <div className="oe-toolbar-label">{item.label}</div>
-                <div className="oe-toolbar-val">{item.val}</div>
-              </span>
-            </button>
-          ))}
-        </div>
-
         {/* Content header */}
         <div className="oe-content-header">
           <div>

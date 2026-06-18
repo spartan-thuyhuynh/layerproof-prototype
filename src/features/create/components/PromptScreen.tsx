@@ -54,12 +54,15 @@ export function PromptScreen({ config, onSubmit }: Props) {
   }
 
   return (
-    <div className="cp-screen" style={{ background: config.gradient }}>
-      <button className="cp-back" onClick={() => navigate('/home')}>
+    <div className="cp-screen">
+      <div className="cp-orb cp-orb-left" />
+      <div className="cp-orb cp-orb-right" />
+
+      <button className="cp-back" onClick={() => navigate('/onboarding', { state: { resumeFromCreate: true } })}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 12H5M12 5l-7 7 7 7" />
         </svg>
-        Back to Home
+        Back
       </button>
 
       <div className="cp-center">
@@ -113,12 +116,13 @@ export function PromptScreen({ config, onSubmit }: Props) {
         </div>
 
         <div className="cp-suggestions">
-          <span className="cp-suggestions-label">Try:</span>
-          {visibleSuggestions.map(s => (
-            <button key={s} className="cp-suggestion-chip" onClick={() => setPrompt(s)}>
-              {s}
-            </button>
-          ))}
+          <div className="cp-suggestions-chips">
+            {visibleSuggestions.map(s => (
+              <button key={s} className="cp-suggestion-chip" onClick={() => setPrompt(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
           <button className="cp-shuffle-btn" onClick={handleShuffle} title="Shuffle suggestions">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
               <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>

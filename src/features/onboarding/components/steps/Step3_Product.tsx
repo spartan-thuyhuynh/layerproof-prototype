@@ -101,7 +101,7 @@ export function Step3_Product() {
       <div className="onb-product-bg">
         <BackButton onClick={prevStep} />
         <div className="h-eyebrow" style={{ marginBottom: 12, marginTop: 20 }}>Welcome to LayerProof</div>
-        <h1 className="onb-step-title" style={{ fontSize: 36, marginBottom: 8 }}>How would you like to get started?</h1>
+        <h1 className="onb-step-title" style={{ fontSize: 36, marginBottom: 8, fontFamily: 'Anton', fontWeight: 400, letterSpacing: '.01em' }}>How would you like to get started?</h1>
         <p className="onb-step-sub" style={{ fontSize: 16, marginBottom: 28 }}>Pick a product to dive into — you can explore everything else from your dashboard.</p>
         <div className="onb-product-grid onb-product-grid--6" style={showNudge ? { paddingTop: 56 } : undefined}>
           {PRODUCTS.map(({ slug, name, sub, desc, icon, color, img, recommended, comingSoon }) => {

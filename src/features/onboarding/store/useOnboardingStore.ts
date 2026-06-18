@@ -9,6 +9,7 @@ interface OnboardingState {
   selectedProduct: ProductId | null
   brandName: string
   tagline: string
+  brandDescription: string
   importPath: 'url' | 'pdf' | 'blank' | null
   importUrl: string
   newKitId: string | null
@@ -23,6 +24,7 @@ interface OnboardingState {
   setProduct: (p: ProductId) => void
   setBrandName: (n: string) => void
   setTagline: (t: string) => void
+  setBrandDescription: (d: string) => void
   setImportPath: (p: OnboardingState['importPath']) => void
   setImportUrl: (u: string) => void
   setNewKitId: (id: string) => void
@@ -33,7 +35,7 @@ interface OnboardingState {
 
 const INITIAL: Pick<OnboardingState,
   'step' | 'email' | 'intents' | 'selectedProduct' | 'brandName' |
-  'tagline' | 'importPath' | 'importUrl' | 'newKitId' | 'projectName' | 'projectMeta'
+  'tagline' | 'brandDescription' | 'importPath' | 'importUrl' | 'newKitId' | 'projectName' | 'projectMeta'
 > = {
   step: 1,
   email: '',
@@ -41,6 +43,7 @@ const INITIAL: Pick<OnboardingState,
   selectedProduct: null,
   brandName: '',
   tagline: '',
+  brandDescription: '',
   importPath: null,
   importUrl: '',
   newKitId: null,
@@ -63,6 +66,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setProduct: (selectedProduct) => set({ selectedProduct }),
   setBrandName: (brandName) => set({ brandName }),
   setTagline: (tagline) => set({ tagline }),
+  setBrandDescription: (brandDescription) => set({ brandDescription }),
   setImportPath: (importPath) => set({ importPath }),
   setImportUrl: (importUrl) => set({ importUrl }),
   setNewKitId: (newKitId) => set({ newKitId }),
