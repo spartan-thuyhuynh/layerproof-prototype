@@ -1,4 +1,3 @@
-import heroImg from '@/assets/hero.png'
 import { ProtoScroller } from '@/features/landing/components/ProtoScroller'
 
 const base = import.meta.env.BASE_URL
@@ -10,10 +9,9 @@ const PROTOS = [
     thumbnail: `${base}home/homepage-thumb.png`,
     to: '/home',
     flows: [
-      'Canva-style dashboard with welcome header',
-      'Quick-create content type picker',
-      'Recent projects grid with type badges',
-      'Updated sidebar with workspace navigation',
+      'Dashboard & quick-create flow',
+      'Recent projects grid',
+      'Workspace sidebar navigation',
     ],
   },
   {
@@ -22,22 +20,21 @@ const PROTOS = [
     thumbnail: `${base}onboarding/illustration.png`,
     to: '/brand-kit',
     flows: [
-      'Browse & switch brand kits',
-      'Edit colors, typography & logos',
-      'Apply kit to workspace',
-      'Create a new brand kit',
+      'View & switch brand kits',
+      'Edit colours, fonts, logo & tone',
+      'Create a new kit from scratch',
     ],
   },
   {
     title: 'New Onboarding',
     status: 'live' as const,
-    thumbnail: heroImg,
+    thumbnail: `${base}onboarding/onboarding-thumb.png`,
     to: '/onboarding',
     flows: [
-      'Sign up & choose a product',
-      'Import brand from URL or PDF',
-      'Review & refine extracted brand kit',
-      'Create your first project',
+      'Sign up & personalise your profile',
+      'Build your brand kit',
+      'Auto-generate your first brand theme',
+      'Pick your first product',
     ],
   },
   {
@@ -46,11 +43,10 @@ const PROTOS = [
     thumbnail: undefined,
     to: '/matte-v3',
     flows: [
-      'Explore redesigned editor canvas',
-      'Updated toolbar & side panels',
-      'Data-driven layout suggestions',
-      'New social format templates',
-      'Improved asset & brand integration',
+      'Redesigned editor canvas & toolbar',
+      'AI layout & copy suggestions',
+      'Multi-format templates',
+      'Brand kit integration',
     ],
   },
 ]

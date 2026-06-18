@@ -2191,6 +2191,7 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--panel);
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 .lp-header {
   display: flex;
@@ -2212,11 +2213,12 @@ button { font-family: inherit; cursor: pointer; }
 }
 .lp-main {
   flex: 1;
-  padding: clamp(40px, 5vw, 72px) clamp(24px, 5vw, 72px) 80px;
+  padding: clamp(40px, 5vw, 72px) 0 80px;
 }
 .lp-hero {
   max-width: 720px;
   margin-bottom: clamp(32px, 4vw, 52px);
+  padding: 0 clamp(24px, 5vw, 72px);
 }
 .lp-title {
   font-size: clamp(32px, 3.5vw, 52px);
@@ -2237,20 +2239,26 @@ button { font-family: inherit; cursor: pointer; }
 .ps-wrap {
   position: relative;
 }
-/* Center items when they fit; overflow scrolls left-aligned */
 .ps-track {
   display: flex;
   gap: clamp(14px, 1.5vw, 22px);
   overflow-x: auto;
-  scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 8px;
-  /* center trick: track expands to at least full width, content centers inside */
-  width: max-content;
-  min-width: 100%;
-  justify-content: center;
+  scroll-behavior: smooth;
+  /* side padding keeps first/last card fully visible */
+  padding: 8px clamp(24px, 5vw, 72px) 20px;
+  scroll-padding-left: clamp(24px, 5vw, 72px);
+  /* slim visible scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.18) transparent;
 }
-.ps-track::-webkit-scrollbar { display: none; }
+.ps-track::-webkit-scrollbar { height: 5px; }
+.ps-track::-webkit-scrollbar-track { background: transparent; }
+.ps-track::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.15);
+  border-radius: 99px;
+}
+.ps-track::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.28); }
 
 /* Each card: fixed width, max 4 across */
 .ps-track > * {
