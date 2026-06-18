@@ -2,7 +2,7 @@
 
 **Document type:** Product Requirements Document
 **Audience:** Design & Development team
-**Status:** Draft — v3.0
+**Status:** Draft — v4.0
 **Date:** 2026-06-18
 
 ---
@@ -11,7 +11,7 @@
 
 This document covers the end-to-end flow from a new user signing in for the first time to completing their first project in the editor. It is structured in three phases:
 
-1. **Onboarding** — 3 steps that orient the user and route them to the right product, with a device gate that blocks mobile users before they reach the creation experience
+1. **Onboarding** — 5 steps that orient the user, optionally set up their brand kit, and route them to the right product, with a device gate that blocks mobile users before they reach the creation experience
 2. **Creation Flow** — the AI-assisted prompt → brief → outline experience before the editor opens
 3. **Editor** — the workspace where content is built, split into three layouts depending on the product type
 
@@ -54,8 +54,8 @@ LayerProof is a multi-product AI content platform. New users arrive with differe
 # Phase 1 — Onboarding
 
 **Route:** `/onboarding`
-**Steps:** 3 (desktop) · 2 + gate (mobile)
-**Goal:** Get the user signed in, device-validated, and routed to a product with minimal friction
+**Steps:** 5 (desktop) · 4 + gate (mobile)
+**Goal:** Get the user signed in, device-validated, given the opportunity to set up a brand kit, and routed to a product with minimal friction
 
 ---
 
@@ -127,7 +127,114 @@ Step 3 forks based on the user's device. The device check happens at this point 
 
 ---
 
-### 3B — Choose Product (desktop users only)
+### 3B — Desktop pass-through
+
+On desktop, Step 3 is skipped entirely — the wizard advances the store from step 3 to step 4 automatically. There is no UI rendered for this state.
+
+---
+
+## Step 4 — Brand Kit Setup
+
+**Trigger:** Shown to all desktop users after the device check passes. Skippable at any point.
+
+**Purpose:** Give new users the opportunity to create a brand kit before they generate their first piece of content. Brand kit information is applied automatically to every output, so setting it up early means the first generation is already on-brand. The step is optional — users who skip can set up a brand kit later from the Brand Kit section.
+
+This step has four internal phases that the user moves through sequentially. The progress bar and step label ("Brand kit") remain consistent across all phases.
+
+---
+
+### Phase 1 — Hook
+
+**Layout:** Single-column centered view with decorative illustration images (brand kit card, colors swatch, typography sample).
+
+**Elements**
+
+- **Eyebrow** — *"Brand kit"*
+- **Heading** — *"Want to bring your brand?"*
+- **Body copy** — *"Upload your logo, pick your colors and type — we'll build a brand kit that keeps every output automatically on-brand."*
+- **Fine print** — *"You can always adjust your brand kit later."*
+- **Primary CTA** — *"Yes, set up my brand"* → advances to Phase 2 (Setup form)
+- **Secondary CTA** — *"I'll set it up later"* → skips to Step 5 (Choose Product) with no brand kit created
+
+A Back button is visible at the top of the phase. On desktop it returns to Step 2 (About You); on mobile it returns to Step 3 (Device Gate).
+
+---
+
+### Phase 2 — Setup Form
+
+**Layout:** Two-panel split — left panel shows a live preview card, right panel contains the configuration form. A "Skip for now" link is visible in the top-right.
+
+**Left panel — Live preview**
+
+A sticky brand theme preview card that updates in real time as the user fills in the form. It contains:
+
+- **Hero area** — solid background in the primary brand color, with the logo mark (or brand initial if no logo uploaded) and brand name rendered in the selected heading font
+- **Palette bar** — a horizontal strip of all swatches in the brand palette
+- **Type specimen** — *"The quick brown fox"* in the heading font, followed by a body copy line in the body font
+- **Color chips** — hex codes for each palette swatch
+
+A caption reads *"Live preview · updates as you type."*
+
+**Right panel — Configuration form**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| Brand name | Text input | Yes | Placeholder: *"e.g. Acme Studio"*. Auto-focused on mount. Generate button is disabled until this has a value. |
+| Logo | File upload | No | Accepts PNG, SVG, JPG up to 5 MB. Displays filename and thumbnail after upload. A dashed-border drop zone is shown. |
+| Brand palette | Color swatch builder | No | Starts with one default pink swatch (#EC4899). Each swatch is editable — clicking opens a popover with a native color wheel and hex input. The first swatch is labeled "Primary". Up to 8 swatches. A "+" button adds a new swatch with a random color. Any swatch beyond the first can be removed. |
+| Typography — Heading | Dropdown | No | 6 options: Archivo · Anton · Playfair Display · Space Grotesk · Fraunces · Georgia. The dropdown includes a search input. |
+| Typography — Body | Dropdown | No | 5 options: Archivo · DM Sans · Inter · Georgia · System UI. The dropdown includes a search input. |
+
+**Generate button** — *"Generate my brand kit"* — disabled until Brand name is filled. Clicking advances to Phase 3 (Generating).
+
+---
+
+### Phase 3 — Generating
+
+**Layout:** Centered single-column with a large spinning ring animation.
+
+**Purpose:** Simulate AI generation of the brand theme while storing the kit in the background. The actual kit is created in the data store during this phase.
+
+**Elements**
+
+- **Animated ring** — a spinning arc in the primary brand color, with the brand's initial letter centered inside
+- **Heading** — *"Generating your brand theme"*
+- **Sub-heading** — *"Pulling it all together — won't take long."*
+- **Progress checklist** — 5 steps that light up sequentially every 600 ms:
+  1. Reading your brand details…
+  2. Generating colour palette…
+  3. Pairing display & body fonts…
+  4. Composing brand style rules…
+  5. Rendering your theme…
+
+Each step transitions from dimmed (opacity 0.25) to full opacity as it activates. Completed steps show a checkmark icon. After all steps complete (≈ 3.3 s), the phase transitions automatically to Phase 4 (Done).
+
+During this phase the brand kit is created in the store with the name, logo, palette, and typography selections from Phase 2. The kit is also set as the active (applied) brand kit.
+
+---
+
+### Phase 4 — Done
+
+**Layout:** Centered single-column. The step label changes to *"Theme generated"*.
+
+**Purpose:** Confirm the brand kit was created and give the user a summary before they proceed to product selection.
+
+**Elements**
+
+- **Eyebrow** — *"Theme generated"*
+- **Heading** — *"Your brand theme is ready."* (rendered in Anton font)
+- **Body copy** — *"Here's what we built. Any output with this theme applied will stay on-brand automatically."*
+- **Brand Kit card** — shows the kit identity: logo mark (or brand initial), brand name, palette dots, and a green checkmark
+- **Brand Theme card** — a richer preview containing:
+  - **Hero** — full-width block in the primary brand color with the brand name in the heading font and font pair label (*"Archivo · DM Sans"*)
+  - **Palette bar** — thin horizontal strip of all swatches
+  - **Type + colour row** — two columns: a typography specimen ("Aa" in the heading font, body copy line in body font) and color swatches with hex labels
+- **Fine print** — *"Fine-tune colours, fonts, and voice any time in the brand kit editor."*
+- **CTA** — *"Generate your first project"* → advances to Step 5 (Choose Product)
+
+---
+
+## Step 5 — Choose Product (desktop users only)
 
 **Purpose:** Route the user to a product. This is the last onboarding step — selecting a product immediately navigates to `/create/:slug` and starts the creation flow.
 
@@ -146,7 +253,7 @@ Each card shows a product thumbnail, name, category label, and one-line descript
 
 **Nudge:** After 7 seconds of inactivity, a tooltip bubble appears above the Matte card — *"Not sure? Start here!"* — to reduce decision paralysis for undecided users.
 
-**On click:** Navigates to `/create/:slug`. Onboarding ends. The creation flow begins.
+**On click:** Navigates to `/create/:slug`. Onboarding ends. The creation flow begins. If a brand kit was created in Step 4, it is already applied and will be available in the Theme Library during the creation flow.
 
 ---
 
@@ -439,9 +546,19 @@ Steps 1 (Sign Up) and 2 (About You) are functional on any screen size — they a
 
 Critically, the gate happens *after* sign-up is complete — the user's account already exists when they see the gate. The desktop continuation URL at `layerproof.com/onboarding` will resume their session and pick up at Step 3B automatically.
 
+## Why is brand kit setup placed before product selection?
+
+Brand kit information (colors, typography, logo) feeds directly into the Theme Library used during the creation flow. If a user picks a brand theme in Agent Chat but has no brand kit, the three "Brand kit themes" variants in the Theme Library are unavailable. Placing brand kit setup before product selection means the creation flow is fully populated on first use.
+
+The step is framed as optional ("I'll set it up later") to avoid blocking users who want to explore the product first. Users who skip can set up a brand kit at any time from the Brand Kit section.
+
+## Why does the brand kit step use a multi-phase flow rather than a simple form?
+
+The hook phase (Phase 1) makes the decision explicit and skippable without a lengthy explanation. The two-panel setup form (Phase 2) with a live preview reduces uncertainty — the user can see how their choices look before committing. The generating animation (Phase 3) signals that work is being done and creates a moment of anticipation. The done screen (Phase 4) gives a summary and natural transition point. Breaking the step into phases makes what could feel like a long form feel like a progression.
+
 ## Why does onboarding end at product selection?
 
-Traditional SaaS onboarding collects setup information before letting users do anything. LayerProof inverts this — the only gates before creation are authentication, personalisation, and device validation. Brand setup is handled separately in the Brand Kit section. This reduces time from sign-up to first output and avoids overwhelming new users with configuration before they've seen value.
+Traditional SaaS onboarding collects setup information before letting users do anything. LayerProof minimises gates — authentication, personalisation, optional brand setup, and device validation are all that stand between sign-up and the creation flow. This reduces time from sign-up to first output and avoids overwhelming new users with configuration before they've seen value.
 
 ## Why use a chat interface instead of a form?
 
@@ -470,7 +587,7 @@ Forcing all products into one editor layout would either constrain the most capa
 
 # Non-Goals
 
-- Brand Kit setup and editing → see Brand Kit PRD
+- Brand Kit editing after initial setup → see Brand Kit PRD (onboarding covers the creation path only)
 - Homepage experience → see Homepage PRD
 - Returning user flows (editing existing projects, project history)
 - Multi-brand / workspace management
@@ -489,6 +606,6 @@ Forcing all products into one editor layout would either constrain the most capa
 | 3 | The Outline Editor is currently scoped to Social Post. How does it adapt for Presentation (slides vs posts), Docs (sections vs posts), or Space (image prompts)? | Product / Design | Open |
 | 4 | Should the Agent Chat questions (platform, tone, count) change per product, or stay consistent? Currently they are drawn from per-product config but the form UI is the same. | Product | Open |
 | 5 | After "Confirm & Generate," how does the editor receive the outline content? The prototype navigates to `/editor/:slug` with no data passed. | Engineering | Open |
-| 6 | The Theme Library appears before any brand kit exists for a new user. Is there a dependency on Brand Kit setup before this flow is meaningful? | Product | Open |
+| 6 | Step 4 gives the user a brand kit before they reach the Theme Library in Agent Chat. If the user skips Step 4, the "Brand kit themes" section in the Theme Library will be empty. Should the modal show an empty state with a prompt to set up a brand kit, or hide the section entirely? | Product / Design | Open |
 | 7 | The Back button on the Prompt Screen returns to `/onboarding`. Should it return to `/home` instead for users who entered from the homepage? | Design | Open |
 | 8 | Design and App are "Coming Soon" in Step 3B but fully accessible via direct URL (`/create/design`, `/create/app`). Is this intentional for internal access? | Product | Open |

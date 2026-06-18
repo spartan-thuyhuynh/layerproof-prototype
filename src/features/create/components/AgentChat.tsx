@@ -461,15 +461,49 @@ function OutlineEditor({
   const [posts, setPosts] = useState<PostOutline[]>(() => generateOutline(brief))
   const [chatInput, setChatInput] = useState('')
   const [showJson, setShowJson] = useState(false)
-  const [genPhase, setGenPhase] = useState<'idle' | 'rewriting' | 'rewrite-done' | 'confirming'>('idle')
+  const [genPhase, setGenPhase] = useState<'idle' | 'rewriting' | 'rewrite-done' | 'confirming' | 'brief-updating' | 'brief-updated'>('idle')
   const [chatLabel, setChatLabel] = useState('')
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([])
+  const [liveBrief, setLiveBrief] = useState(brief)
   const sidebarThreadRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLInputElement>(null)
+
+  // Setup card state (Text Format, Theme, Brand Kit, Aspect Ratio)
+  const RATIOS = [
+    { id: '1:1',  label: '1:1 Square',   w: 1,  h: 1  },
+    { id: '4:5',  label: '4:5 Portrait',  w: 4,  h: 5  },
+    { id: '9:16', label: '9:16 Story',    w: 9,  h: 16 },
+    { id: '16:9', label: '16:9 Landscape',w: 16, h: 9  },
+  ]
+  const TEXT_FORMATS = ['Auto', 'Concise', 'Detailed', 'Bullet points']
+  const [selectedRatio, setSelectedRatio] = useState('1:1')
+  const [selectedTextFormat, setSelectedTextFormat] = useState('Auto')
+  const [selectedBrandKit, setSelectedBrandKit] = useState<string | null>(null)
+  const [setupTheme, setSetupTheme] = useState<ThemeOption | null>(() => {
+    const initialTheme = formValues.theme ?? ''
+    return [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === initialTheme) ?? null
+  })
+  const [showSetupThemes, setShowSetupThemes] = useState(false)
+  const [ratioPickerOpen, setRatioPickerOpen] = useState(false)
+  const currentRatio = RATIOS.find(r => r.id === selectedRatio) ?? RATIOS[0]
 
   const tone    = formValues.tone    ?? 'Auto'
   const count   = formValues.count   ?? `${posts.length} posts`
   const theme   = formValues.theme   ?? 'No theme selected'
   const platform = formValues.platform ?? '1:1 Square'
+
+  function triggerBriefUpdate(changeDesc: string) {
+    setChatMessages(prev => [...prev, { role: 'assistant', text: `I've updated the brief: ${changeDesc}. Would you like to change or adjust anything else?` }])
+    setGenPhase('brief-updating')
+    setTimeout(() => {
+      setGenPhase('brief-updated')
+      setTimeout(() => {
+        if (sidebarThreadRef.current) {
+          sidebarThreadRef.current.scrollTo({ top: sidebarThreadRef.current.scrollHeight, behavior: 'smooth' })
+        }
+      }, 50)
+    }, 1200)
+  }
 
   useEffect(() => {
     setTimeout(() => setGenPhase('rewriting'), 400)
@@ -487,6 +521,30 @@ function OutlineEditor({
 
   function updatePost(idx: number, field: keyof PostOutline, val: string) {
     setPosts(prev => prev.map((p, i) => i === idx ? { ...p, [field]: val } : p))
+  }
+
+  function handleChatSend() {
+    const text = chatInput.trim()
+    if (!text) return
+    setChatMessages(prev => [...prev, { role: 'user', text }])
+    setChatInput('')
+    setChatLabel('')
+    setGenPhase('brief-updating')
+    setTimeout(() => {
+      setGenPhase('brief-updated')
+      // In a real app, liveBrief would be updated from the AI response
+      setChatMessages(prev => [...prev, { role: 'assistant', text: 'Got it! I\'ve updated your brief based on your feedback.' }])
+      setTimeout(() => {
+        if (sidebarThreadRef.current) {
+          sidebarThreadRef.current.scrollTo({ top: sidebarThreadRef.current.scrollHeight, behavior: 'smooth' })
+        }
+      }, 50)
+    }, 1800)
+    setTimeout(() => {
+      if (sidebarThreadRef.current) {
+        sidebarThreadRef.current.scrollTo({ top: sidebarThreadRef.current.scrollHeight, behavior: 'smooth' })
+      }
+    }, 50)
   }
 
   const jsonPreview = JSON.stringify({ posts: posts.map((p, i) => ({ post_index: i, title: p.title })) }, null, 2)
@@ -576,30 +634,21 @@ function OutlineEditor({
             const themeName   = themeEntry?.[1] ?? theme
             const themeOption = [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName)
             const themeColors = themeOption?.colors ?? ['#09090b', '#ffffff', '#fbbf24']
-            const otherMeta   = brief.meta.filter(([k]) => k !== 'Theme')
+            const otherMeta   = brief.meta.filter(([k]) => k !== 'Theme' && k !== 'Format')
             return (
               <div className="oe-rewrite-brief">
                 <div className="oe-rewrite-brief-title">{brief.title}</div>
 
-                {/* Theme + aspect ratio visual row */}
-                <div className="oe-rewrite-visual-row">
-                  <div className="oe-rewrite-visual-cell">
-                    <div className="oe-rewrite-visual-label">Theme</div>
-                    <div className="oe-rewrite-theme-preview-wrap">
-                      <ThemePreview colors={themeColors} />
-                    </div>
-                    <div className="oe-rewrite-visual-val">{themeName}</div>
+                {/* Theme — full width */}
+                <div className="oe-rewrite-visual-cell">
+                  <div className="oe-rewrite-visual-label">Theme</div>
+                  <div className="oe-rewrite-theme-preview-wrap">
+                    <ThemePreview colors={themeColors} />
                   </div>
-                  <div className="oe-rewrite-visual-cell">
-                    <div className="oe-rewrite-visual-label">Aspect ratio</div>
-                    <div className="oe-rewrite-aspect-box">
-                      <div className="oe-rewrite-aspect-square" />
-                    </div>
-                    <div className="oe-rewrite-visual-val">1:1 Square</div>
-                  </div>
+                  <div className="oe-rewrite-visual-val">{themeName}</div>
                 </div>
 
-                {/* Remaining meta */}
+                {/* Meta rows — read-only */}
                 <div className="oe-rewrite-brief-meta">
                   {otherMeta.map(([k, v]) => (
                     <div key={k} className="oe-rewrite-brief-row">
@@ -607,12 +656,16 @@ function OutlineEditor({
                       <span className="oe-rewrite-brief-val">{v}</span>
                     </div>
                   ))}
+                  <div className="oe-rewrite-brief-row">
+                    <span className="oe-rewrite-brief-key">Aspect ratio</span>
+                    <span className="oe-rewrite-brief-val">{currentRatio.label}</span>
+                  </div>
                 </div>
 
                 {/* Edit guide */}
                 <div className="oe-rewrite-guide">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  Click any field in the outline to edit directly, or ask the agent below.
+                  Use the chat below to update any part of your brief.
                 </div>
               </div>
             )
@@ -649,6 +702,61 @@ function OutlineEditor({
               )}
             </div>
           )}
+
+          {/* Chat history after initial confirmation */}
+          {chatMessages.map((msg, i) => (
+            msg.role === 'user'
+              ? <div key={i} className="oe-user-bubble">{msg.text}</div>
+              : <div key={i} className="oe-agent-bubble">{msg.text}</div>
+          ))}
+
+          {/* Brief updating animation */}
+          {genPhase === 'brief-updating' && (
+            <div className="oe-tool-row">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              <span className="oe-tool-name">update_brief</span>
+              <span className="ac2-tool-running"><span /><span /><span /></span>
+            </div>
+          )}
+
+          {/* Updated brief panel */}
+          {genPhase === 'brief-updated' && (() => {
+            const themeEntry  = liveBrief.meta.find(([k]) => k === 'Theme')
+            const themeName   = themeEntry?.[1] ?? theme
+            const themeOption = [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName)
+            const themeColors = themeOption?.colors ?? ['#09090b', '#ffffff', '#fbbf24']
+            const otherMeta   = liveBrief.meta.filter(([k]) => k !== 'Theme' && k !== 'Format')
+            return (
+              <div className="oe-rewrite-brief oe-rewrite-brief--updated">
+                <div className="oe-brief-updated-badge">
+                  <Check size={10} strokeWidth={3} /> Brief updated
+                </div>
+                <div className="oe-rewrite-brief-title">{liveBrief.title}</div>
+                <div className="oe-rewrite-visual-cell">
+                  <div className="oe-rewrite-visual-label">Theme</div>
+                  <div className="oe-rewrite-theme-preview-wrap">
+                    <ThemePreview colors={themeColors} />
+                  </div>
+                  <div className="oe-rewrite-visual-val">{themeName}</div>
+                </div>
+                <div className="oe-rewrite-brief-meta">
+                  {otherMeta.map(([k, v]) => (
+                    <div key={k} className="oe-rewrite-brief-row">
+                      <span className="oe-rewrite-brief-key">{k}</span>
+                      <span className="oe-rewrite-brief-val">{v}</span>
+                    </div>
+                  ))}
+                  <div className="oe-rewrite-brief-row">
+                    <span className="oe-rewrite-brief-key">Aspect ratio</span>
+                    <span className="oe-rewrite-brief-val">{currentRatio.label}</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
 
         {/* Input */}
@@ -676,9 +784,10 @@ function OutlineEditor({
           <input
             ref={chatInputRef}
             className="oe-chat-input"
-            placeholder={chatLabel ? 'Describe what to adjust…' : 'Ask the agent to refine your outline...'}
+            placeholder={chatLabel ? 'Describe what to adjust…' : 'Ask the agent to update your brief...'}
             value={chatInput}
             onChange={e => setChatInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleChatSend()}
           />
           <div className="oe-input-actions">
             <button className="oe-input-add"><Plus size={14} /></button>
@@ -686,7 +795,8 @@ function OutlineEditor({
             <button
               className="oe-input-send"
               style={{ background: config.color }}
-              disabled={!chatInput.trim()}
+              disabled={!chatInput.trim() || genPhase === 'brief-updating'}
+              onClick={handleChatSend}
             >
               <Send size={13} />
             </button>
@@ -696,6 +806,69 @@ function OutlineEditor({
 
       {/* ── Right: Content outline ── */}
       <main className="oe-main">
+        {/* ── Setup cards ── */}
+        <div className="oe-setup-bar">
+          {/* Text Format */}
+          <div className="oe-setup-card">
+            <div className="oe-setup-card-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+            </div>
+            <div className="oe-setup-card-body">
+              <div className="oe-setup-card-title">Text Format</div>
+              <div className="oe-setup-card-sub">{[tone, selectedTextFormat, brief.meta.find(([k]) => k === 'Audience')?.[1] ?? ''].filter(Boolean).join(' · ')}</div>
+            </div>
+          </div>
+
+          {/* Theme */}
+          <button className="oe-setup-card oe-setup-card--btn" onClick={() => setShowSetupThemes(true)}>
+            <div className="oe-setup-card-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+            </div>
+            <div className="oe-setup-card-body">
+              <div className="oe-setup-card-title">Theme</div>
+              {setupTheme ? (
+                <div className="oe-setup-theme-preview">
+                  <div className="oe-setup-theme-swatch" style={{ background: setupTheme.colors[0] }}>
+                    <div style={{ background: setupTheme.colors[2] ?? setupTheme.colors[1], height: 3, width: '55%', borderRadius: 1, marginBottom: 2, opacity: .9 }} />
+                    <div style={{ background: setupTheme.colors[1], height: 2, width: '75%', borderRadius: 1, opacity: .5 }} />
+                    <div style={{ background: setupTheme.colors[1], height: 2, width: '60%', borderRadius: 1, opacity: .35 }} />
+                  </div>
+                  <span className="oe-setup-card-sub">{setupTheme.name}</span>
+                </div>
+              ) : (
+                <div className="oe-setup-card-sub">No theme selected</div>
+              )}
+            </div>
+          </button>
+
+          {/* Aspect Ratio */}
+          <div className="oe-setup-card" style={{ position: 'relative' }}>
+            <button className="oe-setup-card-inner-btn" onClick={() => setRatioPickerOpen(v => !v)}>
+              <div className="oe-setup-card-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+              </div>
+              <div className="oe-setup-card-body">
+                <div className="oe-setup-card-title">Aspect Ratio</div>
+                <div className="oe-setup-card-sub">{currentRatio.label}</div>
+              </div>
+            </button>
+            {ratioPickerOpen && (
+              <div className="oe-ratio-picker oe-ratio-picker--setup" onClick={e => e.stopPropagation()}>
+                {RATIOS.map(r => (
+                  <button key={r.id}
+                    className={`oe-ratio-option${r.id === selectedRatio ? ' active' : ''}`}
+                    onClick={() => { setSelectedRatio(r.id); setRatioPickerOpen(false); triggerBriefUpdate(`Aspect ratio changed to ${r.label}`) }}
+                  >
+                    <div className="oe-ratio-shape" style={{ aspectRatio: `${r.w}/${r.h}`, width: r.w >= r.h ? 20 : undefined, height: r.h > r.w ? 20 : undefined }} />
+                    <span className="oe-ratio-label">{r.label}</span>
+                    {r.id === selectedRatio && <Check size={11} strokeWidth={3} style={{ marginLeft: 'auto', color: config.color }} />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Content header */}
         <div className="oe-content-header">
           <div>
@@ -777,7 +950,7 @@ function OutlineEditor({
           ))}
         </div>
 
-        {/* Bottom bar — AI Model selector only */}
+        {/* Bottom bar */}
         <div className="oe-generate-bar">
           <button className="oe-auto-btn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
@@ -785,6 +958,19 @@ function OutlineEditor({
             <ChevronRight size={12} style={{ transform: 'rotate(90deg)' }} />
           </button>
         </div>
+
+        {/* Theme picker modal for setup card */}
+        {showSetupThemes && (
+          <ThemeLibraryModal
+            selected={setupTheme?.id ?? ''}
+            onSelect={t => {
+              setSetupTheme(t)
+              setShowSetupThemes(false)
+              triggerBriefUpdate(`Theme changed to "${t.name}"`)
+            }}
+            onClose={() => setShowSetupThemes(false)}
+          />
+        )}
       </main>
     </div>
   )

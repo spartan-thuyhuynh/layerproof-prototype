@@ -599,7 +599,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
 }
 
 export function Step4_BrandName() {
-  const { setBrandName, setTagline, nextStep, prevStep } = useOnboardingStore()
+  const { setBrandName, setTagline, nextStep, prevStep, setStep } = useOnboardingStore()
   const { createKit, updateKit, setAppliedId } = useBrandStore()
 
   const [phase, setPhase]             = useState<Phase>('hook')
@@ -614,6 +614,11 @@ export function Step4_BrandName() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const canSetup = localName.trim().length > 0
+
+  function handleBack() {
+    const onMobile = window.innerWidth < 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+    if (onMobile) prevStep(); else setStep(2)
+  }
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null
@@ -679,7 +684,7 @@ export function Step4_BrandName() {
         <div className="onb-product-bg">
           {/* Back button row — sits above all content */}
           <div style={{ marginBottom: 20 }}>
-            <BackButton onClick={prevStep} />
+            <BackButton onClick={handleBack} />
           </div>
 
           {/* Decoration images */}
@@ -722,7 +727,7 @@ export function Step4_BrandName() {
 
           {/* Text */}
           <div className="h-eyebrow" style={{ marginBottom: 10 }}>Brand kit</div>
-          <h1 className="onb-step-title" style={{ marginBottom: 12, fontSize: 32, fontFamily: 'Anton', fontWeight: 400, letterSpacing: '.01em' }}>Want to bring your brand?</h1>
+          <h1 className="onb-step-title" style={{ marginBottom: 12, fontSize: 32, fontFamily: 'Anton', fontWeight: 400, letterSpacing: '.01em' }}>Set up your own brand</h1>
           <p className="onb-step-sub" style={{ marginBottom: 10 }}>
             Upload your logo, pick your colors and type — we'll build a brand kit that keeps every output automatically on-brand.
           </p>

@@ -3,12 +3,12 @@ import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingSto
 import { ArrowRight } from '@/shared/icons'
 
 const ROLES = [
-  { id: 'designer',  label: 'Designer',                emoji: '🎨' },
-  { id: 'marketer',  label: 'Marketer',                 emoji: '📣' },
-  { id: 'content',   label: 'Content Creator',          emoji: '🎬' },
-  { id: 'developer', label: 'Developer',                emoji: '💻' },
-  { id: 'founder',   label: 'Founder / Business Owner', emoji: '🚀' },
-  { id: 'other',     label: 'Other',                    emoji: '✦'  },
+  { id: 'marketer',     label: 'Marketer',               emoji: '🔨' },
+  { id: 'engineering',  label: 'Engineering/IT',          emoji: '🖥️' },
+  { id: 'designer',     label: 'Designer',                emoji: '🎨' },
+  { id: 'founder',      label: 'Founder/ Business Owner', emoji: '🚀' },
+  { id: 'content',      label: 'Content Creator',         emoji: '📋' },
+  { id: 'other',        label: 'Other',                   emoji: ''   },
 ]
 
 const REFERRALS = [
@@ -92,15 +92,15 @@ export function Step2_Intent() {
 
   if (sub === 1) {
     return (
-      <div className="onb-step onb-step--wide fade-in">
+      <div className="onb-step onb-step--wide fade-in" style={{ maxWidth: 680 }}>
         <div className="onb-product-bg">
           <div className="onb-panel-top-row">
             <BackButton onClick={prevStep} />
             <button className="onb-skip" onClick={() => setSub(2)}>Skip for now</button>
           </div>
-          <div className="h-eyebrow" style={{ marginBottom: 12, marginTop: 20 }}>Personalise · 1 of 2</div>
-          <h1 className="onb-step-title" style={{ fontSize: 36, marginBottom: 8 }}>What best describes your role?</h1>
-          <p className="onb-step-sub" style={{ fontSize: 16, marginBottom: 28 }}>Help us tailor LayerProof to your needs.</p>
+          <div className="h-eyebrow" style={{ marginBottom: 12, marginTop: 20 }}>Personalize</div>
+          <h1 className="onb-step-title" style={{ fontFamily: 'Anton', fontWeight: 400, fontSize: 'clamp(26px, 3.5vw, 38px)', textTransform: 'uppercase', letterSpacing: '.01em', marginBottom: 8 }}>What best describes your role?</h1>
+          <p className="onb-step-sub" style={{ fontSize: 15, marginBottom: 28 }}>Help us tailor LayerProof to your needs.</p>
           <OptionGrid
             options={ROLES}
             selected={role}
@@ -117,15 +117,15 @@ export function Step2_Intent() {
   }
 
   return (
-    <div className="onb-step onb-step--wide fade-in">
+    <div className="onb-step onb-step--wide fade-in" style={{ maxWidth: 680 }}>
       <div className="onb-product-bg">
         <div className="onb-panel-top-row">
           <BackButton onClick={() => setSub(1)} />
           <button className="onb-skip" onClick={nextStep}>Skip for now</button>
         </div>
-        <div className="h-eyebrow" style={{ marginBottom: 12, marginTop: 20 }}>Personalise · 2 of 2</div>
-        <h1 className="onb-step-title" style={{ fontSize: 36, marginBottom: 8 }}>How did you hear about us?</h1>
-        <p className="onb-step-sub" style={{ fontSize: 16, marginBottom: 28 }}>We'd love to know how you found LayerProof.</p>
+        <div className="h-eyebrow" style={{ marginBottom: 12, marginTop: 20 }}>Personalize</div>
+        <h1 className="onb-step-title" style={{ fontFamily: 'Anton', fontWeight: 400, fontSize: 'clamp(26px, 3.5vw, 38px)', textTransform: 'uppercase', letterSpacing: '.01em', marginBottom: 8 }}>How did you hear about us?</h1>
+        <p className="onb-step-sub" style={{ fontSize: 15, marginBottom: 28 }}>We'd love to know how you found LayerProof.</p>
         <OptionGrid
           options={REFERRALS}
           selected={referral}
