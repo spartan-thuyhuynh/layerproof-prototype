@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect, useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore'
@@ -30,6 +30,95 @@ function StepContent({ step }: { step: number }) {
     case 5: return <Step5_Product />
     default: return null
   }
+}
+
+const HERO_TABS = [
+  {
+    id: 'social-post',
+    label: 'Social Post',
+    img: `${base}auth-hero.png`,
+    title: 'Multiple creative directions in minutes',
+    sub: 'Test dozens of hooks and visual styles simultaneously to find your top-performing creative.',
+  },
+  {
+    id: 'presentation',
+    label: 'Presentation',
+    img: `${base}home/feature-presentation.png`,
+    title: 'Pitch-ready decks, built in seconds',
+    sub: 'Turn a brief or URL into a polished presentation with your brand applied automatically.',
+  },
+  {
+    id: 'space',
+    label: 'Space',
+    img: `${base}home/feature-space.png`,
+    title: 'On-brand visuals from a single prompt',
+    sub: 'Generate images that match your palette, style, and tone — no design skills needed.',
+  },
+  {
+    id: 'docs',
+    label: 'Docs',
+    img: `${base}home/feature-docs.png`,
+    title: 'Long-form content, in your brand voice',
+    sub: 'Blogs, briefs, reports and docs drafted fast — consistent, on-brand, every time.',
+  },
+  {
+    id: 'design',
+    label: 'Design',
+    img: `${base}home/feature-design.png`,
+    title: 'Brand assets at scale',
+    sub: 'Create graphics, banners, and visual content that always looks unmistakably yours.',
+  },
+]
+
+function AuthHeroSwitcher() {
+  const [active, setActive] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  function startTimer(from: number) {
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setActive(prev => (prev + 1) % HERO_TABS.length)
+    }, 7000)
+  }
+
+  useEffect(() => {
+    startTimer(active)
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [])
+
+  function handleChipClick(i: number) {
+    setActive(i)
+    startTimer(i)
+  }
+
+  const tab = HERO_TABS[active]
+
+  return (
+    <div className="auth-switcher">
+      <img
+        key={tab.id}
+        src={tab.img}
+        alt={tab.label}
+        className="auth-switcher-img"
+        onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0' }}
+      />
+      <div className="auth-switcher-content">
+        <h2 className="auth-switcher-title">{tab.title}</h2>
+        <p className="auth-switcher-sub">{tab.sub}</p>
+        <div className="auth-switcher-chips">
+          {HERO_TABS.map((t, i) => (
+            <button
+              key={t.id}
+              className={`auth-switcher-chip${i === active ? ' active' : ''}`}
+              onClick={() => handleChipClick(i)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // Left panel illustration — updates per product selection
@@ -154,12 +243,7 @@ export function OnboardingWizard() {
         <BackToPrototypes />
         <div className="onb-auth-shell">
           <div className="onb-auth-left">
-            <img
-              src={`${base}auth-hero.png`}
-              alt=""
-              className="onb-auth-hero-img"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-            />
+            <AuthHeroSwitcher />
           </div>
           <div className="onb-auth-right">
             <div className="onb-auth-form-wrap">

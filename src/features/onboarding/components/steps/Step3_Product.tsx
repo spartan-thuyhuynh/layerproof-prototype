@@ -47,24 +47,24 @@ const PRODUCTS = [
     recommended: false,
   },
   {
-    slug: 'design',
-    name: 'LayerProof Design',
-    sub: 'Graphic Design',
-    desc: 'Create graphics, visuals, and brand assets at scale',
-    icon: 'Sparkle',
+    slug: 'bristol',
+    name: 'LayerProof Bristol',
+    sub: 'HTML Builder',
+    desc: 'Build interactive experiences and webpages',
+    icon: 'Globe',
     color: '#3b82f6',
-    img: `${base}home/card-design.png`,
+    img: `${base}home/card-bristol.png`,
     recommended: false,
-    comingSoon: true,
+    comingSoon: false,
   },
   {
-    slug: 'app',
-    name: 'LayerProof App',
-    sub: 'App Builder',
-    desc: 'Build interactive web experiences and landing pages',
-    icon: 'Globe',
-    color: '#ec4899',
-    img: `${base}home/card-app.png`,
+    slug: 'motion',
+    name: 'LayerProof Motion',
+    sub: 'Motion Design Composer',
+    desc: 'Create seamless graphic motion assets tailored to your brand',
+    icon: 'Sparkle',
+    color: '#a855f7',
+    img: undefined,
     recommended: false,
     comingSoon: true,
   },
@@ -120,22 +120,32 @@ export function Step3_Product() {
                   onClick={() => !comingSoon && handleCardClick(slug)}
                 >
                   <div className="onb-product-thumb">
-                    {comingSoon && <span className="onb-coming-soon-badge">Coming Soon</span>}
-                    <img
-                      src={img}
-                      alt={name}
-                      className="onb-product-thumb-img"
-                      onError={(e) => {
-                        const el = e.currentTarget
-                        el.style.display = 'none'
-                        const placeholder = el.nextElementSibling as HTMLElement | null
-                        if (placeholder) placeholder.style.display = 'flex'
-                      }}
-                    />
-                    <div
-                      className="onb-product-thumb-placeholder"
-                      style={{ background: comingSoon ? `${color}35` : `${color}18`, display: 'none' }}
-                    />
+                    {comingSoon && !img ? (
+                      <div className="onb-product-thumb-cs" style={{ '--cs-color': color } as React.CSSProperties}>
+                        <div className="onb-product-thumb-cs-blob" />
+                        <div className="onb-product-thumb-cs-blur" />
+                        <span className="onb-product-thumb-cs-label">Coming Soon</span>
+                      </div>
+                    ) : (
+                      <>
+                        {comingSoon && <span className="onb-coming-soon-badge">Coming Soon</span>}
+                        <img
+                          src={img}
+                          alt={name}
+                          className="onb-product-thumb-img"
+                          onError={(e) => {
+                            const el = e.currentTarget
+                            el.style.display = 'none'
+                            const placeholder = el.nextElementSibling as HTMLElement | null
+                            if (placeholder) placeholder.style.display = 'flex'
+                          }}
+                        />
+                        <div
+                          className="onb-product-thumb-placeholder"
+                          style={{ background: `${color}18`, display: 'none' }}
+                        />
+                      </>
+                    )}
                   </div>
                   <div className="onb-product-body">
                     <div className="onb-product-header">

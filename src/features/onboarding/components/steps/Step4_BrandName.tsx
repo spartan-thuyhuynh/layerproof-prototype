@@ -24,12 +24,12 @@ const BODY_FONTS = [
   { family: 'system-ui', weight: '400', label: 'System UI' },
 ]
 
-const GENERATING_STEPS = [
-  'Reading your brand details…',
-  'Generating colour palette…',
-  'Pairing display & body fonts…',
-  'Composing brand style rules…',
-  'Rendering your theme…',
+const GENERATING_STEPS: { label: string; sub: string }[] = [
+  { label: 'Saving your colour palette',    sub: 'Your brand kit now owns these colours — they\'re your identity foundation.' },
+  { label: 'Registering your typefaces',    sub: 'Display and body fonts locked in as part of your brand kit.' },
+  { label: 'Capturing your brand tone',     sub: 'Voice and communication style stored in your kit for consistent copy.' },
+  { label: 'Finalising your brand kit',     sub: 'All your identity rules are saved in one place — colours, fonts, tone, logo.' },
+  { label: 'Generating your first brand theme', sub: 'A brand theme applies your kit\'s rules to a specific output format — your first one is ready.' },
 ]
 
 type Phase = 'hook' | 'setup' | 'generating' | 'done'
@@ -38,58 +38,89 @@ type Phase = 'hook' | 'setup' | 'generating' | 'done'
 
 function GeneratingPhase({ brandName, color }: { brandName: string; color: string }) {
   const [idx, setIdx] = useState(0)
+  const total = GENERATING_STEPS.length
 
   useEffect(() => {
-    const t = setInterval(() => setIdx((i) => Math.min(i + 1, GENERATING_STEPS.length - 1)), 600)
+    const t = setInterval(() => setIdx(i => Math.min(i + 1, total - 1)), 900)
     return () => clearInterval(t)
   }, [])
 
+  const current = GENERATING_STEPS[idx]
+
   return (
-    <div className="onb-step fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 40, gap: 0 }}>
-      {/* Spinning ring */}
-      <div style={{ position: 'relative', width: 80, height: 80, marginBottom: 32 }}>
-        <svg width="80" height="80" viewBox="0 0 80 80" style={{ animation: 'spin 1.2s linear infinite' }}>
-          <circle cx="40" cy="40" r="34" fill="none" stroke={color} strokeWidth="5"
-            strokeDasharray="160 54" strokeLinecap="round" />
+    <div className="onb-step fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 20, gap: 0, width: '100%', maxWidth: 480, margin: '0 auto' }}>
+
+      {/* Spinner */}
+      <div style={{ position: 'relative', width: 52, height: 52, marginBottom: 24 }}>
+        <svg width="52" height="52" viewBox="0 0 52 52" style={{ position: 'absolute', inset: 0 }}>
+          <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="3" />
         </svg>
-        <div style={{
-          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 26, fontWeight: 800, color, lineHeight: 1,
-        }}>
-          {brandName[0]?.toUpperCase() ?? '?'}
+        <svg width="52" height="52" viewBox="0 0 52 52" style={{ position: 'absolute', inset: 0, animation: 'spin 1s linear infinite' }}>
+          <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,.55)" strokeWidth="3"
+            strokeDasharray="44 94" strokeLinecap="round" />
+        </svg>
+      </div>
+
+      {/* Heading */}
+      <div className="h-eyebrow" style={{ marginBottom: 10 }}>Setting up your brand</div>
+      <h2 style={{ fontFamily: 'Anton', fontWeight: 400, fontSize: 34, letterSpacing: '.01em', textTransform: 'uppercase', color: 'var(--t1)', margin: '0 0 24px', textAlign: 'center', lineHeight: 1.05 }}>
+        From Brand Kit to Theme
+      </h2>
+
+      {/* Concept cards */}
+      <div style={{ display: 'flex', gap: 0, width: '100%', alignItems: 'stretch', marginBottom: 24 }}>
+        <div style={{ flex: 1, background: '#131316', border: '1px solid rgba(255,255,255,.08)', borderRadius: '12px 0 0 12px', padding: '16px 20px' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t2)', marginBottom: 8 }}>Brand Kit</div>
+          <div style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.6 }}>Your identity — colours, fonts, logo, and tone stored in one place.</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', background: '#0e0e10', border: '1px solid rgba(255,255,255,.08)', borderLeft: 'none', borderRight: 'none' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </div>
+        <div style={{ flex: 1, background: '#131316', border: '1px solid rgba(255,255,255,.08)', borderRadius: '0 12px 12px 0', padding: '16px 20px', borderLeft: 'none' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t2)', marginBottom: 8 }}>Brand Theme</div>
+          <div style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.6 }}>Rules for applying your kit to a specific output format, auto-generated.</div>
         </div>
       </div>
 
-      <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--t1)', margin: '0 0 10px', letterSpacing: '-.02em' }}>
-        Generating your brand theme
-      </h2>
-      <p style={{ fontSize: 14, color: 'var(--t2)', margin: '0 0 32px' }}>Pulling it all together — won't take long.</p>
+      {/* Current step callout */}
+      <div style={{
+        width: '100%', marginBottom: 20,
+        padding: '14px 18px', borderRadius: 12,
+        background: 'rgba(255,222,66,.06)',
+        border: '1px solid rgba(255,222,66,.14)',
+      }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>{current.label}</div>
+        <div style={{ fontSize: 12, color: 'var(--t3)', lineHeight: 1.55 }}>{current.sub}</div>
+      </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
-        {GENERATING_STEPS.map((label, i) => (
-          <div key={label} style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            opacity: i <= idx ? 1 : 0.25,
-            transition: 'opacity .3s',
-          }}>
-            <div style={{
-              width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-              background: i < idx ? color : i === idx ? color + '33' : 'var(--card)',
-              border: `2px solid ${i <= idx ? color : 'var(--line)'}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all .3s',
-            }}>
-              {i < idx && (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-              )}
+      {/* Step list */}
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {GENERATING_STEPS.map(({ label }, i) => {
+          const done   = i < idx
+          const active = i === idx
+          return (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: i > idx ? 0.28 : 1, transition: 'opacity .4s' }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                background: done ? 'var(--accent)' : 'transparent',
+                border: done ? '2px solid var(--accent)' : active ? '2px solid var(--accent)' : '2px solid rgba(255,255,255,.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all .35s',
+              }}>
+                {done && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                )}
+              </div>
+              <span style={{ fontSize: 14, fontWeight: active ? 600 : 400, color: active ? 'var(--t1)' : done ? 'var(--t2)' : 'var(--t3)', transition: 'color .3s' }}>
+                {label}
+              </span>
             </div>
-            <span style={{ fontSize: 13.5, color: i <= idx ? 'var(--t1)' : 'var(--t3)', fontWeight: i === idx ? 600 : 400 }}>
-              {label}
-            </span>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -97,163 +128,170 @@ function GeneratingPhase({ brandName, color }: { brandName: string; color: strin
 
 // ─── Done / Congratulations phase ────────────────────────────────────────────
 
-function DonePhase({ brandName, color, fontPair, palette, logoPreview, onContinue }: {
+function KitCell({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ background: '#111113', border: '1px solid rgba(255,255,255,.07)', borderRadius: 12, padding: '14px 16px' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: 10 }}>{label}</div>
+      {children}
+    </div>
+  )
+}
+
+function DonePhase({ brandName, color, fontPair, palette, logoPreview, tone, onContinue }: {
   brandName: string
   color: string
   fontPair: { display: string; body: string }
   palette: string[]
   logoPreview: string | null
+  tone: string | null
   onContinue: () => void
 }) {
-  const base = import.meta.env.BASE_URL
   const activePalette = palette.length > 0 ? palette : [color]
+  const toneData = TONES.find(t => t.id === tone)
 
   return (
-    <div className="onb-step fade-in" style={{ alignItems: 'center', textAlign: 'center' }}>
-      <div className="h-eyebrow" style={{ marginBottom: 6 }}>Theme generated</div>
-      <h1 className="onb-step-title" style={{ marginBottom: 6, fontFamily: 'Anton', fontWeight: 400, fontSize: 32, letterSpacing: '.01em' }}>Your brand theme is ready.</h1>
-      <p className="onb-step-sub" style={{ maxWidth: 340, margin: '0 auto 24px' }}>
-        Here's what we built. Any output with this theme applied will stay on-brand automatically.
-      </p>
+    <div className="onb-step onb-step--wide fade-in" style={{ maxWidth: 600 }}>
+      {/* Header — left-aligned */}
+      <div style={{ marginBottom: 28 }}>
+        <div className="h-eyebrow" style={{ marginBottom: 10 }}>Theme Generated</div>
+        <h1 style={{ fontFamily: 'Anton', fontWeight: 400, fontSize: 40, letterSpacing: '.01em', textTransform: 'uppercase', color: 'var(--t1)', margin: '0 0 12px', lineHeight: 1.0 }}>
+          Your brand kit is ready.
+        </h1>
+        <p style={{ fontSize: 15, color: 'var(--t2)', lineHeight: 1.65, maxWidth: 480 }}>
+          We've auto-generated your first brand theme from your kit. This is a ruleset for how your identity applies to outputs.
+        </p>
+      </div>
 
-      {/* ── Brand Kit card ─────────────────────────────────────── */}
+      {/* Brand theme card — horizontal */}
       <div style={{
-        width: '100%', maxWidth: 400, margin: '0 auto 10px',
         borderRadius: 16, overflow: 'hidden',
         border: '1px solid rgba(255,255,255,.08)',
-        background: '#131313',
-        textAlign: 'left',
+        marginBottom: 20,
+        display: 'flex',
+        background: '#111113',
       }}>
-        {/* Section label */}
-        <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,.35)' }}>
-            Brand Kit
-          </span>
+        {/* Left: gradient thumbnail */}
+        <div style={{
+          flex: '0 0 160px',
+          position: 'relative',
+          background: `linear-gradient(160deg, ${color} 0%, ${activePalette[1] ?? color}bb 60%, ${activePalette[2] ?? '#111'}88 100%)`,
+          overflow: 'hidden',
+          minHeight: 140,
+        }}>
+          <div style={{ position: 'absolute', width: 130, height: 130, borderRadius: '50%', border: '28px solid rgba(255,255,255,.07)', top: -50, right: -50 }} />
+          <div style={{ position: 'absolute', width: 80, height: 80, borderRadius: '50%', border: '16px solid rgba(255,255,255,.05)', bottom: -20, left: -20 }} />
+          {/* Logo mark */}
+          <div style={{
+            position: 'absolute', top: 14, left: 14,
+            width: 32, height: 32, borderRadius: 8,
+            background: 'rgba(255,255,255,.18)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+          }}>
+            {logoPreview
+              ? <img src={logoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              : <span style={{ fontFamily: 'Anton', fontSize: 15, color: '#fff', lineHeight: 1 }}>{brandName[0]?.toUpperCase() ?? 'B'}</span>
+            }
+          </div>
+          {/* Palette bar */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: 4 }}>
+            {activePalette.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
+          </div>
         </div>
 
-        {/* Kit identity row */}
-        <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+        {/* Right: metadata */}
+        <div style={{ flex: 1, padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)' }}>Brand Theme</span>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', background: 'rgba(255,222,66,.12)', color: 'var(--accent)', borderRadius: 5, padding: '2px 8px', border: '1px solid rgba(255,222,66,.18)' }}>Auto-Generated</span>
+          </div>
+          <div style={{ fontFamily: fontPair.display, fontWeight: 800, fontSize: 19, color: 'var(--t1)', lineHeight: 1.1 }}>
+            Brand Core Theme
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--t3)', lineHeight: 1.6 }}>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco l…
+          </div>
+        </div>
+      </div>
+
+      {/* Brand kit grid */}
+      <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,.07)', marginBottom: 24 }}>
+
+        {/* Row 1: Logo | Typography | Tone */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#111113', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
+
           {/* Logo */}
-          <div style={{
-            width: 52, height: 52, borderRadius: 13, flexShrink: 0,
-            background: logoPreview ? '#1a1a1a' : color,
-            border: logoPreview ? `1px solid rgba(255,255,255,.1)` : 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            overflow: 'hidden',
-            boxShadow: `0 2px 12px ${color}44`,
-          }}>
-            {logoPreview ? (
-              <img src={logoPreview} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <div style={{ padding: '16px 18px', borderRight: '1px solid rgba(255,255,255,.07)' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: 12 }}>Logo</div>
+            <div style={{
+              width: 48, height: 48, borderRadius: 12, marginBottom: 10,
+              background: logoPreview ? '#1a1a1a' : color,
+              border: '1px solid rgba(255,255,255,.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+              boxShadow: `0 4px 14px ${color}44`,
+            }}>
+              {logoPreview
+                ? <img src={logoPreview} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                : <span style={{ fontFamily: 'Anton', fontSize: 22, color: '#fff', lineHeight: 1 }}>{brandName[0]?.toUpperCase() ?? 'B'}</span>
+              }
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', lineHeight: 1.2, marginBottom: 2 }}>{brandName}</div>
+            <div style={{ fontSize: 11, color: 'var(--t3)' }}>{logoPreview ? 'Custom logo' : 'Lettermark'}</div>
+          </div>
+
+          {/* Typography */}
+          <div style={{ padding: '16px 18px', borderRight: '1px solid rgba(255,255,255,.07)' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: 12 }}>Typography</div>
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontFamily: fontPair.display, fontWeight: 800, fontSize: 28, color: 'var(--t1)', lineHeight: 1 }}>{fontPair.display}</div>
+              <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 4 }}>Display</div>
+            </div>
+            <div style={{ width: '100%', height: 1, background: 'rgba(255,255,255,.06)', marginBottom: 10 }} />
+            <div>
+              <div style={{ fontFamily: fontPair.body, fontWeight: 400, fontSize: 20, color: 'rgba(255,255,255,.4)', lineHeight: 1 }}>{fontPair.body}</div>
+              <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 4 }}>Body</div>
+            </div>
+          </div>
+
+          {/* Tone */}
+          <div style={{ padding: '16px 18px' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: 12 }}>Tone</div>
+            {toneData ? (
+              <>
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'rgba(255,222,66,.12)', border: '1px solid rgba(255,222,66,.2)',
+                  borderRadius: 20, padding: '6px 12px', marginBottom: 8,
+                }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{toneData.label}</span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--t3)', lineHeight: 1.5 }}>{toneData.desc}</div>
+              </>
             ) : (
-              <span style={{ fontFamily: 'Anton', fontSize: 24, color: '#fff', lineHeight: 1 }}>
-                {brandName[0]?.toUpperCase() ?? 'B'}
-              </span>
+              <span style={{ fontSize: 12, color: 'var(--t3)' }}>Not configured</span>
             )}
           </div>
+        </div>
 
-          {/* Name + palette */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: fontPair.display, fontWeight: 800, fontSize: 18, color: '#fff', lineHeight: 1.1, marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {brandName}
-            </div>
-            {/* Palette dots */}
-            <div style={{ display: 'flex', gap: 5 }}>
-              {activePalette.map((c, i) => (
-                <div key={i} style={{
-                  width: i === 0 ? 22 : 16, height: 16, borderRadius: 5,
-                  background: c, border: '1px solid rgba(255,255,255,.1)',
-                  transition: 'width .2s',
+        {/* Row 2: Colours — full width */}
+        <div style={{ background: '#111113', padding: '16px 18px 18px' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: 12 }}>Colors</div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+            {activePalette.map((c, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 9, background: c,
+                  border: '1px solid rgba(255,255,255,.08)',
+                  boxShadow: i === 0 ? `0 4px 12px ${c}55` : 'none',
                 }} />
-              ))}
-            </div>
-          </div>
-
-          {/* Check */}
-          <div style={{
-            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-            background: color + '22', border: `1.5px solid ${color}55`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
+                <span style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'monospace' }}>{c.toUpperCase()}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* ── Brand Theme card ───────────────────────────────────── */}
-      <div style={{
-        width: '100%', maxWidth: 400, margin: '0 auto 20px',
-        borderRadius: 16, overflow: 'hidden',
-        border: `1px solid ${color}28`,
-        background: '#131313',
-        textAlign: 'left',
-        boxShadow: `0 8px 32px ${color}18`,
-      }}>
-        {/* Section label */}
-        <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,.35)' }}>
-            Brand Theme
-          </span>
-        </div>
-
-        {/* Hero: colour backdrop with brand name in display font */}
-        <div style={{ position: 'relative', height: 120, background: color, overflow: 'hidden' }}>
-          <img
-            src={`${base}onboarding/illustration.png`}
-            alt=""
-            style={{ position: 'absolute', right: -10, top: -10, height: 140, width: 'auto', opacity: 0.3, mixBlendMode: 'luminosity' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-          />
-          <div style={{ position: 'absolute', inset: 0, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-            <div style={{ fontFamily: fontPair.display, fontWeight: 800, fontSize: 26, color: '#fff', letterSpacing: '-.02em', lineHeight: 1 }}>
-              {brandName}
-            </div>
-            <div style={{ fontFamily: fontPair.body, fontSize: 12, color: 'rgba(255,255,255,.6)', marginTop: 4 }}>
-              {fontPair.display} · {fontPair.body}
-            </div>
-          </div>
-        </div>
-
-        {/* Palette bar */}
-        <div style={{ display: 'flex', height: 6 }}>
-          {activePalette.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
-        </div>
-
-        {/* Type + colour row */}
-        <div style={{ display: 'flex', padding: '14px 16px', gap: 12 }}>
-          {/* Typography */}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: 6 }}>Typography</div>
-            <div style={{ fontFamily: fontPair.display, fontWeight: 800, fontSize: 20, color: '#fff', lineHeight: 1 }}>Aa</div>
-            <div style={{ fontFamily: fontPair.body, fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 3 }}>The quick brown fox</div>
-          </div>
-
-          {/* Divider */}
-          <div style={{ width: 1, background: 'rgba(255,255,255,.06)', alignSelf: 'stretch' }} />
-
-          {/* Colours */}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: 6 }}>Colours</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {activePalette.map((c, i) => (
-                <div key={i} style={{
-                  width: 24, height: 24, borderRadius: 6, background: c,
-                  border: '1px solid rgba(255,255,255,.1)',
-                  outline: i === 0 ? `2px solid ${c}` : 'none',
-                  outlineOffset: 2,
-                }} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <p className="tiny" style={{ color: 'var(--t3)', marginBottom: 20 }}>
-        Fine-tune colours, fonts, and voice any time in the brand kit editor.
-      </p>
-
-      <button className="btn primary onb-cta" onClick={onContinue} style={{ maxWidth: 400, width: '100%' }}>
+      <button className="btn primary onb-cta" onClick={onContinue} style={{ width: '100%' }}>
         Generate your first project <ArrowRight style={{ width: 16, height: 16 }} />
       </button>
     </div>
@@ -598,6 +636,12 @@ function BackButton({ onClick }: { onClick: () => void }) {
   )
 }
 
+const TONES = [
+  { id: 'professional', label: 'Professional', desc: 'Polished & credible' },
+  { id: 'friendly',     label: 'Friendly',     desc: 'Warm & approachable' },
+  { id: 'bold',         label: 'Bold',         desc: 'Confident & direct' },
+]
+
 export function Step4_BrandName() {
   const { setBrandName, setTagline, nextStep, prevStep, setStep } = useOnboardingStore()
   const { createKit, updateKit, setAppliedId } = useBrandStore()
@@ -607,6 +651,7 @@ export function Step4_BrandName() {
   const [palette,       setPalette]     = useState<string[]>(DEFAULT_PALETTE)
   const [headingFont,   setHeadingFont] = useState(HEADING_FONTS[0])
   const [bodyFont,      setBodyFont]    = useState(BODY_FONTS[0])
+  const [selectedTone,  setSelectedTone] = useState<string | null>(TONES[0].id)
 
   const primaryColor = palette[0] ?? '#ec4899'
   const [logoFile, setLogoFile]       = useState<File | null>(null)
@@ -671,6 +716,7 @@ export function Step4_BrandName() {
         fontPair={{ display: headingFont.family, body: bodyFont.family }}
         palette={palette}
         logoPreview={logoPreview}
+        tone={selectedTone}
         onContinue={() => nextStep()}
       />
     )
@@ -925,15 +971,63 @@ export function Step4_BrandName() {
                   options={HEADING_FONTS}
                   value={headingFont}
                   onChange={setHeadingFont}
-                  accentColor={primaryColor}
+                  accentColor="var(--accent)"
                 />
                 <FontDropdown
                   label="Body"
                   options={BODY_FONTS}
                   value={bodyFont}
                   onChange={setBodyFont}
-                  accentColor={primaryColor}
+                  accentColor="var(--accent)"
                 />
+              </div>
+            </div>
+
+            {/* Tone */}
+            <div className="onb-field" style={{ marginBottom: 24 }}>
+              <label className="onb-label">Brand tone</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {TONES.map(({ id, label, desc }) => {
+                  const active = selectedTone === id
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => setSelectedTone(active ? null : id)}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: 3,
+                        padding: '12px 14px',
+                        borderRadius: 12,
+                        border: active ? '1.5px solid var(--accent)' : '1.5px solid rgba(255,255,255,.10)',
+                        background: active ? 'rgba(255,222,66,.08)' : '#111113',
+                        cursor: 'pointer',
+                        transition: 'border-color .15s, background .15s',
+                        textAlign: 'left',
+                        position: 'relative',
+                      }}
+                      onMouseEnter={e => { if (!active) e.currentTarget.style.borderColor = 'rgba(255,255,255,.24)' }}
+                      onMouseLeave={e => { if (!active) e.currentTarget.style.borderColor = 'rgba(255,255,255,.10)' }}
+                    >
+                      {active && (
+                        <span style={{
+                          position: 'absolute', top: 8, right: 8,
+                          width: 16, height: 16, borderRadius: '50%',
+                          background: 'var(--accent)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 6L9 17l-5-5" />
+                          </svg>
+                        </span>
+                      )}
+                      <span style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--accent)' : 'var(--t1)' }}>{label}</span>
+                      <span style={{ fontSize: 11, color: 'var(--t3)', lineHeight: 1.4 }}>{desc}</span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
