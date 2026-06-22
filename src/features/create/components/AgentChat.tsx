@@ -198,7 +198,7 @@ function CampaignDetailsCard({
   initialTheme?: ThemeOption | null
   initialTone?: string | null
 }) {
-  const [values, setValues]       = useState<FormValues>(() => initialTone ? { tone: initialTone } : {})
+  const [values, setValues]       = useState<FormValues>(() => initialTone ? { tone: initialTone } : ({} as FormValues))
   const [showThemes, setShowThemes] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(initialTheme ?? null)
 
