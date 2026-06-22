@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { BrandKit, Category } from '@/features/brand-kit/types/brand'
 import { SubSidebar } from '@/shared/components/layout/SubSidebar'
 import { Overview } from '@/features/brand-kit/components/sections/Overview'
@@ -51,6 +52,7 @@ interface DetailProps {
 export function Detail({ kit }: DetailProps) {
   const { updateKit, appliedId, setAppliedId } = useBrandStore()
   const { setModal } = useUIStore()
+  const navigate = useNavigate()
   const [section, setSection] = useState('overview')
   const [showAddCat, setShowAddCat] = useState(false)
   const [showDoc, setShowDoc] = useState(false)
@@ -317,42 +319,61 @@ export function Detail({ kit }: DetailProps) {
             {designMenuOpen && (
               <div className="design-menu">
                 <div className="design-menu-label">Create new design</div>
-                {[
-                  {
-                    id: 'presentation',
-                    label: 'Presentation',
-                    icon: (
-                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-                        <rect x="2" y="3" width="16" height="11" rx="1.5" />
-                        <path d="M7 17h6M10 14v3" />
-                      </svg>
-                    ),
-                  },
-                  {
-                    id: 'social',
-                    label: 'Social Post',
-                    icon: (
-                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-                        <rect x="3" y="3" width="14" height="14" rx="2" />
-                        <circle cx="7.5" cy="7.5" r="1.5" />
-                        <path d="M3 13l4-4 3 3 2-2 5 5" />
-                      </svg>
-                    ),
-                  },
-                ].map(({ id, label, icon }) => (
-                  <button
-                    key={id}
-                    className="design-menu-item"
-                    onClick={() => {
-                      setDesignMenuOpen(false)
-                      setDevToast(true)
-                      setTimeout(() => setDevToast(false), 3000)
-                    }}
-                  >
-                    <span className="design-menu-item-icon">{icon}</span>
-                    <span className="design-menu-item-label">{label}</span>
-                  </button>
-                ))}
+                {(kit.themes ?? []).length === 0 ? (
+                  <div className="design-menu-empty">
+                    <p className="design-menu-empty-text">
+                      Add a brand theme first to use this kit in a design.
+                    </p>
+                    <button
+                      className="design-menu-empty-cta"
+                      onClick={() => {
+                        setDesignMenuOpen(false)
+                        setModal({ type: 'new-theme' })
+                      }}
+                    >
+                      Create a theme
+                    </button>
+                  </div>
+                ) : (
+                  [
+                    {
+                      id: 'presentation',
+                      label: 'Presentation',
+                      slug: 'presentation',
+                      icon: (
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                          <rect x="2" y="3" width="16" height="11" rx="1.5" />
+                          <path d="M7 17h6M10 14v3" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      id: 'social',
+                      label: 'Social Post',
+                      slug: 'social-post',
+                      icon: (
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                          <rect x="3" y="3" width="14" height="14" rx="2" />
+                          <circle cx="7.5" cy="7.5" r="1.5" />
+                          <path d="M3 13l4-4 3 3 2-2 5 5" />
+                        </svg>
+                      ),
+                    },
+                  ].map(({ id, label, slug, icon }) => (
+                    <button
+                      key={id}
+                      className="design-menu-item"
+                      onClick={() => {
+                        setDesignMenuOpen(false)
+                        setAppliedId(kit.id)
+                        navigate(`/create/${slug}`)
+                      }}
+                    >
+                      <span className="design-menu-item-icon">{icon}</span>
+                      <span className="design-menu-item-label">{label}</span>
+                    </button>
+                  ))
+                )}
               </div>
             )}
           </div>

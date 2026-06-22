@@ -82,6 +82,17 @@ export interface ToneAttr {
   d: string
 }
 
+export interface SpectrumStop {
+  label: string  // anchor name, e.g. 'Balanced'
+  desc: string   // what this position means
+}
+
+export interface SpectrumAxis {
+  id: string
+  stops: SpectrumStop[]  // ordered left→right; first/last are the poles, middles are anchors
+  value: number          // selected stop index
+}
+
 export interface ToneData {
   attrs: ToneAttr[]
   use: string[]
@@ -91,7 +102,36 @@ export interface ToneData {
   language?: string
   textDensity?: 'minimal' | 'concise' | 'detailed'
   customInstruction?: string
+  spectrum?: SpectrumAxis[]
+  spectrumExample?: string  // example copy that reflects the chosen tone
 }
+
+/* ── Default voice spectrum — NN/g four dimensions of tone of voice ── */
+export const DEFAULT_VOICE_SPECTRUM: SpectrumAxis[] = [
+  { id: 'formality', value: 2, stops: [
+    { label: 'Formal',   desc: 'Polished, professional language.' },
+    { label: 'Balanced', desc: 'Approachable but composed.' },
+    { label: 'Casual',   desc: 'Relaxed and conversational.' },
+  ]},
+  { id: 'humor', value: 0, stops: [
+    { label: 'Serious', desc: 'Straightforward, no jokes.' },
+    { label: 'Light',   desc: 'Occasional wit and warmth.' },
+    { label: 'Funny',   desc: 'Playful and humorous.' },
+  ]},
+  { id: 'respect', value: 0, stops: [
+    { label: 'Respectful', desc: 'Deferential and polite.' },
+    { label: 'Candid',     desc: 'Frank and direct.' },
+    { label: 'Irreverent', desc: 'Cheeky, breaks conventions.' },
+  ]},
+  { id: 'enthusiasm', value: 2, stops: [
+    { label: 'Matter-of-fact', desc: 'Neutral and factual.' },
+    { label: 'Warm',           desc: 'Friendly, engaged energy.' },
+    { label: 'Enthusiastic',   desc: 'Excited and expressive.' },
+  ]},
+]
+
+export const DEFAULT_SPECTRUM_EXAMPLE =
+  "Oops! We're sorry, but we're experiencing a problem on our end."
 
 export interface RadiusStep {
   v: number

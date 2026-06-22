@@ -4,6 +4,18 @@ const base = import.meta.env.BASE_URL
 
 const PROTOS = [
   {
+    title: 'Matte V3 Editor',
+    status: 'live' as const,
+    thumbnail: undefined,
+    to: '/matte-v3',
+    flows: [
+      'Redesigned editor canvas & toolbar',
+      'AI layout & copy suggestions',
+      'Multi-format templates',
+      'Brand kit integration',
+    ],
+  },
+  {
     title: 'New Homepage',
     status: 'live' as const,
     thumbnail: `${base}home/homepage-thumb.png`,
@@ -35,18 +47,6 @@ const PROTOS = [
       'Build your brand kit',
       'Auto-generate your first brand theme',
       'Pick your first product',
-    ],
-  },
-  {
-    title: 'Matte V3 Editor',
-    status: 'coming-soon' as const,
-    thumbnail: undefined,
-    to: '/matte-v3',
-    flows: [
-      'Redesigned editor canvas & toolbar',
-      'AI layout & copy suggestions',
-      'Multi-format templates',
-      'Brand kit integration',
     ],
   },
 ]

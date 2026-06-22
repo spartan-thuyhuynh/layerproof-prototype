@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ProductConfig } from '../config'
+import type { ThemeOption } from '../themes'
 import { PromptScreen } from './PromptScreen'
 import { AgentChat } from './AgentChat'
 
@@ -10,9 +11,13 @@ interface Props {
 export function CreateFlow({ config }: Props) {
   const [stage, setStage] = useState<'prompt' | 'chat'>('prompt')
   const [userPrompt, setUserPrompt] = useState('')
+  const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(null)
+  const [selectedTone, setSelectedTone] = useState<string | null>(null)
 
-  function handlePromptSubmit(prompt: string) {
+  function handlePromptSubmit(prompt: string, theme: ThemeOption | null, tone: string | null) {
     setUserPrompt(prompt)
+    setSelectedTheme(theme)
+    setSelectedTone(tone)
     setStage('chat')
   }
 
@@ -22,6 +27,8 @@ export function CreateFlow({ config }: Props) {
         config={config}
         userPrompt={userPrompt}
         onBack={() => setStage('prompt')}
+        initialTheme={selectedTheme}
+        initialTone={selectedTone}
       />
     )
   }

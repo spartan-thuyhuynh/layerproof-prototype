@@ -13,6 +13,7 @@ interface OnboardingState {
   importPath: 'url' | 'pdf' | 'blank' | null
   importUrl: string
   newKitId: string | null
+  brandSkipped: boolean
   projectName: string
   projectMeta: Record<string, string>
 
@@ -28,6 +29,7 @@ interface OnboardingState {
   setImportPath: (p: OnboardingState['importPath']) => void
   setImportUrl: (u: string) => void
   setNewKitId: (id: string) => void
+  setBrandSkipped: (skipped: boolean) => void
   setProjectName: (n: string) => void
   setProjectMeta: (key: string, value: string) => void
   reset: () => void
@@ -35,7 +37,7 @@ interface OnboardingState {
 
 const INITIAL: Pick<OnboardingState,
   'step' | 'email' | 'intents' | 'selectedProduct' | 'brandName' |
-  'tagline' | 'brandDescription' | 'importPath' | 'importUrl' | 'newKitId' | 'projectName' | 'projectMeta'
+  'tagline' | 'brandDescription' | 'importPath' | 'importUrl' | 'newKitId' | 'brandSkipped' | 'projectName' | 'projectMeta'
 > = {
   step: 1,
   email: '',
@@ -47,6 +49,7 @@ const INITIAL: Pick<OnboardingState,
   importPath: null,
   importUrl: '',
   newKitId: null,
+  brandSkipped: false,
   projectName: '',
   projectMeta: {},
 }
@@ -70,6 +73,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setImportPath: (importPath) => set({ importPath }),
   setImportUrl: (importUrl) => set({ importUrl }),
   setNewKitId: (newKitId) => set({ newKitId }),
+  setBrandSkipped: (brandSkipped) => set({ brandSkipped }),
   setProjectName: (projectName) => set({ projectName }),
   setProjectMeta: (key, value) => set((s) => ({
     projectMeta: { ...s.projectMeta, [key]: value },

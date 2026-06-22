@@ -4,6 +4,7 @@ import type { EditorActions } from '@/features/brand-kit/components/sections/typ
 import { X, Globe, Chevron } from '@/shared/icons'
 import { Portal } from '@/shared/lib/Portal'
 import { SaveableField } from '@/features/brand-kit/components/edit/SaveableField'
+import { VoiceSpectrum } from '@/features/brand-kit/components/sections/VoiceSpectrum'
 
 interface VoicePickerModalProps {
   kit: BrandKit
@@ -175,6 +176,9 @@ export function VoicePickerModal({ kit, ed, onClose, onDone }: VoicePickerModalP
                 })}
               </div>
             </div>
+
+            {/* Voice spectrum */}
+            <VoiceSpectrum kit={kit} ed={ed} />
 
             {/* Words to avoid */}
             <div className="voice-section-card">

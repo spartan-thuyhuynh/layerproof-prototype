@@ -4,6 +4,12 @@ import { ChevronLeft, Plus, Send, ChevronRight, Check, X } from 'lucide-react'
 import * as I from '@/shared/icons'
 import type { ProductConfig } from '../config'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
+import {
+  type ThemeOption,
+  SYSTEM_THEMES,
+  STANDALONE_THEMES,
+  makeBrandKitThemes,
+} from '../themes'
 
 /* ── types ────────────────────────────────────────────────────────── */
 type Phase =
@@ -24,65 +30,6 @@ interface PostOutline {
   subtitle: string
   imageDesc: string
   cta: string
-}
-
-interface ThemeOption {
-  id: string
-  name: string
-  sub?: string
-  colors: string[]
-  section: 'system' | 'standalone' | 'brand'
-}
-
-/* ── mock data ────────────────────────────────────────────────────── */
-const SYSTEM_THEMES: ThemeOption[] = [
-  { id: 'minimal-dark',  name: 'Minimal Dark',    colors: ['#09090b','#ffffff','#fbbf24'], section: 'system' },
-  { id: 'bold-gradient', name: 'Bold Gradient',   colors: ['#7c3aed','#ec4899','#fbbf24'], section: 'system' },
-  { id: 'clean-light',   name: 'Clean Light',     colors: ['#f8f8f8','#1a1a1a','#3b82f6'], section: 'system' },
-  { id: 'neon-accent',   name: 'Neon Accent',     colors: ['#0a0a0a','#22d3ee','#a855f7'], section: 'system' },
-  { id: 'warm-terra',    name: 'Warm Terra',      colors: ['#1c0f07','#f97316','#fbbf24'], section: 'system' },
-  { id: 'ocean',         name: 'Ocean',           colors: ['#040d1a','#0ea5e9','#38bdf8'], section: 'system' },
-  { id: 'rose-gold',     name: 'Rose Gold',       colors: ['#1a0a0f','#f43f5e','#fda4af'], section: 'system' },
-  { id: 'forest',        name: 'Forest',          colors: ['#0a1a0f','#22c55e','#86efac'], section: 'system' },
-  { id: 'slate',         name: 'Slate',           colors: ['#0f172a','#94a3b8','#e2e8f0'], section: 'system' },
-]
-
-const STANDALONE_THEMES: ThemeOption[] = [
-  { id: 'custom-1', name: 'My Minimal Theme', colors: ['#18181b','#e4e4e7','#6366f1'], section: 'standalone' },
-  { id: 'custom-2', name: 'Summer Vibes',     colors: ['#fff7ed','#ea580c','#fbbf24'], section: 'standalone' },
-  { id: 'custom-3', name: 'Midnight Blue',    colors: ['#030712','#1e40af','#93c5fd'], section: 'standalone' },
-]
-
-// Generate multiple theme variants from a brand kit's palette
-function makeBrandKitThemes(kit: { id: string; name: string; colors: { palettes: { colors: { hex: string }[] }[] } }): ThemeOption[] {
-  const allColors = kit.colors.palettes.flatMap(p => p.colors).map(c => c.hex)
-  if (allColors.length === 0) return []
-  const c = allColors
-  // Primary variant: first 3 colors
-  const primary: ThemeOption = {
-    id: `brand-${kit.id}-primary`,
-    name: 'Primary',
-    sub: 'Brand kit',
-    colors: c.slice(0, 3).length >= 2 ? c.slice(0, 3) : [...c.slice(0,2), '#1a1a1a'],
-    section: 'brand',
-  }
-  // Dark variant: darken bg, keep accents
-  const dark: ThemeOption = {
-    id: `brand-${kit.id}-dark`,
-    name: 'Dark',
-    sub: 'Brand kit',
-    colors: ['#0a0a0a', c[0] ?? '#ffffff', c[1] ?? '#fbbf24'],
-    section: 'brand',
-  }
-  // Minimal variant: muted bg + single accent
-  const minimal: ThemeOption = {
-    id: `brand-${kit.id}-minimal`,
-    name: 'Minimal',
-    sub: 'Brand kit',
-    colors: ['#18181b', '#e4e4e7', c[0] ?? '#6366f1'],
-    section: 'brand',
-  }
-  return [primary, dark, minimal]
 }
 
 /* ── helpers ─────────────────────────────────────────────────────── */
@@ -244,14 +191,16 @@ function ThemeLibraryModal({
 
 /* ── CampaignDetailsCard ─────────────────────────────────────────── */
 function CampaignDetailsCard({
-  config, onConfirm,
+  config, onConfirm, initialTheme, initialTone,
 }: {
   config: ProductConfig
   onConfirm: (values: FormValues) => void
+  initialTheme?: ThemeOption | null
+  initialTone?: string | null
 }) {
-  const [values, setValues]       = useState<FormValues>({})
+  const [values, setValues]       = useState<FormValues>(() => initialTone ? { tone: initialTone } : {})
   const [showThemes, setShowThemes] = useState(false)
-  const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(null)
+  const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(initialTheme ?? null)
 
   // Extract only the platform and tone turns from agentScript (skip variations/count for now)
   const platformTurn = config.agentScript.find(t => t.message.toLowerCase().includes('platform'))
@@ -480,8 +429,8 @@ function OutlineEditor({
   const [selectedTextFormat, setSelectedTextFormat] = useState('Auto')
   const [selectedBrandKit, setSelectedBrandKit] = useState<string | null>(null)
   const [setupTheme, setSetupTheme] = useState<ThemeOption | null>(() => {
-    const initialTheme = formValues.theme ?? ''
-    return [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === initialTheme) ?? null
+    const themeName = formValues.theme ?? ''
+    return [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName) ?? null
   })
   const [showSetupThemes, setShowSetupThemes] = useState(false)
   const [ratioPickerOpen, setRatioPickerOpen] = useState(false)
@@ -1003,9 +952,11 @@ interface Props {
   config: ProductConfig
   userPrompt: string
   onBack: () => void
+  initialTheme?: ThemeOption | null
+  initialTone?: string | null
 }
 
-export function AgentChat({ config, userPrompt, onBack }: Props) {
+export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTone }: Props) {
   const navigate   = useNavigate()
   const Icon       = I.Icons[config.icon]
   const threadRef  = useRef<HTMLDivElement>(null)
@@ -1099,7 +1050,7 @@ export function AgentChat({ config, userPrompt, onBack }: Props) {
 
         {/* Campaign details form */}
         {(phase === 'form' || phase === 'submitting') && (
-          <CampaignDetailsCard config={config} onConfirm={handleFormConfirm} />
+          <CampaignDetailsCard config={config} onConfirm={handleFormConfirm} initialTheme={initialTheme} initialTone={initialTone} />
         )}
 
         {phase === 'submitting' && (

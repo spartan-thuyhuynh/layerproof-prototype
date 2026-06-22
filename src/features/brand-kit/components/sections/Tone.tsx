@@ -3,6 +3,7 @@ import type { BrandKit } from '@/features/brand-kit/types/brand'
 import { Globe, Chevron, X } from '@/shared/icons'
 import type { EditorActions } from './types'
 import { SaveableField } from '@/features/brand-kit/components/edit/SaveableField'
+import { VoiceSpectrum } from './VoiceSpectrum'
 
 interface ToneProps {
   kit: BrandKit
@@ -162,6 +163,9 @@ export function Tone({ kit, ed }: ToneProps) {
           })}
         </div>
       </div>
+
+      {/* ── Voice spectrum ── */}
+      <VoiceSpectrum kit={kit} ed={ed} />
 
       {/* ── Words to avoid ── */}
       <div className="voice-section-card">

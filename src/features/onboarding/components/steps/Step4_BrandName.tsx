@@ -252,9 +252,9 @@ function DonePhase({ brandName, color, fontPair, palette, logoPreview, tone, onC
             </div>
           </div>
 
-          {/* Tone */}
+          {/* Brand Voice */}
           <div style={{ padding: '16px 18px' }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: 12 }}>Tone</div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: 12 }}>Brand Voice</div>
             {toneData ? (
               <>
                 <div style={{
@@ -643,7 +643,7 @@ const TONES = [
 ]
 
 export function Step4_BrandName() {
-  const { setBrandName, setTagline, nextStep, prevStep, setStep } = useOnboardingStore()
+  const { setBrandName, setTagline, nextStep, prevStep, setStep, setNewKitId, setBrandSkipped } = useOnboardingStore()
   const { createKit, updateKit, setAppliedId } = useBrandStore()
 
   const [phase, setPhase]             = useState<Phase>('hook')
@@ -699,6 +699,8 @@ export function Step4_BrandName() {
         onboarding: true,
       }))
       setAppliedId(id)
+      setNewKitId(id)
+      setBrandSkipped(false)
       setBrandName(localName.trim())
       setPhase('done')
     }, GENERATING_STEPS.length * 600 + 300)
@@ -810,7 +812,7 @@ export function Step4_BrandName() {
         {/* Top nav */}
         <div className="onb-panel-top-row" style={{ marginBottom: 16 }}>
           <BackButton onClick={() => setPhase('hook')} />
-          <button className="onb-skip" onClick={() => nextStep()}>Skip for now</button>
+          <button className="onb-skip" onClick={() => { setBrandSkipped(true); nextStep() }}>Skip for now</button>
         </div>
 
         {/* Header — spans full width above both panels */}
@@ -985,7 +987,14 @@ export function Step4_BrandName() {
 
             {/* Tone */}
             <div className="onb-field" style={{ marginBottom: 24 }}>
-              <label className="onb-label">Brand tone</label>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                <label className="onb-label" style={{ margin: 0 }}>Brand voice</label>
+                <span style={{
+                  fontSize: 10, fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase',
+                  color: 'rgba(255,222,66,.6)', background: 'rgba(255,222,66,.08)',
+                  border: '1px solid rgba(255,222,66,.15)', borderRadius: 4, padding: '1px 6px',
+                }}>Preset</span>
+              </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {TONES.map(({ id, label, desc }) => {
                   const active = selectedTone === id
@@ -1029,6 +1038,9 @@ export function Step4_BrandName() {
                   )
                 })}
               </div>
+              <p className="tiny" style={{ color: 'var(--t3)', marginTop: 8 }}>
+                Pick the closest match — you can fine-tune tone, spectrum, and custom instructions in your brand kit later.
+              </p>
             </div>
 
             <button
