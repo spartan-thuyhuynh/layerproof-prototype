@@ -14,7 +14,7 @@ const AI_MODELS = [
   { id: 'haiku',  label: 'Claude Haiku',    desc: 'Fastest & lightweight' },
 ]
 
-function ModelSelector() {
+function ModelSelector({ onOpen }: { onOpen?: () => void }) {
   const [open, setOpen]   = useState(false)
   const [model, setModel] = useState(AI_MODELS[0])
   const ref               = useRef<HTMLDivElement>(null)
@@ -31,7 +31,7 @@ function ModelSelector() {
     <div ref={ref} style={{ position: 'relative' }}>
       <button
         className="cp-model-btn"
-        onClick={() => setOpen(v => !v)}
+        onClick={() => { setOpen(v => !v); if (!open) onOpen?.() }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
@@ -230,6 +230,18 @@ const TOUR_STEPS = [
     key: 'suggestions',
     title: 'Not sure where to start?',
     body: 'Pick a suggestion to fill your prompt instantly, or shuffle for fresh ideas.',
+    placement: 'top' as const,
+  },
+  {
+    key: 'attach',
+    title: 'Attach a file',
+    body: 'Give the AI more context — briefs, images, or references.',
+    placement: 'top' as const,
+  },
+  {
+    key: 'model',
+    title: 'Switch AI model',
+    body: 'Match the model to your task — fast drafts or quality final copy.',
     placement: 'top' as const,
   },
   {
@@ -794,7 +806,6 @@ export function PromptScreen({ config, onSubmit }: Props) {
   const [shuffleIdx, setShuffleIdx] = useState(0)
   const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(null)
   const [spectrumValues, setSpectrumValues] = useState<Record<string, number>>({})
-  const [showInputTip, setShowInputTip] = useState(false)
   const [tourStep, setTourStep] = useState<number | null>(0)
   const textareaRef    = useRef<HTMLTextAreaElement>(null)
   const inputFootRef   = useRef<HTMLDivElement>(null)
@@ -808,6 +819,8 @@ export function PromptScreen({ config, onSubmit }: Props) {
     suggestions: suggestionsRef,
     style:       styleRef,
     generate:    generateRef,
+    attach:      attachBtnRef,
+    model:       modelBtnRef,
   }
 
   const getTourRect = useCallback((key: string): TourRect | null => {
@@ -825,9 +838,15 @@ export function PromptScreen({ config, onSubmit }: Props) {
     textareaRef.current?.focus()
   }, [])
 
+  function advanceTourIfOn(key: string) {
+    const idx = TOUR_STEPS.findIndex(s => s.key === key)
+    if (tourStep === idx) setTourStep(idx < TOUR_STEPS.length - 1 ? idx + 1 : null)
+  }
+
   function handleThemeSelect(t: ThemeOption | null) {
     setSelectedTheme(t)
     if (!t) setSpectrumValues({})
+    else advanceTourIfOn('style')
   }
 
   function handleSpectrumChange(key: string, v: number) {
@@ -863,9 +882,7 @@ export function PromptScreen({ config, onSubmit }: Props) {
           onSkip={() => setTourStep(null)}
         />
       )}
-      {showInputTip && (
-        <InputTip attachRef={attachBtnRef} modelRef={modelBtnRef} onDismiss={() => setShowInputTip(false)} />
-      )}
+
 
       <div className="cp-orb cp-orb-left" />
       <div className="cp-orb cp-orb-right" />
@@ -898,14 +915,14 @@ export function PromptScreen({ config, onSubmit }: Props) {
           />
           <div className="cp-input-foot" ref={inputFootRef}>
             <div className="cp-input-actions">
-              <button ref={attachBtnRef} className="cp-action-btn" title="Attach file">
+              <button ref={attachBtnRef} className="cp-action-btn" title="Attach file" onClick={() => advanceTourIfOn('attach')}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                 </svg>
               </button>
             </div>
             <div className="cp-input-right">
-              <div ref={modelBtnRef} style={{ display: 'inline-flex' }}><ModelSelector /></div>
+              <div ref={modelBtnRef} style={{ display: 'inline-flex' }}><ModelSelector onOpen={() => advanceTourIfOn('model')} /></div>
             </div>
           </div>
         </div>
@@ -958,7 +975,7 @@ export function PromptScreen({ config, onSubmit }: Props) {
         <div className="cp-suggestions" ref={suggestionsRef}>
           <div className="cp-suggestions-chips">
             {visibleSuggestions.map(s => (
-              <button key={s} className="cp-suggestion-chip" onClick={() => { setPrompt(s); setShowInputTip(true) }}>
+              <button key={s} className="cp-suggestion-chip" onClick={() => { setPrompt(s); advanceTourIfOn('suggestions') }}>
                 {s}
               </button>
             ))}

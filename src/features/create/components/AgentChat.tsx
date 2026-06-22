@@ -15,6 +15,9 @@ import {
 type Phase =
   | 'idle'
   | 'tool-form'
+  | 'form-platform'
+  | 'form-thinking'
+  | 'form-conflict'
   | 'form'
   | 'submitting'
   | 'tool-brief'
@@ -68,13 +71,22 @@ function generateBrief(config: ProductConfig, prompt: string, values: FormValues
     talkingPoints && ['Notes',       talkingPoints],
   ].filter(Boolean) as [string, string][]
 
-  const topics = [
+  const count = parseInt(imageCount, 10) || 1
+  const TOPIC_POOL = [
     `Introduction to ${prompt}: what it is and why it matters`,
     'Core concepts and mental models to understand first',
     'Step-by-step framework you can apply immediately',
     'Real-world examples and case study walkthrough',
     'Common mistakes and how to avoid over-complicating it',
+    'Quick wins you can implement today',
+    'Advanced tips for experienced practitioners',
+    'Tools and resources to go deeper',
+    'Community insights and expert perspectives',
+    'Summary and next steps',
   ]
+  const topics = Array.from({ length: count }, (_, i) =>
+    TOPIC_POOL[i] ?? `Post ${i + 1}: ${capitalize(prompt)} — key insight ${i + 1}`
+  )
 
   const summaryParts: string[] = [
     `Create a ${formatLabel.toLowerCase()} social post about "${prompt}" for ${platform}, targeting ${audience}.`,
@@ -87,6 +99,19 @@ function generateBrief(config: ProductConfig, prompt: string, values: FormValues
 
   return { title, setup, content, topics, summary }
 }
+
+/* ── Look & Feel constants ───────────────────────────────────────── */
+const SPECTRUM_AXES = [
+  { key: 'formality',  left: 'Formal',        right: 'Casual',       stops: ['Formal', 'Slightly formal', 'Neutral', 'Slightly casual', 'Casual'] },
+  { key: 'humor',      left: 'Serious',        right: 'Funny',        stops: ['Serious', 'Mostly serious', 'Balanced', 'Light-hearted', 'Funny'] },
+  { key: 'respect',    left: 'Respectful',     right: 'Irreverent',   stops: ['Respectful', 'Polite', 'Neutral', 'Edgy', 'Irreverent'] },
+  { key: 'enthusiasm', left: 'Matter-of-fact', right: 'Enthusiastic', stops: ['Direct', 'Measured', 'Balanced', 'Energetic', 'Enthusiastic'] },
+]
+const TEXT_AMOUNT_OPTIONS = [
+  { id: 'minimal',  label: 'Minimal',  desc: 'Short captions, hooks only.' },
+  { id: 'concise',  label: 'Concise',  desc: 'Balanced, punchy copy.' },
+  { id: 'detailed', label: 'Detailed', desc: 'Paragraph-style detail.' },
+]
 
 /* ── ThemeLibrary ────────────────────────────────────────────────── */
 function ThemePreview({ colors }: { colors: string[] }) {
@@ -116,17 +141,27 @@ function ThemePreview({ colors }: { colors: string[] }) {
   )
 }
 
-function ThemeLibraryModal({
+function LookAndFeelModal({
   selected, onSelect, onClose,
+  spectrumValues, onSpectrumChange,
+  textAmount, onTextAmountChange,
+  wordsToAvoid, onWordsToAvoidChange,
+  customInstruction, onCustomInstructionChange,
 }: {
   selected: string
   onSelect: (theme: ThemeOption) => void
   onClose: () => void
+  spectrumValues: Record<string, number>
+  onSpectrumChange: (key: string, v: number) => void
+  textAmount: string
+  onTextAmountChange: (v: string) => void
+  wordsToAvoid: string
+  onWordsToAvoidChange: (v: string) => void
+  customInstruction: string
+  onCustomInstructionChange: (v: string) => void
 }) {
   const { kits } = useBrandStore()
   const [tab, setTab] = useState<'system' | 'yours'>('system')
-
-  // Each brand kit expands into 3 theme variants
   const brandThemes: ThemeOption[] = kits.flatMap(kit => makeBrandKitThemes(kit))
 
   function ThemeCard({ theme }: { theme: ThemeOption }) {
@@ -134,7 +169,7 @@ function ThemeLibraryModal({
     return (
       <button
         className={`ac2-theme-card${isSelected ? ' selected' : ''}`}
-        onClick={() => { onSelect(theme); onClose() }}
+        onClick={() => onSelect(theme)}
       >
         <ThemePreview colors={theme.colors} />
         <div className="ac2-theme-card-name">{theme.name}</div>
@@ -145,69 +180,313 @@ function ThemeLibraryModal({
 
   return (
     <div className="ac2-theme-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="ac2-theme-modal">
+      <div className="ac2-laf-modal">
         {/* Header */}
         <div className="ac2-theme-modal-header">
-          <span className="ac2-theme-modal-title">Theme Library</span>
+          <span className="ac2-theme-modal-title">Look &amp; Feel</span>
           <button className="ac2-theme-modal-close" onClick={onClose}><X size={13} /></button>
         </div>
 
-        {/* Tab toggle */}
-        <div className="ac2-theme-tabs">
-          <button
-            className={`ac2-theme-tab${tab === 'system' ? ' active' : ''}`}
-            onClick={() => setTab('system')}
-          >
-            System themes
-          </button>
-          <button
-            className={`ac2-theme-tab${tab === 'yours' ? ' active' : ''}`}
-            onClick={() => setTab('yours')}
-          >
-            Your themes
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="ac2-theme-modal-body">
-          {tab === 'system' && (
-            <div className="ac2-theme-grid">
-              {SYSTEM_THEMES.map(t => <ThemeCard key={t.id} theme={t} />)}
+        <div className="ac2-laf-body">
+          {/* ── Left: Theme selection ── */}
+          <div className="ac2-laf-left">
+            <div className="ac2-laf-section-title">Theme</div>
+            <div className="ac2-theme-tabs" style={{ padding: '0 0 12px', background: 'none', border: 'none' }}>
+              <button className={`ac2-theme-tab${tab === 'system' ? ' active' : ''}`} onClick={() => setTab('system')}>System</button>
+              <button className={`ac2-theme-tab${tab === 'yours' ? ' active' : ''}`} onClick={() => setTab('yours')}>Your themes</button>
             </div>
-          )}
 
-          {tab === 'yours' && (
-            <>
-              {/* Standalone */}
-              <div className="ac2-theme-subsection">
-                <div className="ac2-theme-subsection-label">Standalone themes</div>
+            <div className="ac2-laf-theme-scroll">
+              {tab === 'system' && (
                 <div className="ac2-theme-grid">
-                  {STANDALONE_THEMES.map(t => <ThemeCard key={t.id} theme={t} />)}
+                  {SYSTEM_THEMES.map(t => <ThemeCard key={t.id} theme={t} />)}
                 </div>
-              </div>
-
-              {/* Brand kit themes — grouped per kit */}
-              {kits.map(kit => {
-                const themes = makeBrandKitThemes(kit)
-                if (!themes.length) return null
-                return (
-                  <div key={kit.id} className="ac2-theme-subsection">
-                    <div className="ac2-theme-subsection-label">{kit.name}</div>
+              )}
+              {tab === 'yours' && (
+                <>
+                  <div className="ac2-theme-subsection">
+                    <div className="ac2-theme-subsection-label">Standalone themes</div>
                     <div className="ac2-theme-grid">
-                      {themes.map(t => <ThemeCard key={t.id} theme={t} />)}
+                      {STANDALONE_THEMES.map(t => <ThemeCard key={t.id} theme={t} />)}
                     </div>
                   </div>
-                )
-              })}
-
-              {kits.length === 0 && (
-                <p style={{ fontSize: 12, color: 'var(--t3)', marginTop: 8 }}>
-                  No brand kits yet. Create one in Brand Kit first.
-                </p>
+                  {kits.map(kit => {
+                    const themes = makeBrandKitThemes(kit)
+                    if (!themes.length) return null
+                    return (
+                      <div key={kit.id} className="ac2-theme-subsection">
+                        <div className="ac2-theme-subsection-label">{kit.name}</div>
+                        <div className="ac2-theme-grid">
+                          {themes.map(t => <ThemeCard key={t.id} theme={t} />)}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {kits.length === 0 && (
+                    <p style={{ fontSize: 12, color: 'var(--t3)' }}>No brand kits yet.</p>
+                  )}
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
+
+          {/* ── Right: Voice & Writing ── */}
+          <div className="ac2-laf-right">
+            {/* Amount of text */}
+            <div className="ac2-laf-section-title">Amount of text</div>
+            <div className="ac2-laf-text-grid">
+              {TEXT_AMOUNT_OPTIONS.map(opt => (
+                <button
+                  key={opt.id}
+                  className={`ac2-laf-text-card${textAmount === opt.id ? ' active' : ''}`}
+                  onClick={() => onTextAmountChange(opt.id)}
+                >
+                  <div className="ac2-laf-text-label">{opt.label}</div>
+                  <div className="ac2-laf-text-desc">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="ac2-laf-divider" />
+
+            {/* Words to avoid */}
+            <div className="ac2-laf-section-title">Words to avoid</div>
+            <input
+              className="ac2-laf-input"
+              placeholder="e.g. leveraging, synergy, utilize…"
+              value={wordsToAvoid}
+              onChange={e => onWordsToAvoidChange(e.target.value)}
+            />
+
+            {/* Custom instruction */}
+            <div className="ac2-laf-section-title" style={{ marginTop: 14 }}>Custom instruction</div>
+            <textarea
+              className="ac2-laf-input ac2-laf-textarea"
+              placeholder="Describe the desired tone, personality, or style…"
+              rows={3}
+              value={customInstruction}
+              onChange={e => onCustomInstructionChange(e.target.value)}
+            />
+          </div>
         </div>
+
+        {/* Footer */}
+        <div className="ac2-laf-footer">
+          <button className="ac2-laf-apply" onClick={onClose}>Apply changes</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Sequential question cards ──────────────────────────────────── */
+function AnsweredBlock({ items }: { items: { question: string; answer: string }[] }) {
+  return (
+    <div className="ac2-check-log">
+      {items.map(({ question, answer }) => (
+        <div key={question} className="ac2-check-log-item">
+          <div className="ac2-check-log-icon">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </div>
+          <span><span className="ac2-check-log-label">{question}</span><span className="ac2-check-log-value">{answer}</span></span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function PlatformAndImageCard({
+  config,
+  onConfirm,
+}: {
+  config: ProductConfig
+  onConfirm: (platform: string, imageCount: string) => void
+}) {
+  const platformTurn = config.agentScript.find(t => t.message.toLowerCase().includes('platform'))
+  const [platform, setPlatform] = useState(platformTurn?.chips?.[0] ?? '')
+  const [count, setCount]       = useState('1')
+
+  return (
+    <div className="ac2-card ac2-qna-card">
+      {platformTurn && (
+        <div className="ac2-qna-block">
+          <div className="ac2-qna-question">Which platform are you targeting?</div>
+          <div className="ac2-pill-group">
+            {platformTurn.chips!.map(opt => {
+              const active = platform === opt
+              return (
+                <button
+                  key={opt}
+                  className={`ac2-pill ac2-pill--ratio${active ? ' active' : ''}`}
+                  style={active ? { '--pc': config.color } as React.CSSProperties : undefined}
+                  onClick={() => setPlatform(opt)}
+                >
+                  <span className="ac2-pill-main">
+                    {active && <Check size={11} strokeWidth={3} />}
+                    {opt}
+                  </span>
+                  <span className="ac2-pill-ratio">{PLATFORM_RATIOS[opt]}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="ac2-qna-block">
+        <div className="ac2-qna-question">How many images in this post?</div>
+        <input
+          className="ac2-form-text ac2-form-text--compact"
+          type="number" min={1} max={30}
+          value={count}
+          onChange={e => setCount(e.target.value)}
+        />
+      </div>
+
+      <button
+        className="ac2-confirm-btn"
+        style={{ background: config.color }}
+        onClick={() => onConfirm(platform, count)}
+      >
+        Next <ChevronRight size={14} />
+      </button>
+    </div>
+  )
+}
+
+/* ── Confirm message helper ──────────────────────────────────────── */
+const PALETTE_GROUPS: Array<{ label: string; keywords: string[] }> = [
+  { label: 'warm / red-orange',  keywords: ['red', 'warm', 'orange', 'coral', 'rust', 'terracotta', 'sunset', 'fire', 'amber'] },
+  { label: 'cool / blue',        keywords: ['blue', 'cool', 'ocean', 'sky', 'navy', 'azure', 'cobalt', 'teal', 'cyan', 'icy'] },
+  { label: 'green / nature',     keywords: ['green', 'forest', 'emerald', 'sage', 'olive', 'mint', 'nature', 'earthy'] },
+  { label: 'purple / violet',    keywords: ['purple', 'violet', 'lavender', 'indigo', 'mauve', 'lilac'] },
+  { label: 'yellow / gold',      keywords: ['yellow', 'gold', 'golden', 'mustard', 'sunny'] },
+  { label: 'pink / rose',        keywords: ['pink', 'rose', 'blush', 'magenta'] },
+  { label: 'dark / moody',       keywords: ['dark', 'moody', 'night', 'noir', 'black', 'deep', 'shadow', 'bold'] },
+  { label: 'light / minimal',    keywords: ['light', 'white', 'minimal', 'clean', 'bright', 'airy', 'soft', 'neutral'] },
+]
+
+const CONTRADICTIONS: Array<[string, string]> = [
+  ['warm / red-orange', 'cool / blue'],
+  ['dark / moody',      'light / minimal'],
+  ['green / nature',    'dark / moody'],
+  ['purple / violet',   'warm / red-orange'],
+  ['yellow / gold',     'cool / blue'],
+]
+
+function matchPalettes(text: string): string[] {
+  return PALETTE_GROUPS.filter(g => g.keywords.some(k => text.includes(k))).map(g => g.label)
+}
+
+function hexToHsl(hex: string): [number, number, number] | null {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  if (!m) return null
+  let r = parseInt(m[1], 16) / 255, g = parseInt(m[2], 16) / 255, b = parseInt(m[3], 16) / 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2
+  if (max === min) return [0, 0, l]
+  const d = max - min, s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+  let h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4
+  return [h * 60, s, l]
+}
+
+function palettesFromColors(colors: string[]): string[] {
+  const [bg, , accent] = colors
+  const result: string[] = []
+  const bgHsl = bg ? hexToHsl(bg) : null
+  if (bgHsl) {
+    if (bgHsl[2] < 0.15) result.push('dark / moody')
+    else if (bgHsl[2] > 0.75) result.push('light / minimal')
+  }
+  const acHsl = accent ? hexToHsl(accent) : null
+  if (acHsl && acHsl[1] > 0.3) {
+    const h = acHsl[0]
+    if (h < 30 || h >= 330) result.push('warm / red-orange')
+    else if (h < 60)  result.push('warm / red-orange')
+    else if (h < 80)  result.push('yellow / gold')
+    else if (h < 160) result.push('green / nature')
+    else if (h < 260) result.push('cool / blue')
+    else if (h < 300) result.push('purple / violet')
+    else              result.push('pink / rose')
+  }
+  return result
+}
+
+interface ThemeConflict {
+  promptDir: string
+  themeDir:  string
+  soft:      boolean
+}
+
+function detectThemeConflict(userPrompt: string, theme: ThemeOption | null): ThemeConflict | null {
+  if (!theme) return null
+  const p = userPrompt.toLowerCase()
+  const namePalettes = matchPalettes(theme.name.toLowerCase())
+  const themePalettes = namePalettes.length > 0 ? namePalettes : palettesFromColors(theme.colors)
+  const promptPalettes = matchPalettes(p)
+
+  for (const [a, b] of CONTRADICTIONS) {
+    const promptA = promptPalettes.includes(a), promptB = promptPalettes.includes(b)
+    const themeA  = themePalettes.includes(a),  themeB  = themePalettes.includes(b)
+    if ((promptA && themeB) || (promptB && themeA)) {
+      return { promptDir: promptA ? a : b, themeDir: themeA ? a : b, soft: false }
+    }
+  }
+
+  if (promptPalettes.length > 0 && themePalettes.length > 0 && !promptPalettes.some(l => themePalettes.includes(l))) {
+    return { promptDir: promptPalettes[0], themeDir: themePalettes[0], soft: true }
+  }
+
+  return null
+}
+
+function buildBaseConfirmMessage(platform: string, imageCount: string, theme: ThemeOption | null): string {
+  const count  = parseInt(imageCount, 10) || 1
+  const format = count === 1 ? 'single-image post' : `${count}-slide carousel`
+  const ratio  = ({ Instagram: '1:1 / 9:16', LinkedIn: '1.91:1', 'X (Twitter)': '16:9', 'All Platforms': 'multiple ratios' } as Record<string, string>)[platform] ?? ''
+  const base   = `Got it — a ${format} for ${platform}${ratio ? ` (${ratio})` : ''}.`
+  if (!theme) return `${base} No theme selected yet — the brief will be style-neutral for now.`
+  const qualifier = theme.section === 'brand' ? 'Your brand theme' : `The "${theme.name}" theme`
+  return `${base} ${qualifier} looks like a great fit. A few more details and I'll have your brief ready.`
+}
+
+function ConflictConfirmCard({
+  conflict,
+  theme,
+  config,
+  onConfirm,
+}: {
+  conflict:  ThemeConflict
+  theme:     ThemeOption
+  config:    ProductConfig
+  onConfirm: (choice: string) => void
+}) {
+  const msg = conflict.soft
+    ? `Your prompt hints at ${conflict.promptDir} tones, but the "${theme.name}" theme has a ${conflict.themeDir} palette — these could pull in different directions. Which should we follow?`
+    : `I noticed a conflict — your prompt leans ${conflict.promptDir} but the "${theme.name}" theme goes ${conflict.themeDir}. Which visual direction should we go with?`
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div className="ac2-agent-row">
+        <div className="ac2-agent-av">AI</div>
+        <div className="ac2-agent-bubble">{msg}</div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, paddingLeft: 40 }}>
+        <button
+          className="ac2-pill active"
+          style={{ '--pc': config.color } as React.CSSProperties}
+          onClick={() => onConfirm(`Keep "${theme.name}" theme`)}
+        >
+          <Check size={11} strokeWidth={3} />
+          Keep &ldquo;{theme.name}&rdquo; theme
+        </button>
+        <button
+          className="ac2-pill"
+          onClick={() => onConfirm(`Follow prompt direction (${conflict.promptDir})`)}
+        >
+          Follow my prompt
+        </button>
       </div>
     </div>
   )
@@ -225,19 +504,20 @@ const CONTENT_ANGLES  = ['Educational', 'Inspirational', 'Promotional', 'Behind 
 const CONTENT_EMOTIONS = ['Excited', 'Inspired', 'Curious', 'Entertained', 'Informed']
 
 function CampaignDetailsCard({
-  config, onConfirm, initialTheme, initialTone,
+  config, onConfirm, initialTheme, initialTone, initialPlatform, initialImageCount,
 }: {
   config: ProductConfig
   onConfirm: (values: FormValues) => void
   initialTheme?: ThemeOption | null
   initialTone?: string | null
+  initialPlatform?: string
+  initialImageCount?: string
 }) {
-  const platformTurn = config.agentScript.find(t => t.message.toLowerCase().includes('platform'))
   const [values, setValues]   = useState<FormValues>(() => ({
-    platform: platformTurn?.chips?.[0] ?? '',
+    platform: initialPlatform ?? '',
     ...(initialTone ? { tone: initialTone } : {}),
   }))
-  const [imageCount, setImageCount] = useState('1')
+  const [imageCount] = useState(initialImageCount ?? '1')
   const [angle, setAngle]     = useState('')
   const [emotion, setEmotion] = useState('')
   const [keyMessage, setKeyMessage] = useState('')
@@ -279,45 +559,6 @@ function CampaignDetailsCard({
 
   return (
     <div className="ac2-card ac2-qna-card">
-
-      {/* Platform */}
-      {platformTurn && (
-        <div className="ac2-qna-block">
-          <div className="ac2-qna-question">Which platform are you targeting?</div>
-          <div className="ac2-pill-group">
-            {platformTurn.chips!.map(opt => {
-              const active = values.platform === opt
-              return (
-                <button
-                  key={opt}
-                  className={`ac2-pill ac2-pill--ratio${active ? ' active' : ''}`}
-                  style={active ? { '--pc': config.color } as React.CSSProperties : undefined}
-                  onClick={() => set('platform', opt)}
-                >
-                  <span className="ac2-pill-main">
-                    {active && <Check size={11} strokeWidth={3} />}
-                    {opt}
-                  </span>
-                  <span className="ac2-pill-ratio">{PLATFORM_RATIOS[opt]}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Image count */}
-      <div className="ac2-qna-block">
-        <div className="ac2-qna-question">How many images in this post?</div>
-        <input
-          className="ac2-form-text ac2-form-text--compact"
-          type="number"
-          min={1}
-          max={30}
-          value={imageCount}
-          onChange={e => setImageCount(e.target.value)}
-        />
-      </div>
 
       {/* Target audience */}
       <div className="ac2-qna-block">
@@ -537,6 +778,90 @@ function BriefCard({
   )
 }
 
+/* ── SidebarBriefCard ────────────────────────────────────────────── */
+function SidebarBriefCard({
+  brief, updated = false, theme = null,
+}: {
+  brief: ReturnType<typeof generateBrief>
+  updated?: boolean
+  theme?: ThemeOption | null
+}) {
+  const INLINE_KEYS = new Set(['Angle', 'Feeling'])
+  return (
+    <div className="ac2-card ac2-brief-card ac2-brief-card--revealed ac2-brief-card--sidebar">
+      <div className="ac2-brief-shine" />
+
+      {updated && (
+        <div className="ac2-brief-updated-badge">
+          <Check size={10} strokeWidth={3} /> Brief updated
+        </div>
+      )}
+
+      <div className="ac2-brief-header">
+        <div className="ac2-brief-label-row">
+          <svg className="ac2-brief-sparkle" width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+          </svg>
+          <span className="ac2-brief-label">Requirement Summary</span>
+        </div>
+        <div className="ac2-brief-title">{brief.title}</div>
+      </div>
+
+      {(brief.setup.length > 0 || theme) && (
+        <div className="ac2-brief-section">
+          <div className="ac2-brief-section-label">Post format</div>
+          {theme && (
+            <div className="ac2-brief-theme-row">
+              <div className="ac2-brief-theme-swatch" style={{ background: theme.colors[0] }}>
+                <div style={{ background: theme.colors[2] ?? theme.colors[1], height: 3, width: '55%', borderRadius: 1, marginBottom: 2, opacity: .9 }} />
+                <div style={{ background: theme.colors[1], height: 2, width: '75%', borderRadius: 1, opacity: .5 }} />
+                <div style={{ background: theme.colors[1], height: 2, width: '60%', borderRadius: 1, opacity: .35 }} />
+              </div>
+              <div className="ac2-brief-theme-info">
+                <span className="ac2-brief-key">Theme</span>
+                <span className="ac2-brief-val">{theme.name}</span>
+              </div>
+            </div>
+          )}
+          <div className="ac2-brief-meta">
+            {brief.setup.map(([k, v]) => (
+              <div key={k} className="ac2-brief-row">
+                <span className="ac2-brief-key">{k}</span>
+                <span className="ac2-brief-val">{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {brief.content.length > 0 && (
+        <div className="ac2-brief-section">
+          <div className="ac2-brief-section-label">Content direction</div>
+          <div className="ac2-brief-content">
+            {brief.content.filter(([k]) => !INLINE_KEYS.has(k)).map(([k, v]) => (
+              <div key={k} className="ac2-brief-content-block">
+                <div className="ac2-brief-content-key">{k}</div>
+                <div className="ac2-brief-content-val">{v}</div>
+              </div>
+            ))}
+            {brief.content.some(([k]) => INLINE_KEYS.has(k)) && (
+              <div className="ac2-brief-chips-row">
+                {brief.content.filter(([k]) => INLINE_KEYS.has(k)).map(([k, v]) => (
+                  <div key={k} className="ac2-brief-chip-group">
+                    <span className="ac2-brief-chip-label">{k}</span>
+                    <span className="ac2-brief-chip">{v}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+    </div>
+  )
+}
+
 /* ── Outline generator ───────────────────────────────────────────── */
 function generateOutline(brief: ReturnType<typeof generateBrief>): PostOutline[] {
   const ctas = ['Start your journey today!', 'Learn more →', 'Try it yourself', 'Save & share this post', 'Drop a comment below ↓']
@@ -554,13 +879,14 @@ function generateOutline(brief: ReturnType<typeof generateBrief>): PostOutline[]
 
 /* ── OutlineEditor ───────────────────────────────────────────────── */
 function OutlineEditor({
-  brief, config, formValues, userPrompt, onBack,
+  brief, config, formValues, userPrompt, onBack, initialTheme,
 }: {
   brief: ReturnType<typeof generateBrief>
   config: ProductConfig
   formValues: FormValues
   userPrompt: string
   onBack: () => void
+  initialTheme?: ThemeOption | null
 }) {
   const navigate = useNavigate()
   const [posts, setPosts] = useState<PostOutline[]>(() => generateOutline(brief))
@@ -568,37 +894,34 @@ function OutlineEditor({
   const [showJson, setShowJson] = useState(false)
   const [genPhase, setGenPhase] = useState<'idle' | 'rewriting' | 'rewrite-done' | 'confirming' | 'brief-updating' | 'brief-updated'>('idle')
   const [chatLabel, setChatLabel] = useState('')
-  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([])
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant' | 'status'; text: string }>>([])
   const [liveBrief, setLiveBrief] = useState(brief)
   const sidebarThreadRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLInputElement>(null)
 
-  // Setup card state (Text Format, Theme, Brand Kit, Aspect Ratio)
-  const RATIOS = [
-    { id: '1:1',  label: '1:1 Square',   w: 1,  h: 1  },
-    { id: '4:5',  label: '4:5 Portrait',  w: 4,  h: 5  },
-    { id: '9:16', label: '9:16 Story',    w: 9,  h: 16 },
-    { id: '16:9', label: '16:9 Landscape',w: 16, h: 9  },
-  ]
-  const TEXT_FORMATS = ['Auto', 'Concise', 'Detailed', 'Bullet points']
-  const [selectedRatio, setSelectedRatio] = useState('1:1')
-  const [selectedTextFormat, setSelectedTextFormat] = useState('Auto')
-  const [selectedBrandKit, setSelectedBrandKit] = useState<string | null>(null)
+  // Setup card state
+  const PLATFORMS = ['Instagram', 'LinkedIn', 'X (Twitter)', 'All Platforms']
   const [setupTheme, setSetupTheme] = useState<ThemeOption | null>(() => {
+    // Prefer the full ThemeOption passed from PromptScreen; fall back to name lookup
+    if (initialTheme) return initialTheme
     const themeName = formValues.theme ?? ''
+    if (!themeName) return null
     return [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName) ?? null
   })
-  const [showSetupThemes, setShowSetupThemes] = useState(false)
-  const [ratioPickerOpen, setRatioPickerOpen] = useState(false)
-  const currentRatio = RATIOS.find(r => r.id === selectedRatio) ?? RATIOS[0]
+  const [showLookAndFeel, setShowLookAndFeel] = useState(false)
+  const [selectedPlatform, setSelectedPlatform] = useState(formValues.platform ?? 'Instagram')
+  const [platformPickerOpen, setPlatformPickerOpen] = useState(false)
+  const [spectrumValues, setSpectrumValues] = useState<Record<string, number>>({})
+  const [textAmount, setTextAmount] = useState('concise')
+  const [wordsToAvoid, setWordsToAvoid] = useState('')
+  const [customInstruction, setCustomInstruction] = useState('')
 
-  const tone    = formValues.tone    ?? 'Auto'
-  const count   = formValues.count   ?? `${posts.length} posts`
-  const theme   = formValues.theme   ?? 'No theme selected'
-  const platform = formValues.platform ?? '1:1 Square'
+  const tone  = formValues.tone ?? 'Auto'
+  const count = formValues.count ?? `${posts.length} posts`
+  const theme = formValues.theme ?? 'No theme selected'
 
   function triggerBriefUpdate(changeDesc: string) {
-    setChatMessages(prev => [...prev, { role: 'assistant', text: `I've updated the brief: ${changeDesc}. Would you like to change or adjust anything else?` }])
+    setChatMessages(prev => [...prev, { role: 'status', text: changeDesc }])
     setGenPhase('brief-updating')
     setTimeout(() => {
       setGenPhase('brief-updated')
@@ -733,78 +1056,35 @@ function OutlineEditor({
             </div>
           )}
 
-          {/* Rewritten brief summary */}
-          {(genPhase === 'rewrite-done' || genPhase === 'confirming') && (() => {
-            const themeEntry  = brief.setup.find(([k]) => k === 'Theme')
-            const themeName   = themeEntry?.[1] ?? theme
-            const themeOption = [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName)
-            const themeColors = themeOption?.colors ?? ['#09090b', '#ffffff', '#fbbf24']
-            const otherMeta   = brief.setup.filter(([k]) => k !== 'Theme' && k !== 'Format')
-            return (
-              <div className="oe-rewrite-brief">
-                <div className="oe-rewrite-brief-title">{brief.title}</div>
-
-                {/* Theme — full width */}
-                <div className="oe-rewrite-visual-cell">
-                  <div className="oe-rewrite-visual-label">Theme</div>
-                  <div className="oe-rewrite-theme-preview-wrap">
-                    <ThemePreview colors={themeColors} />
-                  </div>
-                  <div className="oe-rewrite-visual-val">{themeName}</div>
-                </div>
-
-                {/* Meta rows — read-only */}
-                <div className="oe-rewrite-brief-meta">
-                  {otherMeta.map(([k, v]) => (
-                    <div key={k} className="oe-rewrite-brief-row">
-                      <span className="oe-rewrite-brief-key">{k}</span>
-                      <span className="oe-rewrite-brief-val">{v}</span>
-                    </div>
-                  ))}
-                  <div className="oe-rewrite-brief-row">
-                    <span className="oe-rewrite-brief-key">Aspect ratio</span>
-                    <span className="oe-rewrite-brief-val">{currentRatio.label}</span>
-                  </div>
-                </div>
-
-                {/* Edit guide */}
-                <div className="oe-rewrite-guide">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  Use the chat below to update any part of your brief.
-                </div>
-              </div>
-            )
-          })()}
 
           {/* Generation confirmation */}
-          {genPhase === 'confirming' && (
-            <div className="oe-confirm-block">
-              <div className="oe-agent-bubble">
-                Your outline looks great! Would you like to make any final adjustments, or are you ready to generate?
+          {genPhase === 'confirming' && !chatLabel && (
+            <div className="oe-ready-block">
+              <div className="oe-ready-msg">
+                <Check size={11} strokeWidth={3} />
+                Your outline looks great! Ready to generate.
               </div>
-              {!chatLabel && (
-                <div className="oe-confirm-actions">
-                  <button
-                    className="oe-confirm-adjust"
-                    onClick={() => {
-                      setChatLabel('Provide detail for adjustment')
-                      setTimeout(() => chatInputRef.current?.focus(), 50)
-                    }}
-                  >
-                    Adjust
-                  </button>
-                  <button
-                    className="oe-confirm-generate"
-                    style={{ background: '#fff', color: '#000' }}
-                    onClick={() => navigate(`/editor/${config.slug}`)}
-                  >
-                    Confirm &amp; Generate
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                    </svg>
-                  </button>
-                </div>
-              )}
+              <div className="oe-confirm-actions">
+                <button
+                  className="oe-confirm-adjust"
+                  onClick={() => {
+                    setChatLabel('Provide detail for adjustment')
+                    setTimeout(() => chatInputRef.current?.focus(), 50)
+                  }}
+                >
+                  Adjust
+                </button>
+                <button
+                  className="oe-confirm-generate"
+                  style={{ background: '#fff', color: '#000' }}
+                  onClick={() => navigate(`/editor/${config.slug}`)}
+                >
+                  Confirm &amp; Generate
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
 
@@ -812,56 +1092,67 @@ function OutlineEditor({
           {chatMessages.map((msg, i) => (
             msg.role === 'user'
               ? <div key={i} className="oe-user-bubble">{msg.text}</div>
-              : <div key={i} className="oe-agent-bubble">{msg.text}</div>
+              : msg.role === 'status'
+                ? (
+                  <div key={i} className="oe-status-row">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                      <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+                      <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                    <span className="oe-status-name">{msg.text}</span>
+                    <span className="oe-tool-done"><Check size={10} strokeWidth={3} /></span>
+                  </div>
+                )
+                : <div key={i} className="oe-agent-bubble">{msg.text}</div>
           ))}
 
           {/* Brief updating animation */}
-          {genPhase === 'brief-updating' && (
+          {(genPhase === 'brief-updating' || genPhase === 'brief-updated') && (
             <div className="oe-tool-row">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
               <span className="oe-tool-name">update_brief</span>
-              <span className="ac2-tool-running"><span /><span /><span /></span>
+              {genPhase === 'brief-updating'
+                ? <span className="ac2-tool-running"><span /><span /><span /></span>
+                : <span className="oe-tool-done"><Check size={10} strokeWidth={3} /></span>
+              }
             </div>
           )}
 
-          {/* Updated brief panel */}
-          {genPhase === 'brief-updated' && (() => {
-            const themeEntry  = liveBrief.setup.find(([k]) => k === 'Theme')
-            const themeName   = themeEntry?.[1] ?? theme
-            const themeOption = [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName)
-            const themeColors = themeOption?.colors ?? ['#09090b', '#ffffff', '#fbbf24']
-            const otherMeta   = liveBrief.setup.filter(([k]) => k !== 'Theme' && k !== 'Format')
-            return (
-              <div className="oe-rewrite-brief oe-rewrite-brief--updated">
-                <div className="oe-brief-updated-badge">
-                  <Check size={10} strokeWidth={3} /> Brief updated
-                </div>
-                <div className="oe-rewrite-brief-title">{liveBrief.title}</div>
-                <div className="oe-rewrite-visual-cell">
-                  <div className="oe-rewrite-visual-label">Theme</div>
-                  <div className="oe-rewrite-theme-preview-wrap">
-                    <ThemePreview colors={themeColors} />
-                  </div>
-                  <div className="oe-rewrite-visual-val">{themeName}</div>
-                </div>
-                <div className="oe-rewrite-brief-meta">
-                  {otherMeta.map(([k, v]) => (
-                    <div key={k} className="oe-rewrite-brief-row">
-                      <span className="oe-rewrite-brief-key">{k}</span>
-                      <span className="oe-rewrite-brief-val">{v}</span>
-                    </div>
-                  ))}
-                  <div className="oe-rewrite-brief-row">
-                    <span className="oe-rewrite-brief-key">Aspect ratio</span>
-                    <span className="oe-rewrite-brief-val">{currentRatio.label}</span>
-                  </div>
-                </div>
+          {/* Ready message + actions after brief update */}
+          {genPhase === 'brief-updated' && (
+            <div className="oe-ready-block">
+              <div className="oe-ready-msg">
+                <Check size={11} strokeWidth={3} />
+                Brief updated. Ready to generate.
               </div>
-            )
-          })()}
+              <div className="oe-confirm-actions">
+                <button
+                  className="oe-confirm-adjust"
+                  onClick={() => {
+                    setChatLabel('Provide detail for adjustment')
+                    setTimeout(() => chatInputRef.current?.focus(), 50)
+                  }}
+                >
+                  Adjust
+                </button>
+                <button
+                  className="oe-confirm-generate"
+                  style={{ background: '#fff', color: '#000' }}
+                  onClick={() => navigate(`/editor/${config.slug}`)}
+                >
+                  Confirm &amp; Generate
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Input */}
@@ -913,24 +1204,13 @@ function OutlineEditor({
       <main className="oe-main">
         {/* ── Setup cards ── */}
         <div className="oe-setup-bar">
-          {/* Text Format */}
-          <div className="oe-setup-card">
+          {/* Look & Feel */}
+          <button className="oe-setup-card oe-setup-card--btn" onClick={() => setShowLookAndFeel(true)}>
             <div className="oe-setup-card-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
             </div>
             <div className="oe-setup-card-body">
-              <div className="oe-setup-card-title">Text Format</div>
-              <div className="oe-setup-card-sub">{[tone, selectedTextFormat, brief.setup.find(([k]) => k === 'Audience')?.[1] ?? ''].filter(Boolean).join(' · ')}</div>
-            </div>
-          </div>
-
-          {/* Theme */}
-          <button className="oe-setup-card oe-setup-card--btn" onClick={() => setShowSetupThemes(true)}>
-            <div className="oe-setup-card-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-            </div>
-            <div className="oe-setup-card-body">
-              <div className="oe-setup-card-title">Theme</div>
+              <div className="oe-setup-card-title">Look &amp; Feel</div>
               {setupTheme ? (
                 <div className="oe-setup-theme-preview">
                   <div className="oe-setup-theme-swatch" style={{ background: setupTheme.colors[0] }}>
@@ -938,35 +1218,41 @@ function OutlineEditor({
                     <div style={{ background: setupTheme.colors[1], height: 2, width: '75%', borderRadius: 1, opacity: .5 }} />
                     <div style={{ background: setupTheme.colors[1], height: 2, width: '60%', borderRadius: 1, opacity: .35 }} />
                   </div>
-                  <span className="oe-setup-card-sub">{setupTheme.name}</span>
+                  <span className="oe-setup-card-sub">
+                    {setupTheme.name}{tone && tone !== 'Auto' ? ` · ${tone}` : ''}
+                  </span>
                 </div>
               ) : (
-                <div className="oe-setup-card-sub">No theme selected</div>
+                <div className="oe-setup-card-sub">{tone && tone !== 'Auto' ? tone : 'No theme selected'}</div>
               )}
             </div>
           </button>
 
-          {/* Aspect Ratio */}
+          {/* Platform */}
           <div className="oe-setup-card" style={{ position: 'relative' }}>
-            <button className="oe-setup-card-inner-btn" onClick={() => setRatioPickerOpen(v => !v)}>
+            <button className="oe-setup-card-inner-btn" onClick={() => setPlatformPickerOpen(v => !v)}>
               <div className="oe-setup-card-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
               </div>
               <div className="oe-setup-card-body">
-                <div className="oe-setup-card-title">Aspect Ratio</div>
-                <div className="oe-setup-card-sub">{currentRatio.label}</div>
+                <div className="oe-setup-card-title">Platform</div>
+                <div className="oe-setup-card-sub">{selectedPlatform} · {PLATFORM_RATIOS[selectedPlatform] ?? 'Multiple'}</div>
               </div>
             </button>
-            {ratioPickerOpen && (
+            {platformPickerOpen && (
               <div className="oe-ratio-picker oe-ratio-picker--setup" onClick={e => e.stopPropagation()}>
-                {RATIOS.map(r => (
-                  <button key={r.id}
-                    className={`oe-ratio-option${r.id === selectedRatio ? ' active' : ''}`}
-                    onClick={() => { setSelectedRatio(r.id); setRatioPickerOpen(false); triggerBriefUpdate(`Aspect ratio changed to ${r.label}`) }}
+                {PLATFORMS.map(p => (
+                  <button key={p}
+                    className={`oe-ratio-option${p === selectedPlatform ? ' active' : ''}`}
+                    onClick={() => {
+                      setSelectedPlatform(p)
+                      setPlatformPickerOpen(false)
+                      triggerBriefUpdate(`Platform changed to ${p}`)
+                    }}
                   >
-                    <div className="oe-ratio-shape" style={{ aspectRatio: `${r.w}/${r.h}`, width: r.w >= r.h ? 20 : undefined, height: r.h > r.w ? 20 : undefined }} />
-                    <span className="oe-ratio-label">{r.label}</span>
-                    {r.id === selectedRatio && <Check size={11} strokeWidth={3} style={{ marginLeft: 'auto', color: config.color }} />}
+                    <span className="oe-ratio-label">{p}</span>
+                    <span style={{ fontSize: 11, color: 'var(--t3)', marginLeft: 4 }}>{PLATFORM_RATIOS[p] ?? 'Multiple'}</span>
+                    {p === selectedPlatform && <Check size={11} strokeWidth={3} style={{ marginLeft: 'auto', color: config.color }} />}
                   </button>
                 ))}
               </div>
@@ -1064,16 +1350,23 @@ function OutlineEditor({
           </button>
         </div>
 
-        {/* Theme picker modal for setup card */}
-        {showSetupThemes && (
-          <ThemeLibraryModal
+        {/* Look & Feel modal */}
+        {showLookAndFeel && (
+          <LookAndFeelModal
             selected={setupTheme?.id ?? ''}
             onSelect={t => {
               setSetupTheme(t)
-              setShowSetupThemes(false)
               triggerBriefUpdate(`Theme changed to "${t.name}"`)
             }}
-            onClose={() => setShowSetupThemes(false)}
+            onClose={() => setShowLookAndFeel(false)}
+            spectrumValues={spectrumValues}
+            onSpectrumChange={(key, v) => setSpectrumValues(prev => ({ ...prev, [key]: v }))}
+            textAmount={textAmount}
+            onTextAmountChange={setTextAmount}
+            wordsToAvoid={wordsToAvoid}
+            onWordsToAvoidChange={setWordsToAvoid}
+            customInstruction={customInstruction}
+            onCustomInstructionChange={setCustomInstruction}
           />
         )}
       </main>
@@ -1118,6 +1411,9 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
   const threadRef  = useRef<HTMLDivElement>(null)
   const startedRef = useRef(false)
   const [phase, setPhase]             = useState<Phase>('idle')
+  const [formPlatform, setFormPlatform]         = useState('')
+  const [formImageCount, setFormImageCount]     = useState('1')
+  const [formConflictChoice, setFormConflictChoice] = useState('')
   const [brief, setBrief]             = useState<ReturnType<typeof generateBrief> | null>(null)
   const [savedFormValues, setSavedFormValues] = useState<FormValues>({})
   const [input, setInput]             = useState('')
@@ -1129,7 +1425,7 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
     if (startedRef.current) return
     startedRef.current = true
     setTimeout(() => setPhase('tool-form'), 500)
-    setTimeout(() => setPhase('form'), 1200)
+    setTimeout(() => setPhase('form-platform'), 1200)
   }, [])
 
   useEffect(() => {
@@ -1137,6 +1433,19 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
       threadRef.current.scrollTo({ top: threadRef.current.scrollHeight, behavior: 'smooth' })
     }
   }, [phase, brief, changeHistory])
+
+  function handlePlatformAndImageConfirm(platform: string, imageCount: string) {
+    setFormPlatform(platform)
+    setFormImageCount(imageCount)
+    setPhase('form-thinking')
+    const conflict = detectThemeConflict(userPrompt, initialTheme ?? null)
+    setTimeout(() => setPhase(conflict ? 'form-conflict' : 'form'), 1400)
+  }
+
+  function handleConflictChoice(choice: string) {
+    setFormConflictChoice(choice)
+    setPhase('form')
+  }
 
   function handleFormConfirm(values: FormValues) {
     setSavedFormValues(values)
@@ -1169,6 +1478,7 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
         formValues={savedFormValues}
         userPrompt={userPrompt}
         onBack={() => setPhase('brief')}
+        initialTheme={initialTheme}
       />
     )
   }
@@ -1210,9 +1520,48 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
           <ToolCallRow name="read_campaign_state" done={phase !== 'tool-form'} />
         )}
 
-        {/* Campaign details form */}
+        {/* Step 1 — Platform + image count */}
+        {phase === 'form-platform' && (
+          <PlatformAndImageCard config={config} onConfirm={handlePlatformAndImageConfirm} />
+        )}
+        {phase !== 'idle' && phase !== 'tool-form' && phase !== 'form-platform' && (
+          <AnsweredBlock items={[
+            { question: 'Which platform are you targeting?', answer: `${formPlatform} · ${PLATFORM_RATIOS[formPlatform] ?? ''}` },
+            { question: 'How many images in this post?', answer: formImageCount },
+          ]} />
+        )}
+
+        {/* Thinking indicator */}
+        {phase === 'form-thinking' && (
+          <div className="ac2-typing"><span /><span /><span /></div>
+        )}
+
+        {/* Conflict confirmation */}
+        {phase === 'form-conflict' && initialTheme && (() => {
+          const conflict = detectThemeConflict(userPrompt, initialTheme)
+          return conflict ? (
+            <ConflictConfirmCard conflict={conflict} theme={initialTheme} config={config} onConfirm={handleConflictChoice} />
+          ) : null
+        })()}
+
+        {/* Conflict choice answered */}
+        {formConflictChoice && phase !== 'form-conflict' && (
+          <AnsweredBlock items={[{ question: 'Visual direction', answer: formConflictChoice }]} />
+        )}
+
+        {/* No-conflict confirm message */}
+        {(phase === 'form' || phase === 'submitting') && !formConflictChoice && (
+          <div className="ac2-agent-row">
+            <div className="ac2-agent-av">AI</div>
+            <div className="ac2-agent-bubble">
+              {buildBaseConfirmMessage(formPlatform, formImageCount, initialTheme ?? null)}
+            </div>
+          </div>
+        )}
+
+        {/* Step 2 — Campaign details form */}
         {(phase === 'form' || phase === 'submitting') && (
-          <CampaignDetailsCard config={config} onConfirm={handleFormConfirm} initialTheme={initialTheme} initialTone={initialTone} />
+          <CampaignDetailsCard config={config} onConfirm={handleFormConfirm} initialTheme={initialTheme} initialTone={initialTone} initialPlatform={formPlatform} initialImageCount={formImageCount} />
         )}
 
         {phase === 'submitting' && (
