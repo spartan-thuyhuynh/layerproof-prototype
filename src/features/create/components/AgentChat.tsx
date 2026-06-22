@@ -38,12 +38,12 @@ function capitalize(s: string) {
 }
 
 function generateBrief(config: ProductConfig, prompt: string, values: FormValues) {
-  const platform    = values.platform    ?? ''
-  const tone        = values.tone        ?? ''
-  const audience    = values.audience    ?? ''
-  const theme       = values.theme       ?? ''
-  const format      = values.format      ?? ''
-  const imageCount  = values.imageCount  ?? ''
+  const platform    = values.platform   || 'Instagram'
+  const tone        = values.tone       || 'Professional'
+  const audience    = values.audience   || `Professionals and enthusiasts interested in ${prompt}`
+  const theme       = values.theme      ?? ''
+  const format      = values.format     || 'Single Image'
+  const imageCount  = values.imageCount || '1'
   const angle       = values.angle       ?? ''
   const emotion     = values.emotion     ?? ''
   const keyMessage  = values.keyMessage  ?? ''
@@ -52,22 +52,20 @@ function generateBrief(config: ProductConfig, prompt: string, values: FormValues
 
   const formatLabel = imageCount ? `${format} · ${imageCount} image${parseInt(imageCount) > 1 ? 's' : ''}` : format
 
-  const title = `${config.label} Campaign — ${capitalize(prompt)}`
+  const title = `${config.label} — ${capitalize(prompt)}`
 
   const setup: [string, string][] = [
-    platform    && ['Platform',  platform],
-    formatLabel && ['Format',    formatLabel],
-    audience    && ['Audience',  audience],
-    theme       && ['Theme',     theme],
-    tone        && ['Tone',      tone],
-  ].filter(Boolean) as [string, string][]
+    ['Platform',  platform],
+    ['Format',    formatLabel],
+    ['Audience',  audience],
+  ]
 
   const content: [string, string][] = [
-    keyMessage    && ['Key message',  keyMessage],
-    angle         && ['Angle',        angle],
-    emotion       && ['Feeling',      emotion],
-    cta           && ['CTA',          cta],
-    talkingPoints && ['Notes',        talkingPoints],
+    keyMessage    && ['Key message', keyMessage],
+    angle         && ['Angle',       angle],
+    emotion       && ['Feeling',     emotion],
+    cta           && ['CTA',         cta],
+    talkingPoints && ['Notes',       talkingPoints],
   ].filter(Boolean) as [string, string][]
 
   const topics = [
@@ -78,7 +76,16 @@ function generateBrief(config: ProductConfig, prompt: string, values: FormValues
     'Common mistakes and how to avoid over-complicating it',
   ]
 
-  return { title, setup, content, topics }
+  const summaryParts: string[] = [
+    `Create a ${formatLabel.toLowerCase()} social post about "${prompt}" for ${platform}, targeting ${audience}.`,
+    angle    ? `The content will take a ${angle.toLowerCase()} angle` + (emotion ? `, aiming to make the audience feel ${emotion.toLowerCase()}.` : '.') : (emotion ? `Aiming to make the audience feel ${emotion.toLowerCase()}.` : ''),
+    keyMessage ? `Key message: ${keyMessage}.` : '',
+    cta      ? `Call to action: ${cta}.` : '',
+    talkingPoints ? `Additional notes: ${talkingPoints}.` : '',
+  ]
+  const summary = summaryParts.filter(Boolean).join(' ')
+
+  return { title, setup, content, topics, summary }
 }
 
 /* ── ThemeLibrary ────────────────────────────────────────────────── */
@@ -394,96 +401,138 @@ function CampaignDetailsCard({
 
 /* ── BriefCard ───────────────────────────────────────────────────── */
 function BriefCard({
-  brief, config, onApprove,
+  brief, config, onApprove, onRequestChange,
 }: {
   brief: ReturnType<typeof generateBrief>
   config: ProductConfig
   onApprove: () => void
+  onRequestChange: (text: string) => void
 }) {
   const [change, setChange] = useState('')
+  const [revealed, setRevealed] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setRevealed(true), 500)
+    return () => clearTimeout(t)
+  }, [])
+
+  function handleChangeSubmit() {
+    const text = change.trim()
+    if (!text) return
+    setChange('')
+    onRequestChange(text)
+  }
 
   const INLINE_KEYS = new Set(['Angle', 'Feeling'])
+  const sections = [
+    brief.setup.length > 0 && 'setup',
+    brief.content.length > 0 && 'content',
+    'summary',
+  ].filter(Boolean) as string[]
 
   return (
-    <div className="ac2-card ac2-brief-card">
+    <div className={`ac2-card ac2-brief-card${revealed ? ' ac2-brief-card--revealed' : ''}`}>
+
+      {/* Animated top shine bar */}
+      <div className="ac2-brief-shine" />
+
       {/* Header */}
       <div className="ac2-brief-header">
-        <span className="ac2-brief-label">Brief</span>
+        <div className="ac2-brief-label-row">
+          <svg className="ac2-brief-sparkle" width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+          </svg>
+          <span className="ac2-brief-label">Requirement Summary</span>
+        </div>
         <div className="ac2-brief-title">{brief.title}</div>
       </div>
 
-      {/* Setup section */}
-      {brief.setup.length > 0 && (
-        <div className="ac2-brief-section">
-          <div className="ac2-brief-section-label">Campaign setup</div>
-          <div className="ac2-brief-meta">
-            {brief.setup.map(([k, v]) => (
-              <div key={k} className="ac2-brief-row">
-                <span className="ac2-brief-key">{k}</span>
-                <span className="ac2-brief-val">{v}</span>
-              </div>
-            ))}
-          </div>
+
+      {/* Skeleton while loading */}
+      {!revealed && (
+        <div className="ac2-brief-skeleton">
+          {[100, 68, 84, 52, 90, 75].map((w, i) => (
+            <div key={i} className="ac2-brief-skel-row" style={{ width: `${w}%`, animationDelay: `${i * 70}ms` }} />
+          ))}
         </div>
       )}
 
-      {/* Content direction section */}
-      {brief.content.length > 0 && (
-        <div className="ac2-brief-section">
-          <div className="ac2-brief-section-label">Content direction</div>
-          <div className="ac2-brief-content">
-            {brief.content.filter(([k]) => !INLINE_KEYS.has(k)).map(([k, v]) => (
-              <div key={k} className="ac2-brief-content-block">
-                <div className="ac2-brief-content-key">{k}</div>
-                <div className="ac2-brief-content-val">{v}</div>
-              </div>
-            ))}
-            {brief.content.some(([k]) => INLINE_KEYS.has(k)) && (
-              <div className="ac2-brief-chips-row">
-                {brief.content.filter(([k]) => INLINE_KEYS.has(k)).map(([k, v]) => (
-                  <div key={k} className="ac2-brief-chip-group">
-                    <span className="ac2-brief-chip-label">{k}</span>
-                    <span className="ac2-brief-chip">{v}</span>
+      {/* Sections revealed with stagger */}
+      {revealed && (
+        <>
+          {brief.setup.length > 0 && (
+            <div className="ac2-brief-section ac2-brief-section--anim" style={{ '--bd': `${sections.indexOf('setup') * 90}ms` } as React.CSSProperties}>
+              <div className="ac2-brief-section-label">Post format</div>
+              <div className="ac2-brief-meta">
+                {brief.setup.map(([k, v]) => (
+                  <div key={k} className="ac2-brief-row">
+                    <span className="ac2-brief-key">{k}</span>
+                    <span className="ac2-brief-val">{v}</span>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
+
+          {brief.content.length > 0 && (
+            <div className="ac2-brief-section ac2-brief-section--anim" style={{ '--bd': `${sections.indexOf('content') * 90}ms` } as React.CSSProperties}>
+              <div className="ac2-brief-section-label">Content direction</div>
+              <div className="ac2-brief-content">
+                {brief.content.filter(([k]) => !INLINE_KEYS.has(k)).map(([k, v]) => (
+                  <div key={k} className="ac2-brief-content-block">
+                    <div className="ac2-brief-content-key">{k}</div>
+                    <div className="ac2-brief-content-val">{v}</div>
+                  </div>
+                ))}
+                {brief.content.some(([k]) => INLINE_KEYS.has(k)) && (
+                  <div className="ac2-brief-chips-row">
+                    {brief.content.filter(([k]) => INLINE_KEYS.has(k)).map(([k, v]) => (
+                      <div key={k} className="ac2-brief-chip-group">
+                        <span className="ac2-brief-chip-label">{k}</span>
+                        <span className="ac2-brief-chip">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="ac2-brief-section ac2-brief-section--anim" style={{ '--bd': `${sections.indexOf('summary') * 90}ms` } as React.CSSProperties}>
+            <div className="ac2-brief-section-label">Content summary</div>
+            <p className="ac2-brief-summary">{brief.summary}</p>
           </div>
-        </div>
+
+          <div className="ac2-ready-box ac2-ready-box--anim">
+            <div className="ac2-ready-title">Ready to generate</div>
+            <p className="ac2-ready-sub">Approve the brief above, or describe what to change.</p>
+            <button
+              className="ac2-generate-btn"
+              style={{ background: config.color }}
+              onClick={onApprove}
+            >
+              Generate outline
+            </button>
+            <div className="ac2-change-label">What would you like to change?</div>
+            <div className="ac2-change-row">
+              <input
+                className="ac2-change-input"
+                placeholder="e.g. Change tone to more playful, target a younger audience…"
+                value={change}
+                onChange={e => setChange(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleChangeSubmit()}
+              />
+              <button
+                className="ac2-change-send"
+                disabled={!change.trim()}
+                onClick={handleChangeSubmit}
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </>
       )}
-
-      {/* Proposed themes */}
-      <div className="ac2-brief-section">
-        <div className="ac2-brief-section-label">Proposed post themes</div>
-        <ul className="ac2-brief-themes">
-          {brief.topics.map((t, i) => <li key={i}>{t}</li>)}
-        </ul>
-      </div>
-
-      {/* Action area */}
-      <div className="ac2-ready-box">
-        <div className="ac2-ready-title">Ready to generate</div>
-        <p className="ac2-ready-sub">Approve the brief above, or describe what to change.</p>
-        <button
-          className="ac2-generate-btn"
-          style={{ background: config.color }}
-          onClick={onApprove}
-        >
-          Generate outline
-        </button>
-        <div className="ac2-change-label">What would you like to change?</div>
-        <div className="ac2-change-row">
-          <input
-            className="ac2-change-input"
-            placeholder="e.g. Change tone to more playful, target a younger audience…"
-            value={change}
-            onChange={e => setChange(e.target.value)}
-          />
-          <button className="ac2-change-send" disabled={!change.trim()}>
-            <ChevronRight size={14} />
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
@@ -1072,6 +1121,8 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
   const [brief, setBrief]             = useState<ReturnType<typeof generateBrief> | null>(null)
   const [savedFormValues, setSavedFormValues] = useState<FormValues>({})
   const [input, setInput]             = useState('')
+  const [briefVersion, setBriefVersion] = useState(0)
+  const [changeHistory, setChangeHistory] = useState<{ text: string; done: boolean }[]>([])
   const contextChips = [config.label, 'AI-assisted', 'Guided brief']
 
   useEffect(() => {
@@ -1085,7 +1136,7 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
     if (threadRef.current) {
       threadRef.current.scrollTo({ top: threadRef.current.scrollHeight, behavior: 'smooth' })
     }
-  }, [phase, brief])
+  }, [phase, brief, changeHistory])
 
   function handleFormConfirm(values: FormValues) {
     setSavedFormValues(values)
@@ -1099,6 +1150,14 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
 
   function handleApprove() {
     setPhase('outline')
+  }
+
+  function handleBriefChange(text: string) {
+    setChangeHistory(prev => [...prev, { text, done: false }])
+    setTimeout(() => {
+      setChangeHistory(prev => prev.map((c, i) => i === prev.length - 1 ? { ...c, done: true } : c))
+      setBriefVersion(v => v + 1)
+    }, 1400)
   }
 
   // Render the full-screen outline editor when in outline phase
@@ -1168,9 +1227,31 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
           />
         )}
 
+        {/* Brief change messages */}
+        {(phase === 'brief' || phase === 'done') && changeHistory.map((entry, i) => (
+          <div key={i} className="ac2-brief-change-thread">
+            <div className="ac2-user-bubble-row">
+              <div className="ac2-user-bubble">{entry.text}</div>
+              <div className="ac2-user-av"><span>TH</span></div>
+            </div>
+            <div className="ac2-edit-log-row">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="ac2-tool-icon">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+              </svg>
+              <span className="ac2-tool-name">rewrite_requirement_summary</span>
+              {entry.done
+                ? <span className="ac2-tool-done"><Check size={10} strokeWidth={3} /></span>
+                : <span className="ac2-tool-running"><span /><span /><span /></span>
+              }
+              <button className="ac2-tool-expand"><ChevronRight size={12} /></button>
+            </div>
+          </div>
+        ))}
+
         {/* Brief */}
         {brief && (phase === 'brief' || phase === 'done') && (
-          <BriefCard brief={brief} config={config} onApprove={handleApprove} />
+          <BriefCard key={briefVersion} brief={brief} config={config} onApprove={handleApprove} onRequestChange={handleBriefChange} />
         )}
 
         <div style={{ height: 32 }} />
