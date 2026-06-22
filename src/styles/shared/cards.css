@@ -1,0 +1,8 @@
+
+.card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px;
+}
+.card.pad-lg { padding: 24px; }
+.card.hover { transition: border-color .15s, transform .15s, background .15s; cursor: pointer; }
+.card.hover:hover { border-color: var(--line-2); background: #1f1f1f; transform: translateY(-2px); }

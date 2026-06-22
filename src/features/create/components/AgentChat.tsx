@@ -38,20 +38,37 @@ function capitalize(s: string) {
 }
 
 function generateBrief(config: ProductConfig, prompt: string, values: FormValues) {
-  const platform  = values.platform  ?? 'LinkedIn'
-  const tone      = values.tone      ?? 'Professional'
-  const count     = values.count     ?? '5 posts'
-  const audience  = values.audience  ?? 'Professionals and enthusiasts'
-  const theme     = values.theme     ?? 'Minimal Dark'
+  const platform    = values.platform    ?? ''
+  const tone        = values.tone        ?? ''
+  const audience    = values.audience    ?? ''
+  const theme       = values.theme       ?? ''
+  const format      = values.format      ?? ''
+  const imageCount  = values.imageCount  ?? ''
+  const angle       = values.angle       ?? ''
+  const emotion     = values.emotion     ?? ''
+  const keyMessage  = values.keyMessage  ?? ''
+  const cta         = values.cta         ?? ''
+  const talkingPoints = values.talkingPoints ?? ''
+
+  const formatLabel = imageCount ? `${format} · ${imageCount} image${parseInt(imageCount) > 1 ? 's' : ''}` : format
 
   const title = `${config.label} Campaign — ${capitalize(prompt)}`
-  const meta: [string, string][] = [
-    ['Platform', platform],
-    ['Audience', audience],
-    ['Theme',    theme],
-    ['Tone',     tone],
-    ['Format',   count],
-  ]
+
+  const setup: [string, string][] = [
+    platform    && ['Platform',  platform],
+    formatLabel && ['Format',    formatLabel],
+    audience    && ['Audience',  audience],
+    theme       && ['Theme',     theme],
+    tone        && ['Tone',      tone],
+  ].filter(Boolean) as [string, string][]
+
+  const content: [string, string][] = [
+    keyMessage    && ['Key message',  keyMessage],
+    angle         && ['Angle',        angle],
+    emotion       && ['Feeling',      emotion],
+    cta           && ['CTA',          cta],
+    talkingPoints && ['Notes',        talkingPoints],
+  ].filter(Boolean) as [string, string][]
 
   const topics = [
     `Introduction to ${prompt}: what it is and why it matters`,
@@ -61,7 +78,7 @@ function generateBrief(config: ProductConfig, prompt: string, values: FormValues
     'Common mistakes and how to avoid over-complicating it',
   ]
 
-  return { title, meta, topics }
+  return { title, setup, content, topics }
 }
 
 /* ── ThemeLibrary ────────────────────────────────────────────────── */
@@ -190,6 +207,16 @@ function ThemeLibraryModal({
 }
 
 /* ── CampaignDetailsCard ─────────────────────────────────────────── */
+const PLATFORM_RATIOS: Record<string, string> = {
+  'Instagram':    '1:1 · 9:16',
+  'LinkedIn':     '1.91:1',
+  'X (Twitter)':  '16:9',
+  'All Platforms':'Multiple',
+}
+
+const CONTENT_ANGLES  = ['Educational', 'Inspirational', 'Promotional', 'Behind the scenes', 'Story-driven']
+const CONTENT_EMOTIONS = ['Excited', 'Inspired', 'Curious', 'Entertained', 'Informed']
+
 function CampaignDetailsCard({
   config, onConfirm, initialTheme, initialTone,
 }: {
@@ -198,36 +225,41 @@ function CampaignDetailsCard({
   initialTheme?: ThemeOption | null
   initialTone?: string | null
 }) {
-  const [values, setValues]       = useState<FormValues>(() => initialTone ? { tone: initialTone } : ({} as FormValues))
-  const [showThemes, setShowThemes] = useState(false)
-  const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(initialTheme ?? null)
-
-  // Extract only the platform and tone turns from agentScript (skip variations/count for now)
   const platformTurn = config.agentScript.find(t => t.message.toLowerCase().includes('platform'))
-  const toneTurn     = config.agentScript.find(t => t.message.toLowerCase().includes('tone'))
-  const countTurn    = config.agentScript.find(t =>
-    t.message.toLowerCase().includes('variation') ||
-    t.message.toLowerCase().includes('how many') ||
-    !t.isFinal && !t.message.toLowerCase().includes('platform') && !t.message.toLowerCase().includes('tone')
-  )
+  const [values, setValues]   = useState<FormValues>(() => ({
+    platform: platformTurn?.chips?.[0] ?? '',
+    ...(initialTone ? { tone: initialTone } : {}),
+  }))
+  const [imageCount, setImageCount] = useState('1')
+  const [angle, setAngle]     = useState('')
+  const [emotion, setEmotion] = useState('')
+  const [keyMessage, setKeyMessage] = useState('')
+  const [cta, setCta]         = useState('')
+  const [talkingPoints, setTalkingPoints] = useState('')
+  const selectedTheme = initialTheme ?? null
 
   function set(key: string, val: string) {
     setValues(prev => ({ ...prev, [key]: val }))
   }
 
-  const isComplete = !!values.platform && !!values.tone && !!selectedTheme
+  function toggle<T extends string>(current: T, val: T, setter: (v: T) => void) {
+    setter(current === val ? '' as T : val)
+  }
 
-  function PillGroup({ fieldKey, chips }: { fieldKey: string; chips: string[] }) {
+  const imgNum = parseInt(imageCount, 10) || 1
+  const derivedFormat = imgNum === 1 ? 'Single Image' : 'Carousel'
+
+  function PillRow({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
     return (
       <div className="ac2-pill-group">
-        {chips.map(opt => {
-          const active = values[fieldKey] === opt
+        {options.map(opt => {
+          const active = value === opt
           return (
             <button
               key={opt}
               className={`ac2-pill${active ? ' active' : ''}`}
               style={active ? { '--pc': config.color } as React.CSSProperties : undefined}
-              onClick={() => set(fieldKey, opt)}
+              onClick={() => toggle(value, opt, onChange)}
             >
               {active && <Check size={11} strokeWidth={3} />}
               {opt}
@@ -239,88 +271,124 @@ function CampaignDetailsCard({
   }
 
   return (
-    <>
-      <div className="ac2-card ac2-form-card">
-        <p className="ac2-form-intro">
-          Help me tailor this {config.label.toLowerCase()} for your audience.
-        </p>
+    <div className="ac2-card ac2-qna-card">
 
-        {/* Platform */}
-        {platformTurn && (
-          <div className="ac2-form-field">
-            <div className="ac2-form-label">Platform</div>
-            <PillGroup fieldKey="platform" chips={platformTurn.chips!} />
+      {/* Platform */}
+      {platformTurn && (
+        <div className="ac2-qna-block">
+          <div className="ac2-qna-question">Which platform are you targeting?</div>
+          <div className="ac2-pill-group">
+            {platformTurn.chips!.map(opt => {
+              const active = values.platform === opt
+              return (
+                <button
+                  key={opt}
+                  className={`ac2-pill ac2-pill--ratio${active ? ' active' : ''}`}
+                  style={active ? { '--pc': config.color } as React.CSSProperties : undefined}
+                  onClick={() => set('platform', opt)}
+                >
+                  <span className="ac2-pill-main">
+                    {active && <Check size={11} strokeWidth={3} />}
+                    {opt}
+                  </span>
+                  <span className="ac2-pill-ratio">{PLATFORM_RATIOS[opt]}</span>
+                </button>
+              )
+            })}
           </div>
-        )}
-
-        {/* Target Audience */}
-        <div className="ac2-form-field">
-          <div className="ac2-form-label">Target audience</div>
-          <input
-            className="ac2-form-text"
-            placeholder="e.g. CS students, software engineers…"
-            value={values.audience ?? ''}
-            onChange={e => set('audience', e.target.value)}
-          />
         </div>
+      )}
 
-        {/* Tone */}
-        {toneTurn && (
-          <div className="ac2-form-field">
-            <div className="ac2-form-label">Tone</div>
-            <PillGroup fieldKey="tone" chips={toneTurn.chips!} />
-          </div>
-        )}
-
-        {/* Count/format */}
-        {countTurn && countTurn.chips && (
-          <div className="ac2-form-field">
-            <div className="ac2-form-label">Posts</div>
-            <PillGroup fieldKey="count" chips={countTurn.chips} />
-          </div>
-        )}
-
-        {/* Theme */}
-        <div className="ac2-form-field">
-          <div className="ac2-form-label">Theme</div>
-          <button className="ac2-theme-btn" onClick={() => setShowThemes(true)}>
-            {/* Single mini preview */}
-            <div className="ac2-theme-btn-preview">
-              {selectedTheme ? (
-                <div className="ac2-theme-btn-preview-inner" style={{ background: selectedTheme.colors[0] }}>
-                  <div style={{ background: selectedTheme.colors[2] ?? selectedTheme.colors[1], width: '60%', height: 3, borderRadius: 2, marginBottom: 3, opacity: .9 }} />
-                  <div style={{ background: selectedTheme.colors[1] ?? '#fff', width: '80%', height: 2, borderRadius: 2, opacity: .5 }} />
-                </div>
-              ) : (
-                <div className="ac2-theme-btn-preview-inner" style={{ background: 'rgba(255,255,255,.06)' }} />
-              )}
-            </div>
-            <span className={`ac2-theme-btn-name${selectedTheme ? ' selected' : ''}`}>
-              {selectedTheme ? selectedTheme.name : 'Choose from theme library'}
-            </span>
-            <ChevronRight size={14} className="ac2-theme-btn-caret" />
-          </button>
-        </div>
-
-        <button
-          className="ac2-confirm-btn"
-          disabled={!isComplete}
-          style={isComplete ? { background: config.color } : undefined}
-          onClick={() => onConfirm({ ...values, theme: selectedTheme?.name ?? '' })}
-        >
-          Confirm requirements
-          <ChevronRight size={14} />
-        </button>
+      {/* Image count */}
+      <div className="ac2-qna-block">
+        <div className="ac2-qna-question">How many images in this post?</div>
+        <input
+          className="ac2-form-text ac2-form-text--compact"
+          type="number"
+          min={1}
+          max={30}
+          value={imageCount}
+          onChange={e => setImageCount(e.target.value)}
+        />
       </div>
 
-      {showThemes && (
-        <ThemeLibraryModal
-          selected={selectedTheme?.id ?? ''}
-          onSelect={t => { setSelectedTheme(t); set('theme', t.name) }}
-          onClose={() => setShowThemes(false)}
+      {/* Target audience */}
+      <div className="ac2-qna-block">
+        <div className="ac2-qna-question">Who's your target audience?</div>
+        <input
+          className="ac2-form-text"
+          placeholder="e.g. CS students, software engineers…"
+          value={values.audience ?? ''}
+          onChange={e => set('audience', e.target.value)}
         />
-      )}
-    </>
+      </div>
+
+      {/* Key message */}
+      <div className="ac2-qna-block">
+        <div className="ac2-qna-question">What's the key message or hook?</div>
+        <input
+          className="ac2-form-text"
+          placeholder="e.g. Limited summer offer, only 48 hours…"
+          value={keyMessage}
+          onChange={e => setKeyMessage(e.target.value)}
+        />
+      </div>
+
+      {/* Content angle */}
+      <div className="ac2-qna-block">
+        <div className="ac2-qna-question">What content angle are you going for?</div>
+        <PillRow options={CONTENT_ANGLES} value={angle} onChange={setAngle} />
+      </div>
+
+      {/* Desired feeling */}
+      <div className="ac2-qna-block">
+        <div className="ac2-qna-question">How should the audience feel?</div>
+        <PillRow options={CONTENT_EMOTIONS} value={emotion} onChange={setEmotion} />
+      </div>
+
+      {/* CTA */}
+      <div className="ac2-qna-block">
+        <div className="ac2-qna-question">Any call-to-action in mind?</div>
+        <input
+          className="ac2-form-text"
+          placeholder="e.g. Shop now, Learn more, Book a demo…"
+          value={cta}
+          onChange={e => setCta(e.target.value)}
+        />
+      </div>
+
+      {/* Talking points */}
+      <div className="ac2-qna-block">
+        <div className="ac2-qna-question">Anything specific to mention? <span className="ac2-qna-optional">(optional)</span></div>
+        <textarea
+          className="ac2-form-text"
+          placeholder="Key stats, product features, offers, hashtags…"
+          rows={3}
+          value={talkingPoints}
+          onChange={e => setTalkingPoints(e.target.value)}
+          style={{ resize: 'none' }}
+        />
+      </div>
+
+      <button
+        className="ac2-confirm-btn"
+        style={{ background: config.color }}
+        onClick={() => onConfirm({
+          ...values,
+          format: derivedFormat,
+          imageCount,
+          angle,
+          emotion,
+          keyMessage,
+          cta,
+          talkingPoints,
+          theme: selectedTheme?.name ?? '',
+        })}
+      >
+        Confirm
+        <ChevronRight size={14} />
+      </button>
+    </div>
   )
 }
 
@@ -333,27 +401,66 @@ function BriefCard({
   onApprove: () => void
 }) {
   const [change, setChange] = useState('')
+
+  const INLINE_KEYS = new Set(['Angle', 'Feeling'])
+
   return (
     <div className="ac2-card ac2-brief-card">
-      <div className="ac2-brief-title">
+      {/* Header */}
+      <div className="ac2-brief-header">
         <span className="ac2-brief-label">Brief</span>
-        {brief.title}
+        <div className="ac2-brief-title">{brief.title}</div>
       </div>
 
-      <div className="ac2-brief-meta">
-        {brief.meta.map(([k, v]) => (
-          <div key={k} className="ac2-brief-row">
-            <span className="ac2-brief-key">{k}</span>
-            <span className="ac2-brief-val">{v}</span>
+      {/* Setup section */}
+      {brief.setup.length > 0 && (
+        <div className="ac2-brief-section">
+          <div className="ac2-brief-section-label">Campaign setup</div>
+          <div className="ac2-brief-meta">
+            {brief.setup.map(([k, v]) => (
+              <div key={k} className="ac2-brief-row">
+                <span className="ac2-brief-key">{k}</span>
+                <span className="ac2-brief-val">{v}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+      )}
+
+      {/* Content direction section */}
+      {brief.content.length > 0 && (
+        <div className="ac2-brief-section">
+          <div className="ac2-brief-section-label">Content direction</div>
+          <div className="ac2-brief-content">
+            {brief.content.filter(([k]) => !INLINE_KEYS.has(k)).map(([k, v]) => (
+              <div key={k} className="ac2-brief-content-block">
+                <div className="ac2-brief-content-key">{k}</div>
+                <div className="ac2-brief-content-val">{v}</div>
+              </div>
+            ))}
+            {brief.content.some(([k]) => INLINE_KEYS.has(k)) && (
+              <div className="ac2-brief-chips-row">
+                {brief.content.filter(([k]) => INLINE_KEYS.has(k)).map(([k, v]) => (
+                  <div key={k} className="ac2-brief-chip-group">
+                    <span className="ac2-brief-chip-label">{k}</span>
+                    <span className="ac2-brief-chip">{v}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Proposed themes */}
+      <div className="ac2-brief-section">
+        <div className="ac2-brief-section-label">Proposed post themes</div>
+        <ul className="ac2-brief-themes">
+          {brief.topics.map((t, i) => <li key={i}>{t}</li>)}
+        </ul>
       </div>
 
-      <div className="ac2-brief-section-label">Proposed post themes</div>
-      <ul className="ac2-brief-themes">
-        {brief.topics.map((t, i) => <li key={i}>{t}</li>)}
-      </ul>
-
+      {/* Action area */}
       <div className="ac2-ready-box">
         <div className="ac2-ready-title">Ready to generate</div>
         <p className="ac2-ready-sub">Approve the brief above, or describe what to change.</p>
@@ -579,11 +686,11 @@ function OutlineEditor({
 
           {/* Rewritten brief summary */}
           {(genPhase === 'rewrite-done' || genPhase === 'confirming') && (() => {
-            const themeEntry  = brief.meta.find(([k]) => k === 'Theme')
+            const themeEntry  = brief.setup.find(([k]) => k === 'Theme')
             const themeName   = themeEntry?.[1] ?? theme
             const themeOption = [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName)
             const themeColors = themeOption?.colors ?? ['#09090b', '#ffffff', '#fbbf24']
-            const otherMeta   = brief.meta.filter(([k]) => k !== 'Theme' && k !== 'Format')
+            const otherMeta   = brief.setup.filter(([k]) => k !== 'Theme' && k !== 'Format')
             return (
               <div className="oe-rewrite-brief">
                 <div className="oe-rewrite-brief-title">{brief.title}</div>
@@ -673,11 +780,11 @@ function OutlineEditor({
 
           {/* Updated brief panel */}
           {genPhase === 'brief-updated' && (() => {
-            const themeEntry  = liveBrief.meta.find(([k]) => k === 'Theme')
+            const themeEntry  = liveBrief.setup.find(([k]) => k === 'Theme')
             const themeName   = themeEntry?.[1] ?? theme
             const themeOption = [...SYSTEM_THEMES, ...STANDALONE_THEMES].find(t => t.name === themeName)
             const themeColors = themeOption?.colors ?? ['#09090b', '#ffffff', '#fbbf24']
-            const otherMeta   = liveBrief.meta.filter(([k]) => k !== 'Theme' && k !== 'Format')
+            const otherMeta   = liveBrief.setup.filter(([k]) => k !== 'Theme' && k !== 'Format')
             return (
               <div className="oe-rewrite-brief oe-rewrite-brief--updated">
                 <div className="oe-brief-updated-badge">
@@ -764,7 +871,7 @@ function OutlineEditor({
             </div>
             <div className="oe-setup-card-body">
               <div className="oe-setup-card-title">Text Format</div>
-              <div className="oe-setup-card-sub">{[tone, selectedTextFormat, brief.meta.find(([k]) => k === 'Audience')?.[1] ?? ''].filter(Boolean).join(' · ')}</div>
+              <div className="oe-setup-card-sub">{[tone, selectedTextFormat, brief.setup.find(([k]) => k === 'Audience')?.[1] ?? ''].filter(Boolean).join(' · ')}</div>
             </div>
           </div>
 
@@ -983,11 +1090,11 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
   function handleFormConfirm(values: FormValues) {
     setSavedFormValues(values)
     setPhase('submitting')
-    setTimeout(() => setPhase('tool-brief'), 300)
+    setTimeout(() => setPhase('tool-brief'), 400)
     setTimeout(() => {
       setBrief(generateBrief(config, userPrompt, values))
       setPhase('brief')
-    }, 1100)
+    }, 1200)
   }
 
   function handleApprove() {
@@ -1028,10 +1135,6 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
 
       {/* Thread */}
       <div className="ac2-thread" ref={threadRef}>
-        <button className="ac2-new-chat">
-          <Plus size={13} /> New chat
-        </button>
-
         {/* User message */}
         <div className="ac2-user-block">
           <div className="ac2-user-chips">
@@ -1043,7 +1146,7 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
           </div>
         </div>
 
-        {/* Tool call 1 */}
+        {/* Tool call 1 — read campaign state */}
         {phase !== 'idle' && (
           <ToolCallRow name="read_campaign_state" done={phase !== 'tool-form'} />
         )}
@@ -1057,7 +1160,7 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
           <div className="ac2-typing"><span /><span /><span /></div>
         )}
 
-        {/* Tool call 2 */}
+        {/* Tool call 2 — build brief */}
         {(phase === 'tool-brief' || phase === 'brief' || phase === 'done') && (
           <ToolCallRow
             name="prepare_guided_generation_context"

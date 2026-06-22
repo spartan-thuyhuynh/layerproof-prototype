@@ -38,6 +38,10 @@ export const PRODUCT_CONFIGS: Record<string, ProductConfig> = {
         chips: ['Instagram', 'LinkedIn', 'X (Twitter)', 'All Platforms'],
       },
       {
+        message: 'What format would you like for this post?',
+        chips: ['Single Image', 'Carousel'],
+      },
+      {
         message: 'What tone should this content have?',
         chips: ['Professional', 'Casual & Friendly', 'Bold & Direct', 'Playful'],
       },

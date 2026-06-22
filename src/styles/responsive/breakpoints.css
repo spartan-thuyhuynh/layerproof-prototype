@@ -1,0 +1,296 @@
+/* ============================================================  RESPONSIVE — LARGE SCREENS
+   Scale typography, spacing, and sidebar widths up for 1400px+ monitors.
+   ============================================================ */
+
+/* ── Large desktop: 1400px ──────────────────────────────────────── */
+@media (min-width: 1400px) {
+  :root {
+    --sidebar-w: 235px;
+    --gut: 36px;
+  }
+  body { font-size: 16px; }
+
+  /* sidebar */
+  .brand .name { font-size: 18px; }
+  .navitem { font-size: 15px; padding: 10px 13px; }
+  .navitem svg { width: 19px; height: 19px; }
+  .navlabel { font-size: 11px; }
+  .create { font-size: 15px; padding: 11px 15px; }
+
+  /* subsidebar */
+  .subsidebar { width: 264px; }
+  .sub-new-btn { font-size: 14.5px; padding: 10px 16px; }
+  .navitem.sub { font-size: 15px; padding: 9px 16px; }
+  .kit-id-name { font-size: 15px; }
+  .kit-id-sub { font-size: 12.5px; }
+  .kit-id-logo { width: 42px; height: 42px; font-size: 18px; }
+
+  /* detail toolbar */
+  .detail-toolbar { padding: 18px 32px; gap: 16px; }
+  .kit-header-logo { width: 44px; height: 44px; font-size: 19px; border-radius: 11px; }
+  .kit-header-name { font-size: 19px; }
+  .kit-header-sub { font-size: 13px; }
+  .kit-header-name-input { font-size: 19px; width: 260px; }
+  .kit-header-sub-input { font-size: 13px; width: 260px; }
+
+  /* overview */
+  .ov-banner { padding: 28px 32px; margin: 28px 40px 28px; border-radius: 16px; }
+  .ov-banner-title { font-size: 26px; }
+  .ov-banner-right { font-size: 15px; }
+  .ov-head-row { padding: 28px 40px 18px; }
+  .ov-head-title { font-size: 24px; }
+  .ov-head-sub { font-size: 14px; }
+  .ov-gen-btn { font-size: 14.5px; padding: 10px 20px; }
+  .ov-grid { gap: 16px; padding: 0 40px 40px; }
+  .ov-card { padding: 22px; gap: 20px; min-height: 158px; }
+  .ov-card-title { font-size: 19px; }
+  .ov-card-count { font-size: 14px; }
+  .ov-link { font-size: 14px; }
+  .ov-thumbs { width: 136px; gap: 6px; }
+  .ov-thumb { border-radius: 13px; }
+  .ov-type-thumbs { width: 156px; gap: 7px; }
+  .ov-type-tile { min-height: 72px; padding: 11px 13px; }
+  .ov-tile-role { font-size: 10px; }
+  .ov-tile-fam { font-size: 12px; }
+  .ov-te-title { font-size: 13px; }
+  .ov-te-desc { font-size: 11px; }
+  .ov-te-btn { font-size: 11px; padding: 6px 12px; }
+  .ov-voice-box { width: 156px; }
+  .ov-voice-box-name { font-size: 15px; }
+
+  /* logos page — 4 columns */
+  .logos-page-header { padding: 36px 40px 26px; }
+  .logos-page-title { font-size: 22px; }
+  .logos-card-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; padding: 0 40px 40px; }
+
+  /* saveable field */
+  .sf-view-text { font-size: 14.5px; }
+  .sf-view-empty { font-size: 14.5px; }
+  .sf-edit-btn { font-size: 12.5px; padding: 6px 13px; }
+  .saveable-textarea { font-size: 15px !important; padding: 15px 18px !important; }
+  .saveable-btn-cancel { font-size: 14px !important; height: 38px !important; padding: 0 20px !important; }
+  .saveable-btn-save { font-size: 14px !important; height: 38px !important; padding: 0 20px !important; }
+
+  /* image assets page */
+  .assets-page-title { font-size: 23px; }
+  .assets-page-sub { font-size: 14px; }
+  .assets-upload-btn { font-size: 14px; padding: 10px 20px; }
+  .assets-style-card { padding: 26px 32px; }
+  .assets-style-title { font-size: 17px; }
+  .assets-style-sub { font-size: 14px; }
+  .assets-style-textarea { font-size: 15px; }
+  .assets-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .asset-name { font-size: 13px; }
+  .asset-size { font-size: 12px; }
+  .assets-grid-label { font-size: 18px; }
+
+  /* colors page */
+  .colors-page-header { padding: 36px 40px 24px; }
+  .colors-page-title { font-size: 23px; }
+  .colors-page-sub { font-size: 14px; }
+  .colors-new-btn { font-size: 14px; padding: 10px 18px; }
+  .color-palette-card { padding: 24px 28px; }
+  .pal-name { font-size: 17px; }
+  .pal-swatches { gap: 14px; }
+  .pal-swatch-box { width: 88px; height: 88px; }
+  .pal-swatch-name { font-size: 12.5px; }
+
+  /* typography page */
+  .type-page-title { font-size: 23px; }
+  .type-page-sub { font-size: 14px; }
+  .type-layout { grid-template-columns: 300px 1fr; gap: 16px; }
+  .type-config-card { padding: 24px; }
+  .type-config-specimen { font-size: 80px; }
+  .type-preview-card { padding: 36px; }
+  .type-preview-heading { font-size: 72px; }
+  .type-preview-body-name { font-size: 28px; }
+  .type-preview-body-text { font-size: 18px; }
+
+  /* brand voice page */
+  .voice-page-title { font-size: 23px; }
+  .voice-page-sub { font-size: 14px; }
+  .voice-section-card { padding: 26px 32px; }
+  .voice-section-title { font-size: 17px; }
+  .voice-section-sub { font-size: 14px; margin-bottom: 20px; }
+  .voice-density-opt { padding: 20px 22px; }
+  .voice-density-label { font-size: 15px; }
+  .voice-density-desc { font-size: 13px; }
+  .voice-tag { font-size: 14px; padding: 6px 13px; }
+  .voice-custom-textarea { font-size: 15px; }
+
+  /* constrain section content width on wide panels */
+  .type-page,
+  .voice-page,
+  .assets-page,
+  .themes-page {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+}
+
+/* ── Extra large / 4K: 1800px ───────────────────────────────────── */
+@media (min-width: 1800px) {
+  :root {
+    --sidebar-w: 255px;
+    --gut: 48px;
+  }
+  body { font-size: 17px; }
+
+  /* sidebar */
+  .brand .name { font-size: 20px; }
+  .brand .mark { width: 32px; height: 32px; border-radius: 9px; }
+  .navitem { font-size: 16px; padding: 11px 14px; gap: 13px; }
+  .navitem svg { width: 20px; height: 20px; }
+  .navlabel { font-size: 12px; padding: 20px 10px 7px; }
+  .create { font-size: 16px; padding: 12px 16px; border-radius: 12px; }
+
+  /* subsidebar */
+  .subsidebar { width: 292px; }
+  .subsidebar-new { padding: 14px 14px 10px; }
+  .sub-new-btn { font-size: 15px; padding: 11px 18px; border-radius: 12px; }
+  .navitem.sub { font-size: 16px; padding: 10px 18px; }
+  .kit-identity { margin: 0 12px 6px; border-radius: 14px; }
+  .kit-id-row { padding: 14px 16px; border-radius: 14px; }
+  .kit-id-logo { width: 48px; height: 48px; font-size: 21px; border-radius: 11px; }
+  .kit-id-name { font-size: 16px; }
+  .kit-id-sub { font-size: 13px; }
+  .kit-switch-opt .nm { font-size: 14px; }
+  .kit-switch-opt .tg { font-size: 12px; }
+
+  /* detail toolbar */
+  .detail-toolbar { padding: 22px 44px; gap: 18px; }
+  .kit-header-logo { width: 50px; height: 50px; font-size: 22px; border-radius: 13px; }
+  .kit-header-name { font-size: 22px; }
+  .kit-header-sub { font-size: 14px; }
+  .kit-header-more { width: 38px; height: 38px; }
+  .kit-header-name-input { font-size: 22px; width: 300px; }
+  .kit-header-sub-input { font-size: 14px; width: 300px; }
+  .btn.sm { font-size: 14px; padding: 9px 16px; }
+
+  /* overview — contain content width on ultra-wide panels */
+  .ov-banner { padding: 32px 36px; margin: 32px max(52px, calc((100% - 1300px) / 2 + 52px)) 32px; border-radius: 18px; }
+  .ov-head-row { padding: 36px max(52px, calc((100% - 1300px) / 2 + 52px)) 24px; }
+  .ov-grid {
+    gap: 20px;
+    padding: 0 max(52px, calc((100% - 1300px) / 2 + 52px)) 56px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ov-banner-title { font-size: 30px; }
+  .ov-banner-tag { font-size: 12px; letter-spacing: .14em; }
+  .ov-banner-right { font-size: 16px; }
+  .ov-head-title { font-size: 28px; letter-spacing: -.02em; }
+  .ov-head-sub { font-size: 15px; }
+  .ov-gen-btn { font-size: 16px; padding: 12px 24px; border-radius: 12px; }
+  .ov-card { padding: 28px; gap: 24px; min-height: 188px; border-radius: 18px; }
+  .ov-card-title { font-size: 22px; }
+  .ov-card-count { font-size: 15px; }
+  .ov-link { font-size: 15px; }
+  .ov-thumbs { width: 160px; gap: 7px; }
+  .ov-thumb { border-radius: 14px; }
+  .ov-type-thumbs { width: 200px; gap: 8px; }
+  .ov-type-tile { min-height: 88px; padding: 12px 14px; border-radius: 11px; }
+  .ov-tile-role { font-size: 10.5px; }
+  .ov-tile-fam { font-size: 13px; }
+  .ov-voice-box { width: 200px; border-radius: 11px; padding: 16px; }
+  .ov-te-title { font-size: 13px; }
+  .ov-te-desc { font-size: 11px; max-width: 280px; }
+  .ov-te-btn { font-size: 11px; padding: 6px 12px; }
+  .ov-voice-box-icon { font-size: 26px; }
+  .ov-voice-box-name { font-size: 16px; }
+
+  /* logos page — 5 columns */
+  .logos-page-header { padding: 40px max(52px, calc((100% - 1300px) / 2 + 52px)) 28px; }
+  .logos-card-grid {
+    grid-template-columns: repeat(5, 1fr); gap: 20px;
+    padding: 0 max(52px, calc((100% - 1300px) / 2 + 52px)) 56px;
+  }
+  .logos-page-title { font-size: 24px; }
+  .logo-file-name { font-size: 14px; }
+  .logo-file-size { font-size: 13px; }
+
+  /* saveable field */
+  .sf-view-text { font-size: 16px; line-height: 1.7; }
+  .sf-view-empty { font-size: 16px; }
+  .sf-edit-btn { font-size: 13px; padding: 7px 15px; border-radius: 8px; }
+  .saveable-textarea { font-size: 16px !important; padding: 16px 20px !important; min-height: 130px !important; border-radius: 12px !important; }
+  .saveable-btn-cancel { font-size: 14.5px !important; height: 40px !important; padding: 0 22px !important; border-radius: 10px !important; }
+  .saveable-btn-save { font-size: 14.5px !important; height: 40px !important; padding: 0 22px !important; border-radius: 10px !important; }
+
+  /* image assets page */
+  .assets-page-title { font-size: 28px; }
+  .assets-page-sub { font-size: 15px; }
+  .assets-upload-btn { font-size: 15px; padding: 11px 22px; border-radius: 12px; }
+  .assets-style-card { padding: 32px 40px; border-radius: 16px; }
+  .assets-style-title { font-size: 19px; }
+  .assets-style-sub { font-size: 15px; }
+  .assets-style-textarea { font-size: 16px; padding: 16px 20px; border-radius: 12px; min-height: 140px; }
+  .assets-style-btn { padding: 10px 24px; font-size: 14.5px; border-radius: 10px; }
+  .assets-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .asset-preview { border-radius: 14px; }
+  .asset-name { font-size: 14px; }
+  .asset-size { font-size: 13px; }
+  .assets-grid-label { font-size: 20px; }
+
+  /* colors page */
+  .colors-page-header { padding: 40px max(52px, calc((100% - 1200px) / 2 + 52px)) 28px; }
+  .color-palettes { padding: 0 max(52px, calc((100% - 1200px) / 2 + 52px)) 56px; }
+  .colors-page-title { font-size: 28px; }
+  .colors-page-sub { font-size: 15px; }
+  .colors-new-btn { font-size: 15px; padding: 11px 22px; border-radius: 12px; }
+  .color-palette-card { padding: 28px 36px; border-radius: 16px; }
+  .pal-name { font-size: 19px; }
+  .pal-desc { font-size: 14px; }
+  .pal-swatches { gap: 16px; }
+  .pal-swatch-box { width: 96px; height: 96px; border-radius: 12px; }
+  .pal-swatch-name { font-size: 13px; }
+  .pal-swatch-hex { font-size: 11.5px; }
+  .pal-add-swatch { width: 96px; height: 96px; border-radius: 12px; font-size: 12px; }
+
+  /* typography page */
+  .type-page-title { font-size: 28px; }
+  .type-page-sub { font-size: 15px; }
+  .type-layout { grid-template-columns: 340px 1fr; gap: 20px; }
+  .type-config-card { padding: 28px; border-radius: 16px; }
+  .type-config-role { font-size: 11.5px; }
+  .type-config-note { font-size: 13px; margin-bottom: 22px; }
+  .type-config-specimen { font-size: 90px; margin-bottom: 24px; }
+  .type-config-sublabel { font-size: 13px; }
+  .type-select { font-size: 14px; padding: 9px 36px 9px 14px; }
+  .type-toggle { width: 38px; height: 38px; font-size: 15px; }
+  .type-preview-card { padding: 44px; border-radius: 16px; }
+  .type-preview-role { font-size: 11.5px; margin-bottom: 14px; }
+  .type-preview-heading { font-size: 86px; }
+  .type-preview-divider { margin: 36px 0; }
+  .type-preview-body-name { font-size: 32px; margin-bottom: 20px; }
+  .type-preview-body-text { font-size: 19px; line-height: 1.85; }
+
+  /* brand voice page */
+  .voice-page-title { font-size: 28px; }
+  .voice-page-sub { font-size: 15px; }
+  .voice-section-card { padding: 32px 40px; border-radius: 16px; }
+  .voice-section-title { font-size: 19px; }
+  .voice-section-sub { font-size: 15px; margin-bottom: 22px; }
+  .voice-lang-select { font-size: 15px; }
+  .voice-lang-select-wrap { padding: 11px 16px; border-radius: 12px; gap: 12px; }
+  .voice-density-grid { gap: 14px; }
+  .voice-density-opt { padding: 24px 26px; gap: 12px; border-radius: 14px; }
+  .voice-density-icon svg { width: 26px; height: 26px; }
+  .voice-density-label { font-size: 16px; }
+  .voice-density-desc { font-size: 14px; }
+  .voice-tag { font-size: 15px; padding: 7px 15px; }
+  .voice-tag-input { font-size: 15px; }
+  .voice-custom-textarea { font-size: 16px; padding: 16px 20px; min-height: 130px; border-radius: 12px; }
+
+  /* constrain section content width on ultra-wide panels */
+  .type-page,
+  .voice-page,
+  .assets-page,
+  .themes-page {
+    max-width: 1300px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+}

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import * as I from '@/shared/icons'
 import type { ProductConfig } from '../config'
-import { type ThemeOption, SYSTEM_THEMES, makeBrandKitThemes } from '../themes'
+import { type ThemeOption, SYSTEM_THEMES, STANDALONE_THEMES, makeBrandKitThemes } from '../themes'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore'
 import { Portal } from '@/shared/lib/Portal'
@@ -443,9 +443,31 @@ function ThemeCardInner({ t, onPreview }: { t: ThemeOption; onPreview?: (e: Reac
 }
 
 const TEXT_AMOUNT_OPTIONS = [
-  { id: 'minimal',  label: 'Minimal',  desc: 'Focus on visuals over text.' },
-  { id: 'concise',  label: 'Concise',  desc: 'Combine visuals with text.' },
-  { id: 'detailed', label: 'Detailed', desc: 'Use concise paragraph to explain.' },
+  {
+    id: 'minimal', label: 'Minimal', desc: 'Focus on visuals over text.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><line x1="14" y1="6" x2="21" y2="6"/><line x1="14" y1="9" x2="18" y2="9"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><line x1="14" y1="17" x2="21" y2="17"/><line x1="14" y1="20" x2="18" y2="20"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'concise', label: 'Concise', desc: 'Combine visuals with text.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'detailed', label: 'Detailed', desc: 'Use concise paragraph to explain.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <line x1="3" y1="5" x2="21" y2="5"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="13" x2="21" y2="13"/><line x1="3" y1="17" x2="16" y2="17"/>
+      </svg>
+    ),
+  },
 ]
 
 function ToneConfigExtras() {
@@ -466,6 +488,7 @@ function ToneConfigExtras() {
               className={`cp-text-amount-card${textAmount === opt.id ? ' active' : ''}`}
               onClick={() => setTextAmount(opt.id)}
             >
+              <div className="cp-text-amount-icon">{opt.icon}</div>
               <div className="cp-text-amount-label">{opt.label}</div>
               <div className="cp-text-amount-desc">{opt.desc}</div>
             </button>
@@ -515,6 +538,9 @@ function ThemePickerSection({
   const [previewTheme, setPreviewTheme] = useState<ThemeOption | null>(null)
   const [kitMenuOpen, setKitMenuOpen] = useState(false)
   const kitMenuRef = useRef<HTMLDivElement>(null)
+  const [themeSearch, setThemeSearch] = useState('')
+  const [themeCategory, setThemeCategory] = useState('General')
+  const [themeTab, setThemeTab] = useState<'brand' | 'library'>(() => appliedId ? 'brand' : 'library')
 
   useEffect(() => {
     if (!kitMenuOpen) return
@@ -592,57 +618,147 @@ function ThemePickerSection({
           <div className="cp-style-group-desc">Choose a theme to set the look and feel of your design.</div>
         </div>
 
-        {/* Brand themes — highlighted section */}
-        {kits.length > 0 && (
-          <div className="cp-brand-theme-section">
-            <div className="cp-brand-theme-header">
-              <div className="cp-brand-theme-label">Theme from your brand</div>
-{/* Kit switcher */}
-              <div ref={kitMenuRef} style={{ position: 'relative', marginLeft: 'auto' }}>
-                <button
-                  className="cp-kit-switch-btn"
-                  onClick={() => setKitMenuOpen(o => !o)}
-                >
-                  {appliedKit?.name ?? 'Select kit'}
-                  <svg viewBox="0 0 12 12" fill="currentColor" style={{ width: 10, height: 10, flexShrink: 0 }}>
-                    <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                  </svg>
-                </button>
-                {kitMenuOpen && (
-                  <div className="cp-kit-switch-menu">
-                    {kits.map(k => (
-                      <button
-                        key={k.id}
-                        className={`cp-kit-switch-item${k.id === activeKitId ? ' active' : ''}`}
-                        onClick={() => { setAppliedId(k.id); setKitMenuOpen(false) }}
-                      >
-                        {k.name}
+        {/* Search — always visible below header */}
+        <div className="cp-theme-search-bar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="cp-theme-search-icon cp-theme-search-icon--bar">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input
+            className="cp-theme-library-search cp-theme-library-search--bar"
+            placeholder="Search themes…"
+            value={themeSearch}
+            onChange={e => setThemeSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Top-level tabs: pill segmented control */}
+        <div className="cp-theme-tabs-wrap">
+          <div className="cp-theme-seg">
+            {(kits.length > 0 || STANDALONE_THEMES.length > 0) && (
+              <button className={`cp-theme-seg-btn${themeTab === 'brand' ? ' active' : ''}`} onClick={() => setThemeTab('brand')}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                Your Themes
+              </button>
+            )}
+            <button className={`cp-theme-seg-btn${themeTab === 'library' ? ' active' : ''}`} onClick={() => setThemeTab('library')}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              Theme Library
+            </button>
+          </div>
+
+          {/* Your Themes tab — brand kit themes (highlighted) + standalone themes */}
+          {themeTab === 'brand' && (
+            <div className="cp-brand-theme-section">
+              {brandThemes.length > 0 && (
+                <div className="cp-brand-highlight-card">
+                  <div className="cp-brand-highlight-header">
+                    <div className="cp-brand-highlight-title">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                      </svg>
+                      From your brand kits
+                    </div>
+                    <div ref={kitMenuRef} style={{ position: 'relative' }}>
+                      <button className="cp-kit-switch-btn" onClick={() => setKitMenuOpen(o => !o)}>
+                        {appliedKit?.name ?? 'Select brand kit'}
+                        <svg viewBox="0 0 12 12" style={{ width: 10, height: 10, flexShrink: 0 }}>
+                          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                        </svg>
+                      </button>
+                      {kitMenuOpen && (
+                        <div className="cp-kit-switch-menu">
+                          {kits.map(k => (
+                            <button
+                              key={k.id}
+                              className={`cp-kit-switch-item${k.id === activeKitId ? ' active' : ''}`}
+                              onClick={() => { setAppliedId(k.id); setKitMenuOpen(false) }}
+                            >
+                              {k.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="cp-themes-grid">
+                    {brandThemes.map(t => (
+                      <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
+                        <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
-            </div>
-            <div className="cp-themes-grid">
-              {brandThemes.map(t => (
-                <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
-                  <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                </div>
+              )}
 
-        {/* System themes — 4-card grid */}
-        <div className="cp-theme-row-wrap">
-          <div className="cp-themes-label">System</div>
-          <div className="cp-themes-grid">
-            {SYSTEM_THEMES.slice(0, 4).map(t => (
-              <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
-                <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
-              </button>
-            ))}
-          </div>
+              {STANDALONE_THEMES.length > 0 && (
+                <div className="cp-your-themes-group">
+                  <div className="cp-your-themes-group-label">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                    </svg>
+                    Custom Themes
+                  </div>
+                  <div className="cp-themes-grid">
+                    {STANDALONE_THEMES.map(t => (
+                      <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
+                        <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {brandThemes.length === 0 && STANDALONE_THEMES.length === 0 && (
+                <div className="cp-theme-empty">No themes yet. Create a brand kit or save a custom theme.</div>
+              )}
+            </div>
+          )}
+
+          {/* Library tab */}
+          {themeTab === 'library' && (() => {
+            const THEME_CATEGORIES: Record<string, string[]> = {
+              General:   SYSTEM_THEMES.map(t => t.id),
+              Academic:  ['clean-light','slate','minimal-dark','ocean'],
+              Business:  ['slate','clean-light','minimal-dark','ocean'],
+              Marketing: ['bold-gradient','rose-gold','neon-accent','warm-terra'],
+              Strategy:  ['slate','minimal-dark','ocean','clean-light'],
+              Work:      ['clean-light','slate','minimal-dark','ocean'],
+              Education: ['clean-light','forest','ocean','slate'],
+            }
+            const cats = Object.keys(THEME_CATEGORIES)
+            const filtered = SYSTEM_THEMES.filter(t => {
+              const inCat = THEME_CATEGORIES[themeCategory]?.includes(t.id) ?? true
+              const inSearch = !themeSearch.trim() || t.name.toLowerCase().includes(themeSearch.toLowerCase())
+              return inCat && inSearch
+            })
+            return (
+              <div className="cp-theme-library">
+                <div className="cp-theme-cats">
+                  {cats.map(c => (
+                    <button
+                      key={c}
+                      className={`cp-theme-cat${themeCategory === c ? ' active' : ''}`}
+                      onClick={() => setThemeCategory(c)}
+                    >{c}</button>
+                  ))}
+                </div>
+                <div className="cp-themes-grid">
+                  {filtered.map(t => (
+                    <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
+                      <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
+                    </button>
+                  ))}
+                  {filtered.length === 0 && (
+                    <div className="cp-theme-empty">No themes match "{themeSearch}"</div>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </div>
     </div>
@@ -778,7 +894,7 @@ export function PromptScreen({ config, onSubmit }: Props) {
             value={prompt}
             onChange={e => setPrompt(e.target.value)}
             onKeyDown={handleKey}
-            rows={4}
+            rows={2}
           />
           <div className="cp-input-foot" ref={inputFootRef}>
             <div className="cp-input-actions">
@@ -790,12 +906,43 @@ export function PromptScreen({ config, onSubmit }: Props) {
             </div>
             <div className="cp-input-right">
               <div ref={modelBtnRef} style={{ display: 'inline-flex' }}><ModelSelector /></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed generate bar — rendered via Portal to escape overflow:hidden */}
+        <Portal>
+          <div className="cp-generate-bar">
+            <div className="cp-generate-bar-tip">
+              <span className="cp-generate-bar-tip-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+                </svg>
+              </span>
+              <span className="cp-generate-bar-tip-label">Tips</span>
+              <span className="cp-generate-bar-tip-text">
+                Use a Brand Theme to automatically apply your brand kit's visual direction!
+              </span>
+            </div>
+            {(() => {
+              const needsTheme = THEME_SLUGS.has(config.slug) && !selectedTheme
+              const needsPrompt = !prompt.trim()
+              const hint = needsPrompt && needsTheme
+                ? 'Add a prompt and select a theme'
+                : needsPrompt
+                  ? 'Add a prompt to get started'
+                  : needsTheme
+                    ? 'Select a theme to continue'
+                    : ''
+              const isReady = !needsPrompt && !needsTheme
+              return (
+            <div className={`cp-generate-wrap${!isReady ? ' cp-generate-wrap--hint' : ''}`} data-hint={hint}>
               <button
                 ref={generateRef}
-                className="cp-generate-btn"
-                disabled={!prompt.trim()}
+                className="cp-generate-btn cp-generate-btn--bar"
+                disabled={!isReady}
                 onClick={handleSubmit}
-                style={{ background: prompt.trim() ? config.color : undefined, color: prompt.trim() ? '#000' : undefined }}
+                style={{ background: isReady ? config.color : undefined, color: isReady ? '#000' : undefined }}
               >
                 Generate
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -803,8 +950,10 @@ export function PromptScreen({ config, onSubmit }: Props) {
                 </svg>
               </button>
             </div>
+              )
+            })()}
           </div>
-        </div>
+        </Portal>
 
         <div className="cp-suggestions" ref={suggestionsRef}>
           <div className="cp-suggestions-chips">

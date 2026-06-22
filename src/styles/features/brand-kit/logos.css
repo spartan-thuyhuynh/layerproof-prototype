@@ -1,0 +1,101 @@
+
+/* ============================================================  LOGO SECTION  */
+/* ── Logos page (new file-card layout) ──────────────────────── */
+.logos-page { padding: 0; }
+.logos-page-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+  padding: 32px 32px 24px;
+}
+.logos-page-title {
+  margin: 0 0 4px; font-size: 20px; font-weight: 700; letter-spacing: -.02em; color: var(--t1);
+}
+.logos-page-sub { margin: 0; font-size: 13.5px; color: var(--t2); }
+.logos-upload-btn {
+  flex-shrink: 0; height: 36px; padding: 0 18px; border-radius: 9px;
+  border: 1.5px solid #3a3a3a; background: transparent; color: #e0e0e0;
+  font-size: 13.5px; font-weight: 500; font-family: inherit;
+  cursor: pointer; transition: border-color .15s, background .15s;
+  white-space: nowrap;
+}
+.logos-upload-btn:hover { border-color: #505050; background: rgba(255,255,255,.04); }
+
+.logos-card-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  padding: 0 32px 32px;
+}
+.logo-file-card {
+  border: 1px solid #3a3a3a; border-radius: 12px; overflow: hidden; background: var(--card);
+  display: flex; flex-direction: column;
+}
+.logo-file-preview {
+  aspect-ratio: 1 / 1; background: #0a0a0a;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  padding: 20px;
+}
+.logo-file-img {
+  width: 100%; height: 100%; object-fit: contain;
+}
+.logo-file-info {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 14px 16px 16px; gap: 3px;
+}
+.logo-file-name { font-size: 13.5px; font-weight: 500; color: var(--t1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+.logo-file-size { font-size: 12px; color: var(--t3); }
+.logos-empty { grid-column: 1 / -1; padding: 48px 0; text-align: center; color: var(--t3); font-size: 14px; }
+
+/* asset card cover preview (fills frame, image behind) */
+.asset-preview-cover {
+  aspect-ratio: 1 / 1;
+  border-bottom: 1px solid var(--line);
+  position: relative; overflow: hidden; border-radius: 0;
+}
+.asset-ext-badge {
+  position: absolute; bottom: 10px; right: 10px;
+  font-size: 10px; font-weight: 800; letter-spacing: .06em;
+  background: rgba(0,0,0,.55); color: #fff;
+  padding: 3px 7px; border-radius: 6px;
+  backdrop-filter: blur(6px);
+}
+
+/* logo lightbox */
+.logo-lightbox {
+  background: #141414; border: 1px solid var(--line-2); border-radius: 18px;
+  overflow: hidden; max-width: 680px; width: 90vw;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.logo-lightbox-close {
+  position: absolute; top: 14px; right: 14px; z-index: 2;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,0,0,.5); border: 1px solid var(--line-2);
+  color: var(--t2); display: grid; place-items: center; cursor: pointer;
+}
+.logo-lightbox-close:hover { color: var(--t1); background: rgba(0,0,0,.8); }
+.logo-lightbox-img-wrap {
+  aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+}
+.logo-lightbox-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.logo-lightbox-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-top: 1px solid var(--line);
+}
+
+/* legacy logo-tile (kept for backward compat) */
+.logo-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 14px; }
+.logo-tile { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.logo-tile .stage { height: 130px; display: grid; place-items: center; }
+.logo-tile .cap { padding: 10px 13px; font-size: 12.5px; color: var(--t2); border-top: 1px solid var(--line); background: var(--card); }
+.logo-tile .cap b { color: var(--t1); display: block; font-size: 13px; font-weight: 700; }
+
+.dont-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap: 14px; }
+.dont { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.dont .stage { height: 110px; display: grid; place-items: center; background: #161616; position: relative; }
+.dont .x { position: absolute; top: 9px; right: 9px; width: 22px; height: 22px; border-radius: 50%; background: var(--c-red); color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 800; }
+.dont .cap { padding: 9px 12px; font-size: 12.5px; color: var(--t2); }
+
+/* clearspace diagram */
+.clearspace { position: relative; height: 150px; background: repeating-linear-gradient(45deg,#161616,#161616 8px,#1a1a1a 8px,#1a1a1a 16px); border-radius: 12px; display: grid; place-items: center; border: 1px solid var(--line); }
+.clearspace .box { border: 1.5px dashed var(--accent-line); padding: 26px; border-radius: 6px; }
+.clearspace .logoglyph { width: 70px; height: 70px; border-radius: 12px; display:grid;place-items:center;font-weight:800;font-size:26px; }

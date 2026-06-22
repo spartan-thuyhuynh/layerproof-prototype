@@ -1,0 +1,126 @@
+
+/* ============================================================  COLORS SECTION  */
+.swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 14px; }
+.swatch { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); }
+.swatch .fill { height: 96px; }
+.swatch .meta { padding: 11px 13px; }
+.swatch .meta b { font-size: 13.5px; font-weight: 700; display: block; }
+.swatch .meta code { font-size: 12px; color: var(--t2); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.swatch .meta .role { font-size: 11.5px; color: var(--t3); margin-top: 4px; display:block; }
+
+/* ── Colors page (palette cards) ────────────────────────────── */
+.colors-page { padding: 0; }
+.colors-page-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+  padding: 32px 32px 24px;
+}
+.colors-page-title { margin: 0 0 4px; font-size: 20px; font-weight: 700; letter-spacing: -.02em; color: var(--t1); }
+.colors-page-sub { margin: 0; font-size: 13.5px; color: var(--t2); max-width: 520px; }
+.colors-new-btn {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px;
+  height: 36px; padding: 0 18px; border-radius: 9px;
+  border: 1.5px solid #3a3a3a; background: transparent; color: #e0e0e0;
+  font-size: 13.5px; font-weight: 500; font-family: inherit; cursor: pointer;
+  transition: border-color .15s, background .15s; white-space: nowrap;
+}
+.colors-new-btn:hover { border-color: #505050; background: rgba(255,255,255,.04); }
+
+.color-palettes { display: flex; flex-direction: column; gap: 16px; padding: 0 32px 32px; }
+.colors-empty { padding: 48px 0; text-align: center; color: var(--t3); font-size: 14px; }
+
+.color-palette-card {
+  background: #1a1a1a; border: 1px solid #2e2e2e; border-radius: 14px; padding: 20px 22px 22px;
+}
+
+/* palette header */
+.pal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.pal-name-area { display: flex; align-items: center; gap: 8px; }
+.pal-name { font-size: 15px; font-weight: 700; color: var(--t1); }
+.pal-name-input {
+  font-size: 15px; font-weight: 700; color: var(--t1); background: #252525;
+  border: 1px solid var(--accent-line); border-radius: 6px; padding: 2px 8px;
+  outline: none; font-family: inherit; width: 180px;
+}
+.pal-icon-btn {
+  width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent;
+  color: var(--t3); cursor: pointer; display: grid; place-items: center;
+  transition: background .12s, color .12s;
+}
+.pal-icon-btn:hover { background: #2a2a2a; color: var(--t1); }
+.pal-menu-wrap { position: relative; }
+.pal-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 50;
+  background: #222; border: 1px solid #333; border-radius: 10px;
+  padding: 6px; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+.pal-menu-item {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px;
+  border-radius: 7px; border: none; background: transparent; cursor: pointer;
+  font-size: 13px; font-family: inherit; color: var(--t2); text-align: left;
+  transition: background .1s;
+}
+.pal-menu-item:hover { background: #2a2a2a; }
+.pal-menu-item.danger { color: #f87171; }
+.pal-menu-item.danger:hover { background: rgba(248,113,113,.1); }
+
+/* description */
+.pal-desc {
+  width: 100%; resize: none; overflow: hidden; background: transparent;
+  border: none; border-bottom: 1px solid #2a2a2a; outline: none;
+  font-size: 13px; color: var(--t2); font-family: inherit; line-height: 1.5;
+  padding: 0 0 8px; margin-bottom: 18px; transition: border-color .15s;
+}
+.pal-desc:focus { border-bottom-color: #444; color: var(--t1); }
+.pal-desc::placeholder { color: var(--t3); }
+
+/* swatches row */
+.pal-swatches { display: flex; flex-wrap: wrap; gap: 14px; }
+
+.pal-swatch-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.pal-swatch-box {
+  width: 80px; height: 80px; border-radius: 10px; position: relative; cursor: pointer;
+  transition: transform .12s, box-shadow .12s; border: 1px solid rgba(255,255,255,.06);
+}
+.pal-swatch-box:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+.pal-color-input {
+  position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%;
+  cursor: pointer; border: none; padding: 0;
+}
+.pal-swatch-remove {
+  position: absolute; top: 5px; right: 5px; width: 18px; height: 18px;
+  border-radius: 50%; border: none; background: rgba(0,0,0,.55); color: rgba(255,255,255,.8);
+  font-size: 13px; line-height: 1; cursor: pointer; display: grid; place-items: center;
+  opacity: 0; transition: opacity .12s;
+}
+.pal-swatch-box:hover .pal-swatch-remove { opacity: 1; }
+.pal-swatch-name {
+  width: 80px; text-align: center; font-size: 12px; font-weight: 600; color: var(--t1);
+  background: transparent; border: none; outline: none; font-family: inherit;
+  padding: 1px 4px; border-radius: 4px; transition: background .1s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pal-swatch-name:focus { background: #252525; }
+.pal-swatch-hex {
+  font-size: 11px; color: var(--t3); font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: .02em;
+}
+
+.pal-add-swatch {
+  width: 80px; height: 80px; border-radius: 10px; border: 1.5px dashed #333;
+  background: #141414; color: var(--t3); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px; cursor: pointer;
+  font-size: 11px; font-family: inherit; font-weight: 500;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.pal-add-swatch:hover { border-color: #555; color: var(--t1); background: #1e1e1e; }
+
+/* rule list */
+.rule { display: flex; gap: 14px; align-items: flex-start; padding: 15px 0; border-bottom: 1px solid var(--line); }
+.rule:last-child { border-bottom: none; }
+.rule .rk { width: 30px; height: 30px; border-radius: 8px; background: #1e1e1e; display: grid; place-items: center; flex: none; color: var(--t2); }
+.rule .rk svg { width: 15px; height: 15px; }
+.rule .rbody { flex: 1; }
+.rule .rbody b { font-size: 14px; font-weight: 700; }
+.rule .rbody p { margin: 3px 0 0; font-size: 13px; color: var(--t2); }
