@@ -777,9 +777,47 @@ function ThemePickerSection({
   )
 }
 
+interface AttachmentChipsProps { files: File[]; onRemove: (i: number) => void }
+
+function AttachmentChips({ files, onRemove }: AttachmentChipsProps) {
+  if (files.length === 0) return null
+  return (
+    <div className="cp-attach-chips">
+      {files.map((file, i) => {
+        const isImage = file.type.startsWith('image/')
+        const previewUrl = isImage ? URL.createObjectURL(file) : null
+        return (
+          <div key={i} className="cp-attach-chip">
+            {isImage && previewUrl ? (
+              <img
+                className="cp-attach-chip-thumb"
+                src={previewUrl}
+                alt={file.name}
+                onLoad={() => URL.revokeObjectURL(previewUrl!)}
+              />
+            ) : (
+              <div className="cp-attach-chip-icon">
+                <span>{file.name.split('.').pop()?.toUpperCase().slice(0, 4) ?? 'FILE'}</span>
+              </div>
+            )}
+            <span className="cp-attach-chip-name" title={file.name}>
+              {file.name.length > 20 ? file.name.slice(0, 17) + '…' : file.name}
+            </span>
+            <button className="cp-attach-chip-remove" type="button" onClick={() => onRemove(i)}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 interface Props {
   config: ProductConfig
-  onSubmit: (prompt: string, theme: ThemeOption | null, tone: string | null) => void
+  onSubmit: (prompt: string, theme: ThemeOption | null, tone: string | null, files: File[]) => void
 }
 
 const SUGGESTIONS: Record<string, string[]> = {
@@ -802,6 +840,7 @@ function pickThree(all: string[], offset: number): string[] {
 
 export function PromptScreen({ config, onSubmit }: Props) {
   const navigate = useNavigate()
+  const { kits } = useBrandStore()
   const [prompt, setPrompt] = useState('')
   const [shuffleIdx, setShuffleIdx] = useState(0)
   const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(null)
@@ -814,6 +853,8 @@ export function PromptScreen({ config, onSubmit }: Props) {
   const generateRef    = useRef<HTMLButtonElement>(null)
   const attachBtnRef   = useRef<HTMLButtonElement>(null)
   const modelBtnRef    = useRef<HTMLDivElement>(null)
+  const fileInputRef   = useRef<HTMLInputElement>(null)
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([])
 
   const tourRefs: Record<string, React.RefObject<HTMLElement | null>> = {
     suggestions: suggestionsRef,
@@ -855,7 +896,7 @@ export function PromptScreen({ config, onSubmit }: Props) {
 
   function handleSubmit() {
     if (!prompt.trim()) return
-    onSubmit(prompt.trim(), selectedTheme, null)
+    onSubmit(prompt.trim(), selectedTheme, null, attachedFiles)
   }
 
   function handleKey(e: React.KeyboardEvent) {
@@ -904,22 +945,76 @@ export function PromptScreen({ config, onSubmit }: Props) {
         <p className="cp-sub">{config.promptSub}</p>
 
         <div className="cp-input-wrap">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf,.txt,.doc,.docx"
+            multiple
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const newFiles = Array.from(e.target.files ?? [])
+              if (newFiles.length) setAttachedFiles(prev => [...prev, ...newFiles])
+              e.target.value = ''
+            }}
+          />
           <textarea
             ref={textareaRef}
             className="cp-textarea"
             placeholder={config.promptPlaceholder}
             value={prompt}
-            onChange={e => setPrompt(e.target.value)}
+            onChange={e => {
+              setPrompt(e.target.value)
+              const el = e.target
+              el.style.height = 'auto'
+              el.style.height = Math.min(el.scrollHeight, 186) + 'px'
+            }}
             onKeyDown={handleKey}
             rows={2}
           />
+          <AttachmentChips
+            files={attachedFiles}
+            onRemove={(i) => setAttachedFiles(prev => prev.filter((_, idx) => idx !== i))}
+          />
           <div className="cp-input-foot" ref={inputFootRef}>
             <div className="cp-input-actions">
-              <button ref={attachBtnRef} className="cp-action-btn" title="Attach file" onClick={() => advanceTourIfOn('attach')}>
+              <button
+                ref={attachBtnRef}
+                className={`cp-action-btn${attachedFiles.length > 0 ? ' cp-action-btn--has-files' : ''}`}
+                title="Attach file"
+                data-count={attachedFiles.length > 0 ? String(attachedFiles.length) : undefined}
+                onClick={() => { advanceTourIfOn('attach'); fileInputRef.current?.click() }}
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                 </svg>
               </button>
+              {selectedTheme && (() => {
+                const kitId = selectedTheme.section === 'brand'
+                  ? selectedTheme.id.replace(/^brand-/, '').replace(/-(?:primary|dark|minimal|accent)$/, '')
+                  : null
+                const kitName = kitId ? (kits.find(k => k.id === kitId)?.name ?? null) : null
+                return (
+                  <div className="cp-theme-pill">
+                    <div className="cp-theme-pill-thumb">
+                      <ThemePreview colors={selectedTheme.colors} />
+                    </div>
+                    <div className="cp-theme-pill-info">
+                      <span className="cp-theme-pill-name">{selectedTheme.name}</span>
+                      {kitName && <span className="cp-theme-pill-kit">{kitName}</span>}
+                    </div>
+                    <button
+                      className="cp-theme-pill-remove"
+                      type="button"
+                      title="Remove theme"
+                      onClick={() => handleThemeSelect(null)}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                )
+              })()}
             </div>
             <div className="cp-input-right">
               <div ref={modelBtnRef} style={{ display: 'inline-flex' }}><ModelSelector onOpen={() => advanceTourIfOn('model')} /></div>
@@ -942,16 +1037,9 @@ export function PromptScreen({ config, onSubmit }: Props) {
               </span>
             </div>
             {(() => {
-              const needsTheme = THEME_SLUGS.has(config.slug) && !selectedTheme
               const needsPrompt = !prompt.trim()
-              const hint = needsPrompt && needsTheme
-                ? 'Add a prompt and select a theme'
-                : needsPrompt
-                  ? 'Add a prompt to get started'
-                  : needsTheme
-                    ? 'Select a theme to continue'
-                    : ''
-              const isReady = !needsPrompt && !needsTheme
+              const hint = needsPrompt ? 'Add a prompt to get started' : ''
+              const isReady = !needsPrompt
               return (
             <div className={`cp-generate-wrap${!isReady ? ' cp-generate-wrap--hint' : ''}`} data-hint={hint}>
               <button

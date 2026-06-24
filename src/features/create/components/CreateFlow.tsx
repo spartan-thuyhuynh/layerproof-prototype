@@ -13,11 +13,13 @@ export function CreateFlow({ config }: Props) {
   const [userPrompt, setUserPrompt] = useState('')
   const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(null)
   const [selectedTone, setSelectedTone] = useState<string | null>(null)
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([])
 
-  function handlePromptSubmit(prompt: string, theme: ThemeOption | null, tone: string | null) {
+  function handlePromptSubmit(prompt: string, theme: ThemeOption | null, tone: string | null, files: File[]) {
     setUserPrompt(prompt)
     setSelectedTheme(theme)
     setSelectedTone(tone)
+    setAttachedFiles(files)
     setStage('chat')
   }
 
@@ -29,6 +31,7 @@ export function CreateFlow({ config }: Props) {
         onBack={() => setStage('prompt')}
         initialTheme={selectedTheme}
         initialTone={selectedTone}
+        attachedFiles={attachedFiles}
       />
     )
   }

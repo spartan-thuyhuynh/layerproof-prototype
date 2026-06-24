@@ -10,11 +10,11 @@
 .cp-center { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: 100%; max-width: 860px; background: rgba(8, 6, 10, 0.82); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 44px 52px 40px; backdrop-filter: blur(24px); box-shadow: 0 8px 60px rgba(0,0,0,0.5); }
 .cp-chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: .04em; border: 1px solid; margin-bottom: 22px; }
 .cp-heading { font-family: "Anton", var(--font); font-size: clamp(26px, 3.2vw, 38px); font-weight: 400; color: #fff; letter-spacing: 0.01em; line-height: 1.1; margin: 0 0 12px; text-transform: uppercase; }
-.cp-sub { font-size: 15px; color: rgba(255,255,255,0.5); margin: 0 0 32px; }
+.cp-sub { font-size: 17px; color: rgba(255,255,255,0.72); margin: 0 0 32px; line-height: 1.5; }
 .cp-input-wrap { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
 .cp-input-wrap:focus-within { border-color: rgba(255,255,255,0.3); box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
-.cp-textarea { width: 100%; background: none; border: none; outline: none; resize: none; color: rgba(255,255,255,0.9); font-size: 15px; font-family: var(--font); line-height: 1.6; padding: 22px 22px 8px; }
-.cp-textarea::placeholder { color: rgba(255,255,255,0.28); }
+.cp-textarea { width: 100%; background: none; border: none; outline: none; resize: none; color: #fff; font-size: 16px; font-family: var(--font); line-height: 1.6; padding: 22px 22px 8px; min-height: 82px; max-height: 186px; overflow-y: auto; box-sizing: border-box; }
+.cp-textarea::placeholder { color: rgba(255,255,255,0.42); }
 .cp-input-foot { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 16px; gap: 8px; }
 .cp-input-actions { display: flex; align-items: center; gap: 6px; }
 .cp-action-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 9px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.45); cursor: pointer; transition: background .12s, color .12s; }
@@ -45,7 +45,7 @@
 .cp-model-option-label { font-size: 13px; font-weight: 600; color: var(--t1); flex: 1; }
 .cp-model-option-desc  { font-size: 11px; color: var(--t3); flex: 2; }
 
-.cp-hint { font-size: 11.5px; color: rgba(255,255,255,0.28); }
+.cp-hint { font-size: 12px; color: rgba(255,255,255,0.48); }
 .cp-generate-bar {
   position: fixed;
   bottom: 0;
@@ -124,11 +124,11 @@
 .cp-generate-btn:not(:disabled):active { transform: scale(0.97); }
 .cp-suggestions { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; width: 100%; }
 .cp-suggestions-chips { display: flex; align-items: stretch; gap: 10px; width: 100%; }
-.cp-suggestions-label { font-size: 12px; color: rgba(255,255,255,0.3); font-weight: 500; }
-.cp-suggestion-chip { flex: 1; padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; font-family: var(--font); transition: background .12s, color .12s, border-color .12s; text-align: center; white-space: normal; }
-.cp-suggestion-chip:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.2); }
-.cp-shuffle-btn { display: flex; align-items: center; gap: 7px; padding: 7px 18px; border-radius: 20px; font-size: 13px; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; font-family: var(--font); transition: background .12s, color .12s; }
-.cp-shuffle-btn:hover { background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.75); }
+.cp-suggestions-label { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 500; }
+.cp-suggestion-chip { flex: 1; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.4; color: rgba(255,255,255,0.78); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; font-family: var(--font); transition: background .12s, color .12s, border-color .12s; text-align: center; white-space: normal; }
+.cp-suggestion-chip:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.22); }
+.cp-shuffle-btn { display: flex; align-items: center; gap: 7px; padding: 7px 18px; border-radius: 20px; font-size: 13px; color: rgba(255,255,255,0.62); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); cursor: pointer; font-family: var(--font); transition: background .12s, color .12s; }
+.cp-shuffle-btn:hover { background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.9); }
 
 /* ── Theme picker (.cp-theme-*) ────────────────────────────────── */
 .cp-themes { width: 100%; margin-top: 28px; display: flex; flex-direction: column; gap: clamp(16px, 1.5vw, 24px); }
@@ -645,18 +645,18 @@
 .cp-tone-extras { display: flex; flex-direction: column; gap: clamp(16px, 1.6vw, 24px); }
 .cp-tone-section { display: flex; flex-direction: column; gap: clamp(6px, 0.6vw, 9px); }
 .cp-tone-section-title {
-  font-size: clamp(13px, 1.1vw, 15px);
+  font-size: clamp(14px, 1.1vw, 16px);
   font-weight: 700;
   color: var(--t1);
 }
 .cp-tone-section-sub {
-  font-size: clamp(11px, 0.95vw, 13px);
-  color: var(--t3);
+  font-size: clamp(12px, 0.95vw, 14px);
+  color: rgba(255,255,255,.58);
   margin-top: -2px;
 }
 .cp-tone-section-hint {
-  font-size: clamp(11px, 0.9vw, 12px);
-  color: var(--t3);
+  font-size: clamp(12px, 0.9vw, 13px);
+  color: rgba(255,255,255,.5);
 }
 .cp-text-amount-grid {
   display: grid;
@@ -683,20 +683,20 @@
   background: rgba(251,222,66,.06);
 }
 .cp-text-amount-icon {
-  color: var(--t3);
+  color: rgba(255,255,255,.52);
   display: flex;
   margin-bottom: 2px;
 }
 .cp-text-amount-card.active .cp-text-amount-icon { color: var(--accent); }
 .cp-text-amount-label {
-  font-size: clamp(12px, 1vw, 14px);
+  font-size: clamp(13px, 1vw, 15px);
   font-weight: 600;
   color: var(--t1);
 }
 .cp-text-amount-card.active .cp-text-amount-label { color: var(--accent); }
 .cp-text-amount-desc {
-  font-size: clamp(10px, 0.85vw, 12px);
-  color: var(--t3);
+  font-size: clamp(11px, 0.9vw, 13px);
+  color: rgba(255,255,255,.55);
   line-height: 1.35;
 }
 .cp-tone-input {
@@ -713,7 +713,7 @@
   transition: border-color .13s;
 }
 .cp-tone-input:focus { border-color: rgba(255,255,255,.25); }
-.cp-tone-input::placeholder { color: var(--t3); }
+.cp-tone-input::placeholder { color: rgba(255,255,255,.38); }
 .cp-tone-textarea {
   width: 100%;
   background: var(--card);
@@ -730,7 +730,7 @@
   line-height: 1.5;
 }
 .cp-tone-textarea:focus { border-color: rgba(255,255,255,.25); }
-.cp-tone-textarea::placeholder { color: var(--t3); }
+.cp-tone-textarea::placeholder { color: rgba(255,255,255,.38); }
 
 /* Voice spectrum — brand kit style */
 .cp-spectrum { animation: cp-slide-in .2s ease; }
@@ -970,4 +970,191 @@
 }
 .cp-input-tip-dismiss:hover { opacity: .85; }
 .cp-input-tip--sm { padding: 10px 12px; gap: 8px; }
+
+/* ── Theme pill in input footer (.cp-theme-pill) ──────────────────── */
+.cp-theme-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 10px;
+  min-width: 0;
+  max-width: 200px;
+}
+
+.cp-theme-pill-thumb {
+  width: 44px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cp-theme-pill-thumb .ac2-theme-preview {
+  height: 32px;
+  border-radius: 6px;
+  padding: 5px 7px;
+}
+.cp-theme-pill-thumb .ac2-tp-top { margin-bottom: 4px; }
+.cp-theme-pill-thumb .ac2-tp-tag { height: 3px; width: 12px; }
+.cp-theme-pill-thumb .ac2-tp-headline { height: 4px; }
+.cp-theme-pill-thumb .ac2-tp-body-lines { display: none; }
+.cp-theme-pill-thumb .ac2-tp-cta { height: 5px; width: 18px; border-radius: 3px; margin-top: 4px; }
+
+.cp-theme-pill-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cp-theme-pill-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--t1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+}
+
+.cp-theme-pill-kit {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--t3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+}
+
+.cp-theme-pill-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  color: var(--t3);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color .12s, background .12s;
+}
+.cp-theme-pill-remove:hover {
+  color: var(--t1);
+  background: rgba(255,255,255,.1);
+}
+
+/* ── Attachment chips (.cp-attach-*) ───────────────────────────────── */
+.cp-attach-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 0 16px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cp-attach-chips::-webkit-scrollbar { display: none; }
+
+.cp-attach-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px 5px 6px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 8px;
+  max-width: 200px;
+  transition: border-color .12s;
+}
+.cp-attach-chip:hover { border-color: rgba(255,255,255,.22); }
+
+.cp-attach-chip-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.cp-attach-chip-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cp-attach-chip-icon span {
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--t3);
+  letter-spacing: .03em;
+}
+
+.cp-attach-chip-name {
+  font-size: 12px;
+  color: var(--t2);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.cp-attach-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  color: var(--t3);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color .12s, background .12s;
+}
+.cp-attach-chip-remove:hover {
+  color: var(--t1);
+  background: rgba(255,255,255,.1);
+}
+
+/* Count badge on paperclip when files are attached */
+.cp-action-btn--has-files {
+  color: rgba(255,255,255,.75);
+  border-color: rgba(255,255,255,.25);
+  background: rgba(255,255,255,.12);
+  position: relative;
+}
+.cp-action-btn--has-files::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #000;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  line-height: 1;
+}
 
