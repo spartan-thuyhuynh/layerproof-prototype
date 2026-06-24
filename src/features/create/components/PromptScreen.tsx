@@ -4,6 +4,7 @@ import * as I from '@/shared/icons'
 import type { ProductConfig } from '../config'
 import { type ThemeOption, SYSTEM_THEMES, STANDALONE_THEMES, makeBrandKitThemes } from '../themes'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
+import type { BrandKit } from '@/features/brand-kit/types/brand'
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore'
 import { Portal } from '@/shared/lib/Portal'
 
@@ -560,14 +561,14 @@ function ToneConfigExtras({
   )
 }
 
-function getKitForTheme(theme: ThemeOption, kits: ReturnType<typeof useBrandStore>['kits']) {
+function getKitForTheme(theme: ThemeOption, kits: BrandKit[]) {
   if (theme.section !== 'brand') return null
   const match = theme.id.match(/^brand-(.+)-(?:primary|dark|minimal|light)$/)
   if (!match) return null
   return kits.find(k => k.id === match[1]) ?? null
 }
 
-function synthesizeToneFromKit(kit: ReturnType<typeof useBrandStore>['kits'][number]) {
+function synthesizeToneFromKit(kit: BrandKit) {
   const tone = kit.tone
   const textAmount = tone?.textDensity ?? 'concise'
   const wordsToAvoid = tone?.avoid?.length ? tone.avoid.slice(0, 8).join(', ') : ''
