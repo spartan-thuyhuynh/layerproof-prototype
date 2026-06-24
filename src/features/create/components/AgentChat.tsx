@@ -314,14 +314,34 @@ function LookAndFeelModal({
 }) {
   const { kits } = useBrandStore()
   const [tab, setTab] = useState<'system' | 'yours'>('system')
+  const [autofillKit, setAutofillKit] = useState<string | null>(null)
   const brandThemes: ThemeOption[] = kits.flatMap(kit => makeBrandKitThemes(kit))
+
+  function getKitForTheme(theme: ThemeOption) {
+    if (theme.section !== 'brand') return null
+    // ID format: brand-{kitId}-{variant}
+    const match = theme.id.match(/^brand-(.+)-(?:primary|dark|minimal|light)$/)
+    if (!match) return null
+    return kits.find(k => k.id === match[1]) ?? null
+  }
+
+  function handleThemeSelect(theme: ThemeOption) {
+    onSelect(theme)
+    const kit = getKitForTheme(theme)
+    if (!kit) { setAutofillKit(null); return }
+    const tone = kit.tone
+    if (tone?.textDensity) onTextAmountChange(tone.textDensity)
+    if (tone?.avoid?.length) onWordsToAvoidChange(tone.avoid.slice(0, 6).join(', '))
+    if (tone?.customInstruction) onCustomInstructionChange(tone.customInstruction)
+    setAutofillKit(kit.name)
+  }
 
   function ThemeCard({ theme }: { theme: ThemeOption }) {
     const isSelected = selected === theme.id
     return (
       <button
         className={`ac2-theme-card${isSelected ? ' selected' : ''}`}
-        onClick={() => onSelect(theme)}
+        onClick={() => handleThemeSelect(theme)}
       >
         <ThemePreview colors={theme.colors} />
         <div className="ac2-theme-card-name">{theme.name}</div>
@@ -384,6 +404,18 @@ function LookAndFeelModal({
 
           {/* ── Right: Voice & Writing ── */}
           <div className="ac2-laf-right">
+
+            {/* Brand tone autofill banner */}
+            {autofillKit && (
+              <div className="ac2-laf-autofill-banner">
+                <div className="ac2-laf-autofill-banner-left">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                  <span>Settings pre-filled from <strong>{autofillKit}</strong> brand tone</span>
+                </div>
+                <button className="ac2-laf-autofill-dismiss" onClick={() => setAutofillKit(null)}>✕</button>
+              </div>
+            )}
+
             {/* Amount of text */}
             <div className="ac2-laf-section-title">Amount of text</div>
             <div className="ac2-laf-text-grid">
@@ -2766,8 +2798,12 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
         </button>
       )}
 
-      {/* Input bar */}
-      <div className="ac2-input-bar">
+      {/* Input bar — hidden while a question card is active */}
+      {!(
+        (phase === 'conflict-q' && conflict) ||
+        (phase === 'form-platform' && !stepThinking && !!STEP1_QUESTIONS[step1Index]) ||
+        (phase === 'form' && !step2Values)
+      ) && <div className="ac2-input-bar">
         <div className="ac2-input-wrap">
           <button className="ac2-input-add"><Plus size={16} /></button>
           <input
@@ -2789,7 +2825,7 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
         <div className="ac2-input-hint">
           Press Enter to send · Attach images for visual reference
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

@@ -482,13 +482,37 @@ const TEXT_AMOUNT_OPTIONS = [
   },
 ]
 
-function ToneConfigExtras() {
-  const [textAmount, setTextAmount] = useState<string>('concise')
-  const [wordsToAvoid, setWordsToAvoid] = useState('')
-  const [customInstruction, setCustomInstruction] = useState('')
-
+function ToneConfigExtras({
+  textAmount, onTextAmountChange,
+  wordsToAvoid, onWordsToAvoidChange,
+  customInstruction, onCustomInstructionChange,
+  autofillKitName, onDismissAutofill,
+}: {
+  textAmount: string
+  onTextAmountChange: (v: string) => void
+  wordsToAvoid: string
+  onWordsToAvoidChange: (v: string) => void
+  customInstruction: string
+  onCustomInstructionChange: (v: string) => void
+  autofillKitName: string | null
+  onDismissAutofill: () => void
+}) {
   return (
     <div className="cp-tone-extras">
+
+      {/* Brand tone autofill banner */}
+      {autofillKitName && (
+        <div className="cp-autofill-banner">
+          <div className="cp-autofill-banner-left">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+            <span>Settings pre-filled from <strong>{autofillKitName}</strong> brand tone preset</span>
+          </div>
+          <button className="cp-autofill-dismiss" onClick={onDismissAutofill}>✕</button>
+        </div>
+      )}
+
       {/* Amount of text */}
       <div className="cp-tone-section">
         <div className="cp-tone-section-title">Amount of text</div>
@@ -498,7 +522,7 @@ function ToneConfigExtras() {
             <button
               key={opt.id}
               className={`cp-text-amount-card${textAmount === opt.id ? ' active' : ''}`}
-              onClick={() => setTextAmount(opt.id)}
+              onClick={() => onTextAmountChange(opt.id)}
             >
               <div className="cp-text-amount-icon">{opt.icon}</div>
               <div className="cp-text-amount-label">{opt.label}</div>
@@ -515,7 +539,7 @@ function ToneConfigExtras() {
           className="cp-tone-input"
           placeholder="Add word…"
           value={wordsToAvoid}
-          onChange={e => setWordsToAvoid(e.target.value)}
+          onChange={e => onWordsToAvoidChange(e.target.value)}
         />
         <div className="cp-tone-section-hint">Avoid using these words when creating content</div>
       </div>
@@ -528,12 +552,44 @@ function ToneConfigExtras() {
           className="cp-tone-textarea"
           placeholder="Describe your desired tone…"
           value={customInstruction}
-          onChange={e => setCustomInstruction(e.target.value)}
+          onChange={e => onCustomInstructionChange(e.target.value)}
           rows={3}
         />
       </div>
     </div>
   )
+}
+
+function getKitForTheme(theme: ThemeOption, kits: ReturnType<typeof useBrandStore>['kits']) {
+  if (theme.section !== 'brand') return null
+  const match = theme.id.match(/^brand-(.+)-(?:primary|dark|minimal|light)$/)
+  if (!match) return null
+  return kits.find(k => k.id === match[1]) ?? null
+}
+
+function synthesizeToneFromKit(kit: ReturnType<typeof useBrandStore>['kits'][number]) {
+  const tone = kit.tone
+  const textAmount = tone?.textDensity ?? 'concise'
+  const wordsToAvoid = tone?.avoid?.length ? tone.avoid.slice(0, 8).join(', ') : ''
+
+  let customInstruction = ''
+  if (tone?.customInstruction) {
+    customInstruction = tone.customInstruction
+  } else {
+    const parts: string[] = []
+    if (tone?.on) parts.push(tone.on)
+    if (tone?.use?.length) parts.push(`Use language that feels ${tone.use.slice(0, 3).join(', ')}.`)
+    if (tone?.off) parts.push(`Avoid a ${tone.off} tone.`)
+    if (tone?.attrs?.length) {
+      const notable = tone.attrs.filter(a => a.v >= 0.7 || a.v <= 0.3)
+      if (notable.length) {
+        parts.push(notable.map(a => a.v >= 0.5 ? `Be ${a.t.toLowerCase()}` : `Avoid being ${a.t.toLowerCase()}`).join('. ') + '.')
+      }
+    }
+    customInstruction = parts.join(' ')
+  }
+
+  return { textAmount, wordsToAvoid, customInstruction }
 }
 
 function ThemePickerSection({
@@ -553,6 +609,24 @@ function ThemePickerSection({
   const [themeSearch, setThemeSearch] = useState('')
   const [themeCategory, setThemeCategory] = useState('General')
   const [themeTab, setThemeTab] = useState<'brand' | 'library'>(() => appliedId ? 'brand' : 'library')
+
+  // Tone config state — lifted here so brand theme autofill can drive them
+  const [textAmount, setTextAmount] = useState('concise')
+  const [wordsToAvoid, setWordsToAvoid] = useState('')
+  const [customInstruction, setCustomInstruction] = useState('')
+  const [autofillKitName, setAutofillKitName] = useState<string | null>(null)
+
+  // Autofill when a brand kit theme is selected
+  useEffect(() => {
+    if (!selected) { setAutofillKitName(null); return }
+    const kit = getKitForTheme(selected, kits)
+    if (!kit) { setAutofillKitName(null); return }
+    const synth = synthesizeToneFromKit(kit)
+    setTextAmount(synth.textAmount)
+    if (synth.wordsToAvoid) setWordsToAvoid(synth.wordsToAvoid)
+    if (synth.customInstruction) setCustomInstruction(synth.customInstruction)
+    setAutofillKitName(kit.name)
+  }, [selected?.id])
 
   useEffect(() => {
     if (!kitMenuOpen) return
@@ -610,7 +684,16 @@ function ThemePickerSection({
             </div>
 
             <div className="cp-selected-divider" />
-            <ToneConfigExtras />
+            <ToneConfigExtras
+              textAmount={textAmount}
+              onTextAmountChange={setTextAmount}
+              wordsToAvoid={wordsToAvoid}
+              onWordsToAvoidChange={setWordsToAvoid}
+              customInstruction={customInstruction}
+              onCustomInstructionChange={setCustomInstruction}
+              autofillKitName={autofillKitName}
+              onDismissAutofill={() => setAutofillKitName(null)}
+            />
           </div>
         </div>
       </div>
@@ -1018,47 +1101,29 @@ export function PromptScreen({ config, onSubmit }: Props) {
             </div>
             <div className="cp-input-right">
               <div ref={modelBtnRef} style={{ display: 'inline-flex' }}><ModelSelector onOpen={() => advanceTourIfOn('model')} /></div>
+              {(() => {
+                const isReady = !!prompt.trim()
+                const hint = isReady ? '' : 'Add a prompt to get started'
+                return (
+                  <div className={`cp-generate-wrap${!isReady ? ' cp-generate-wrap--hint' : ''}`} data-hint={hint}>
+                    <button
+                      ref={generateRef}
+                      className="cp-generate-btn cp-generate-btn--inline"
+                      disabled={!isReady}
+                      onClick={handleSubmit}
+                      style={{ background: isReady ? config.color : undefined, color: isReady ? '#000' : undefined }}
+                    >
+                      Generate
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                )
+              })()}
             </div>
           </div>
         </div>
-
-        {/* Fixed generate bar — rendered via Portal to escape overflow:hidden */}
-        <Portal>
-          <div className="cp-generate-bar">
-            <div className="cp-generate-bar-tip">
-              <span className="cp-generate-bar-tip-icon">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                  <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
-                </svg>
-              </span>
-              <span className="cp-generate-bar-tip-label">Tips</span>
-              <span className="cp-generate-bar-tip-text">
-                Use a Brand Theme to automatically apply your brand kit's visual direction!
-              </span>
-            </div>
-            {(() => {
-              const needsPrompt = !prompt.trim()
-              const hint = needsPrompt ? 'Add a prompt to get started' : ''
-              const isReady = !needsPrompt
-              return (
-            <div className={`cp-generate-wrap${!isReady ? ' cp-generate-wrap--hint' : ''}`} data-hint={hint}>
-              <button
-                ref={generateRef}
-                className="cp-generate-btn cp-generate-btn--bar"
-                disabled={!isReady}
-                onClick={handleSubmit}
-                style={{ background: isReady ? config.color : undefined, color: isReady ? '#000' : undefined }}
-              >
-                Generate
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-              )
-            })()}
-          </div>
-        </Portal>
 
         <div className="cp-suggestions" ref={suggestionsRef}>
           <div className="cp-suggestions-chips">

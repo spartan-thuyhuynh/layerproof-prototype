@@ -9,10 +9,9 @@ const PROTOS = [
     thumbnail: undefined,
     to: '/matte-v3',
     flows: [
-      'Redesigned editor canvas & toolbar',
-      'AI layout & copy suggestions',
-      'Multi-format templates',
-      'Brand kit integration',
+      'Social post prompt input',
+      'AI agent chat & brief',
+      'Post outline generation',
     ],
   },
   {

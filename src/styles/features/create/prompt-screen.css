@@ -101,6 +101,11 @@
   justify-content: center;
   box-shadow: 0 4px 24px rgba(0,0,0,.5);
 }
+.cp-generate-btn--inline {
+  padding: 8px 18px;
+  font-size: 13.5px;
+  border-radius: 10px;
+}
 .cp-generate-wrap { position: relative; display: inline-flex; }
 .cp-generate-wrap--hint:hover::after {
   content: attr(data-hint);
@@ -642,6 +647,39 @@
 .cp-selected-change:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.22); color: var(--t1); }
 
 /* Tone config extras */
+/* Brand tone autofill banner */
+.cp-autofill-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--accent, #fbbf24) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #fbbf24) 30%, transparent);
+  border-radius: 10px;
+}
+.cp-autofill-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.45;
+}
+.cp-autofill-banner-left svg { color: var(--accent, #fbbf24); flex-shrink: 0; }
+.cp-autofill-banner-left strong { color: var(--t1); font-weight: 600; }
+.cp-autofill-dismiss {
+  background: none;
+  border: none;
+  color: var(--t3);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.cp-autofill-dismiss:hover { color: var(--t2); }
+
 .cp-tone-extras { display: flex; flex-direction: column; gap: clamp(16px, 1.6vw, 24px); }
 .cp-tone-section { display: flex; flex-direction: column; gap: clamp(6px, 0.6vw, 9px); }
 .cp-tone-section-title {
