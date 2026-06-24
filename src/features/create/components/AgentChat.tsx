@@ -2200,7 +2200,7 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
     const el = threadRef.current
     if (!el) return
     function onScroll() {
-      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+      const distFromBottom = el!.scrollHeight - el!.scrollTop - el!.clientHeight
       setShowScrollBtn(distFromBottom > 120)
     }
     el.addEventListener('scroll', onScroll, { passive: true })
