@@ -69,6 +69,10 @@ export interface ImageAsset {
 export interface ImageryData {
   desc: string
   styleDesc?: string
+  photographyStyle?: string
+  backgroundTexture?: string
+  hierarchy?: string
+  brandPatterns?: string
   tags: ImageryTag[]
   dos: string[]
   donts: string[]
@@ -104,6 +108,10 @@ export interface ToneData {
   customInstruction?: string
   spectrum?: SpectrumAxis[]
   spectrumExample?: string  // example copy that reflects the chosen tone
+  ageMin?: number
+  ageMax?: number
+  gender?: string
+  locations?: string[]
 }
 
 /* ── Default voice spectrum — NN/g four dimensions of tone of voice ── */

@@ -1,6 +1,47 @@
 import type { BrandKit, SpectrumAxis } from '@/features/brand-kit/types/brand'
-import { DEFAULT_VOICE_SPECTRUM, DEFAULT_SPECTRUM_EXAMPLE } from '@/features/brand-kit/types/brand'
+import { DEFAULT_VOICE_SPECTRUM } from '@/features/brand-kit/types/brand'
 import type { EditorActions } from './types'
+
+/* ── Generate example text from current spectrum values ─────── */
+const SPECTRUM_EXAMPLES: Record<string, string> = {
+  '0-0-0-0': "We regret to inform you that a technical error has occurred. Please contact our support team if the issue persists.",
+  '0-0-0-1': "We're sorry for the inconvenience. A technical error has occurred — our team is already working on it.",
+  '0-0-0-2': "We sincerely apologise! A technical error has occurred and we are actively resolving it. Thank you for your patience!",
+  '0-0-1-0': "A system error has been detected. We are addressing the issue.",
+  '0-0-1-1': "Something went wrong on our end. We're working to resolve it as quickly as possible.",
+  '0-0-1-2': "We hit a snag! Something went wrong on our end, but we're on the case and working hard to fix it!",
+  '0-1-0-1': "Something went sideways on our end. We're working to fix it — thank you for your patience.",
+  '0-1-1-1': "Looks like we ran into a problem. We're already on it — sorry for the trouble.",
+  '1-0-0-0': "Something went wrong on our end. We're working on it.",
+  '1-0-0-1': "We're sorry — something went wrong on our end. We're working to get it sorted quickly.",
+  '1-0-1-0': "There's an error on our end. We're looking into it.",
+  '1-1-1-1': "Oops! We hit a snag on our end. Hang tight — we're on it.",
+  '1-1-1-2': "Oops! Something broke on our side — but we're already working on a fix. Hang tight!",
+  '1-2-1-2': "Oh no! We managed to break something — classic us. We're fixing it right now!",
+  '2-0-0-0': "Something went wrong on our end. We're working on fixing it.",
+  '2-0-0-1': "Sorry about that! Something went wrong on our side. We're on it.",
+  '2-1-0-1': "Oops! Something broke on our end. We're fixing it — thanks for bearing with us!",
+  '2-1-1-1': "Uh oh! Something broke on our side. We're fixing it now — sorry for the trouble!",
+  '2-1-1-2': "Oops! Something broke on our side, but we're already on it — sit tight!",
+  '2-2-1-2': "Well, this is embarrassing! Something went sideways on our end. We're on the case!",
+  '2-2-2-2': "Welp, we broke something. Our bad! We're fixing it faster than you can say 'refresh'.",
+}
+
+function generateExample(axes: SpectrumAxis[]): string {
+  const vals = axes.map((a) => Math.min(Math.max(a.value, 0), a.stops.length - 1))
+  const key = vals.join('-')
+  if (SPECTRUM_EXAMPLES[key]) return SPECTRUM_EXAMPLES[key]
+
+  // Nearest match by Manhattan distance
+  let best = ''
+  let bestDist = Infinity
+  for (const [k, v] of Object.entries(SPECTRUM_EXAMPLES)) {
+    const parts = k.split('-').map(Number)
+    const dist = parts.reduce((sum, p, i) => sum + Math.abs(p - (vals[i] ?? 0)), 0)
+    if (dist < bestDist) { bestDist = dist; best = v }
+  }
+  return best
+}
 
 interface VoiceSpectrumProps {
   kit: BrandKit
@@ -64,7 +105,7 @@ function SpectrumRow({
 /* ── Voice spectrum card ──────────────────────────────────────── */
 export function VoiceSpectrum({ kit, ed }: VoiceSpectrumProps) {
   const axes = kit.tone.spectrum ?? DEFAULT_VOICE_SPECTRUM
-  const example = kit.tone.spectrumExample ?? DEFAULT_SPECTRUM_EXAMPLE
+  const example = generateExample(axes)
 
   function select(idx: number, index: number) {
     const next = axes.map((a, i) => (i === idx ? { ...a, value: index } : a))

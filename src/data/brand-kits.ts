@@ -65,6 +65,10 @@ export const BRAND_KITS: BrandKit[] = [
     imagery: {
       desc: 'Dark, dimensional scenes with a single point of colored light. High contrast, generous negative space, never flat stock photography.',
       styleDesc: 'Dark, dimensional scenes with a single point of colored light. High contrast, generous negative space, never flat stock photography.',
+      photographyStyle: 'Spotlit subjects, editorial crops, deep shadow with single accent light',
+      backgroundTexture: 'Dark matte backgrounds, subtle noise grain, no gradients or busy patterns',
+      hierarchy: 'Subject dominates frame, generous negative space, minimal supporting elements',
+      brandPatterns: 'Neon accent line, macro texture close-ups, single point of colored light',
       tags: [
         { t: 'Spotlit subject', c: 'linear-gradient(135deg,#1a1a2e,#16213e)' },
         { t: 'Neon accent', c: 'linear-gradient(135deg,#0f0f0f,#3a0ca3)' },

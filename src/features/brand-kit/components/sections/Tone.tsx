@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react'
 import type { BrandKit } from '@/features/brand-kit/types/brand'
-import { Globe, Chevron, X } from '@/shared/icons'
+import { X } from '@/shared/icons'
 import type { EditorActions } from './types'
-import { SaveableField } from '@/features/brand-kit/components/edit/SaveableField'
 import { VoiceSpectrum } from './VoiceSpectrum'
 
 interface ToneProps {
@@ -11,11 +10,6 @@ interface ToneProps {
 }
 
 /* ── Language options ─────────────────────────────────────────── */
-const LANGUAGES = [
-  'English (US)', 'English (UK)', 'Spanish', 'French', 'German',
-  'Portuguese', 'Italian', 'Dutch', 'Japanese', 'Korean', 'Chinese (Simplified)',
-]
-
 /* ── Text density options ─────────────────────────────────────── */
 const DENSITY_OPTIONS = [
   {
@@ -111,9 +105,121 @@ function WordsToAvoid({ words, ed }: { words: string[]; ed: EditorActions }) {
   )
 }
 
+/* ── Target audience ─────────────────────────────────────────── */
+const GENDER_OPTIONS = ['All genders', 'Male', 'Female', 'Non-binary']
+
+const LOCATION_OPTIONS = [
+  'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany',
+  'France', 'Spain', 'Italy', 'Netherlands', 'Japan', 'South Korea',
+  'China', 'India', 'Brazil', 'Mexico', 'Singapore', 'UAE', 'South Africa',
+  'Global',
+]
+
+function TargetAudience({ kit, ed }: { kit: BrandKit; ed: EditorActions }) {
+  const [adding, setAdding] = useState(false)
+  const selectRef = useRef<HTMLSelectElement>(null)
+
+  const ageMin    = kit.tone.ageMin    ?? 25
+  const ageMax    = kit.tone.ageMax    ?? 44
+  const gender    = kit.tone.gender    ?? 'All genders'
+  const locations = kit.tone.locations ?? []
+
+  function addLocation(loc: string) {
+    if (loc && !locations.includes(loc)) {
+      ed.setVal(['tone', 'locations'], [...locations, loc])
+    }
+    setAdding(false)
+  }
+
+  return (
+    <div className="audience-grid">
+      {/* ── Who you're speaking to ── */}
+      <div>
+        <div className="voice-section-title">Who you're speaking to</div>
+        <div className="audience-fields">
+          <div className="audience-field-group">
+            <label className="audience-label">Age</label>
+            <div className="audience-age-row">
+              <input
+                type="number"
+                className="audience-age-input"
+                value={ageMin}
+                min={0}
+                max={ageMax}
+                onChange={(e) => ed.setVal(['tone', 'ageMin'], Number(e.target.value))}
+              />
+              <span className="audience-age-sep">to</span>
+              <input
+                type="number"
+                className="audience-age-input"
+                value={ageMax}
+                min={ageMin}
+                max={120}
+                onChange={(e) => ed.setVal(['tone', 'ageMax'], Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="audience-field-group">
+            <label className="audience-label">Gender</label>
+            <select
+              className="audience-select"
+              value={gender}
+              onChange={(e) => ed.setVal(['tone', 'gender'], e.target.value)}
+            >
+              {GENDER_OPTIONS.map((g) => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Audience locations ── */}
+      <div>
+        <div className="voice-section-title">Audience</div>
+        <div className="audience-field-group">
+          <label className="audience-label">Primary Market Locations</label>
+          <div className="audience-locations">
+            {locations.map((loc, i) => (
+              <span key={i} className="audience-loc-tag">
+                {loc}
+                <button
+                  className="voice-tag-x"
+                  onClick={() => {
+                    const next = [...locations]; next.splice(i, 1)
+                    ed.setVal(['tone', 'locations'], next)
+                  }}
+                >
+                  <X style={{ width: 11, height: 11 }} />
+                </button>
+              </span>
+            ))}
+            {adding ? (
+              <select
+                ref={selectRef}
+                className="audience-loc-select"
+                defaultValue=""
+                autoFocus
+                onChange={(e) => { if (e.target.value) addLocation(e.target.value) }}
+                onBlur={() => setAdding(false)}
+              >
+                <option value="" disabled>Select location…</option>
+                {LOCATION_OPTIONS.filter((l) => !locations.includes(l)).map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            ) : (
+              <button className="audience-add-btn" onClick={() => setAdding(true)}>
+                + Add
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── Main ─────────────────────────────────────────────────────── */
 export function Tone({ kit, ed }: ToneProps) {
-  const language = kit.tone.language ?? 'English (US)'
   const density  = kit.tone.textDensity ?? 'minimal'
 
   return (
@@ -126,23 +232,12 @@ export function Tone({ kit, ed }: ToneProps) {
         </p>
       </div>
 
-      {/* ── Output language ── */}
+      {/* ── Target audience ── */}
       <div className="voice-section-card">
-        <div className="voice-section-title">Output language</div>
-        <div className="voice-lang-select-wrap">
-          <Globe style={{ width: 16, height: 16, color: 'var(--t2)', flexShrink: 0 }} />
-          <select
-            className="voice-lang-select"
-            value={language}
-            onChange={(e) => ed.setVal(['tone', 'language'], e.target.value)}
-          >
-            {LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}
-          </select>
-          <Chevron style={{ width: 14, height: 14, color: 'var(--t2)', flexShrink: 0, pointerEvents: 'none' }} />
-        </div>
+        <TargetAudience kit={kit} ed={ed} />
       </div>
 
-      {/* ── Amount of text ── */}
+{/* ── Amount of text ── */}
       <div className="voice-section-card">
         <div className="voice-section-title">Amount of text</div>
         <div className="voice-section-sub">Adjust the level of detail in the slide content</div>
@@ -178,12 +273,13 @@ export function Tone({ kit, ed }: ToneProps) {
       <div className="voice-section-card">
         <div className="voice-section-title">Custom instruction</div>
         <div className="voice-section-sub">Free-form description of the desired tone, personality, or style.</div>
-        <SaveableField
-          value={kit.tone.customInstruction ?? ''}
-          onSave={(v) => ed.setVal(['tone', 'customInstruction'], v)}
+        <textarea
+          className="voice-custom-textarea"
           placeholder="Describe your desired tone..."
-          resetKey={kit.id}
+          defaultValue={kit.tone.customInstruction ?? ''}
+          key={kit.id}
           rows={4}
+          onBlur={(e) => ed.setVal(['tone', 'customInstruction'], e.target.value)}
         />
       </div>
     </div>

@@ -17,10 +17,168 @@
 .assets-upload-btn:hover { border-color: #555; background: rgba(255,255,255,.04); }
 
 /* style rules card */
-.assets-style-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
+.assets-style-card {
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(135deg, #ec4899 0%, #ffde42 100%) border-box;
+}
 .assets-style-card-header { }
 .assets-style-title { font-size: 16px; font-weight: 700; color: var(--t1); margin-bottom: 4px; letter-spacing: -.01em; }
 .assets-style-sub { font-size: 13px; color: var(--t2); }
+
+/* ── Visual Style Rules sub-layout ───────────────────────────── */
+.vsr-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.vsr-bullet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vsr-bullet-item {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--t2);
+  padding-left: 16px;
+  position: relative;
+}
+.vsr-bullet-item::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--t3);
+}
+.vsr-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.vsr-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #3a3a3a;
+  background: transparent;
+  color: var(--t2);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.vsr-ai-btn:hover:not(:disabled) {
+  border-color: #555;
+  color: var(--t1);
+  background: rgba(255,255,255,.04);
+}
+.vsr-ai-btn:disabled { opacity: .6; cursor: default; }
+.vsr-sparkle { font-size: 13px; line-height: 1; }
+.vsr-sparkle--pulse { animation: vsr-sparkle-pulse 1s ease-in-out infinite; }
+@keyframes vsr-sparkle-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(.85); }
+}
+
+/* ── Rewrite with AI button ───────────────────────────────────── */
+.vsr-rewrite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  border: 1.5px solid #3a3a3a;
+  background: transparent;
+  color: var(--t2);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.vsr-rewrite-btn:hover:not(:disabled) {
+  border-color: #555;
+  background: rgba(255,255,255,.04);
+  color: var(--t1);
+}
+.vsr-rewrite-btn--busy {
+  opacity: .75;
+  cursor: default;
+}
+
+/* ── Textarea + typing wrapper ────────────────────────────────── */
+.vsr-textarea-wrap {
+  position: relative;
+}
+
+/* blinking cursor shown during typewriter */
+.vsr-cursor {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 2px;
+  height: 16px;
+  background: #ec4899;
+  border-radius: 1px;
+  animation: vsr-blink .7s step-end infinite;
+  pointer-events: none;
+}
+@keyframes vsr-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.vsr-spinner--brand {
+  border-color: rgba(255,255,255,.15);
+  border-top-color: var(--t2);
+}
+
+.vsr-textarea {
+  width: 100%;
+  background: var(--card-2);
+  border: 1.5px solid #3a3a3a;
+  border-radius: 10px;
+  color: var(--t1);
+  font-size: 13.5px;
+  font-family: inherit;
+  line-height: 1.65;
+  resize: none;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  display: block;
+}
+.vsr-textarea::placeholder { color: var(--t3); }
+.vsr-textarea:focus { outline: none; }
+.vsr-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-top-color: var(--t1);
+  border-radius: 50%;
+  animation: vsr-spin .6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes vsr-spin { to { transform: rotate(360deg); } }
 
 /* ── SaveableField (shared across Imagery, Voice, Colors) ────── */
 /* ── view mode ── */
