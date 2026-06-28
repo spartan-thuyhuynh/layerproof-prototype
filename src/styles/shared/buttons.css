@@ -5,6 +5,9 @@
   display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
 }
 .btn:hover { background: #262626; }
+
+html.light .btn { background: var(--card); border-color: var(--line); }
+html.light .btn:hover { background: var(--card-2); }
 .btn svg { width: 16px; height: 16px; }
 .btn.primary { background: var(--accent); color: #111; border-color: var(--accent); }
 .btn.primary:hover { background: #ffe66a; }
