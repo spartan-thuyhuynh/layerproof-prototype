@@ -1,6 +1,6 @@
 import type { BrandKit } from '@/features/brand-kit/types/brand'
 import type { EditorActions } from './types'
-import { ArrowRight, File, Plus } from '@/shared/icons'
+import { ArrowRight, Plus } from '@/shared/icons'
 import { OnboardingOverview } from './OnboardingOverview'
 import { Banner } from './shared'
 import { useUIStore } from '@/shared/store/useUIStore'
@@ -185,11 +185,45 @@ function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
   const count = themes.length
   const grads = kitThemeGrads(kit)
 
+  if (count === 0) {
+    return (
+      <div style={{
+        gridColumn: '1 / -1', display: 'flex', borderRadius: 12, overflow: 'hidden',
+        border: '1px solid var(--line)', minHeight: 180, position: 'relative',
+      }}>
+        {/* Left: info + CTA */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, padding: '22px 24px', zIndex: 1 }}>
+          <div className="ov-te-tag">Brand Themes</div>
+          <div className="ov-te-title">Define your creative direction</div>
+          <div className="ov-te-desc">
+            Set prompt rules for how AI applies your brand to campaigns, social posts, pitch decks, and more.
+          </div>
+          <button
+            className="ov-te-btn"
+            onClick={(e) => { e.stopPropagation(); setModal({ type: 'new-theme' }) }}
+          >
+            <Plus style={{ width: 13, height: 13 }} /> New Theme
+          </button>
+        </div>
+
+        {/* Right: decorative gradient columns */}
+        <div style={{ width: 200, flexShrink: 0, display: 'flex', gap: 6, padding: '12px 16px 12px 0', alignItems: 'stretch' }}>
+          {grads.slice(0, 4).map((g, i) => (
+            <div key={i} style={{
+              flex: 1, borderRadius: 8, background: g,
+              opacity: 0.18 + i * 0.06,
+            }} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className="ov-card"
-      style={{ flexDirection: 'column', gap: 16, gridColumn: '1 / -1', cursor: count > 0 ? 'pointer' : 'default' }}
-      onClick={count > 0 ? go : undefined}
+      style={{ flexDirection: 'column', gap: 16, gridColumn: '1 / -1', cursor: 'pointer' }}
+      onClick={go}
     >
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -197,62 +231,27 @@ function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
           <div className="ov-card-title">Brand Themes</div>
           <div className="ov-card-count">{count} theme{count !== 1 ? 's' : ''}</div>
         </div>
-        {count > 0 && (
-          <button className="ov-link" onClick={(e) => { e.stopPropagation(); go() }}>
-            View all <ArrowRight style={{ width: 12, height: 12 }} />
-          </button>
-        )}
+        <button className="ov-link" onClick={(e) => { e.stopPropagation(); go() }}>
+          View all <ArrowRight style={{ width: 12, height: 12 }} />
+        </button>
       </div>
 
       {/* Theme tiles */}
       <div style={{ display: 'flex', gap: 12, overflow: 'hidden' }}>
-        {count > 0
-          ? themes.slice(0, 4).map((t) => {
-              const grad = grads[t.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % grads.length]
-              return (
-                <div key={t.id} className="ov-theme-tile">
-                  <div style={{ aspectRatio: '16 / 9', background: t.thumbnailSrc ? undefined : grad, position: 'relative' }}>
-                    {t.thumbnailSrc && <img src={t.thumbnailSrc} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
-                  </div>
-                  <div className="ov-theme-tile-footer">
-                    <div className="ov-theme-tile-name">{t.name}</div>
-                    <div className="ov-theme-tile-count">{t.rules.length} guideline{t.rules.length !== 1 ? 's' : ''}</div>
-                  </div>
-                </div>
-              )
-            })
-          : (
-            <div style={{
-              flex: 1, display: 'flex', borderRadius: 12, overflow: 'hidden',
-              border: '1px solid var(--line)', minHeight: 130, position: 'relative',
-            }}>
-              {/* Left: info + CTA */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, padding: '22px 24px', zIndex: 1 }}>
-                <div className="ov-te-tag">Brand Themes</div>
-                <div className="ov-te-title">Define your creative direction</div>
-                <div className="ov-te-desc">
-                  Set prompt rules for how AI applies your brand to campaigns, social posts, pitch decks, and more.
-                </div>
-                <button
-                  className="ov-te-btn"
-                  onClick={(e) => { e.stopPropagation(); setModal({ type: 'new-theme' }) }}
-                >
-                  <Plus style={{ width: 13, height: 13 }} /> New Theme
-                </button>
+        {themes.slice(0, 4).map((t) => {
+          const grad = grads[t.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % grads.length]
+          return (
+            <div key={t.id} className="ov-theme-tile">
+              <div style={{ aspectRatio: '16 / 9', background: t.thumbnailSrc ? undefined : grad, position: 'relative' }}>
+                {t.thumbnailSrc && <img src={t.thumbnailSrc} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
               </div>
-
-              {/* Right: decorative gradient columns */}
-              <div style={{ width: 200, flexShrink: 0, display: 'flex', gap: 6, padding: '12px 16px 12px 0', alignItems: 'stretch' }}>
-                {grads.slice(0, 4).map((g, i) => (
-                  <div key={i} style={{
-                    flex: 1, borderRadius: 8, background: g,
-                    opacity: 0.18 + i * 0.06,
-                  }} />
-                ))}
+              <div className="ov-theme-tile-footer">
+                <div className="ov-theme-tile-name">{t.name}</div>
+                <div className="ov-theme-tile-count">{t.rules.length} guideline{t.rules.length !== 1 ? 's' : ''}</div>
               </div>
             </div>
           )
-        }
+        })}
       </div>
     </div>
   )
@@ -319,9 +318,6 @@ export function Overview({ kit, go, ed, showWelcomeBanner, onDismissBanner }: Ov
           <div className="ov-head-title">Overview</div>
           <div className="ov-head-sub">Comprehensive summary of your brand kit elements and guidelines</div>
         </div>
-        <button className="ov-gen-btn">
-          <File style={{ width: 14, height: 14 }} /> Generate Guideline
-        </button>
       </div>
 
       <div className="ov-grid">

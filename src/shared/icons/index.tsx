@@ -73,6 +73,9 @@ export const ChevronUp = S(['m18 15-6-6-6 6'])
 export const ChevronDown = S(['m6 9 6 6 6-6'])
 export const Pencil = S(['M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'])
 export const MessageSquare = S(['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'])
+export const RotateCcw = S(['M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8', 'M3 3v5h5'])
+export const RotateCw = S(['M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8', 'M21 3v5h-5'])
+export const FileText = S(['M14 3v4a1 1 0 0 0 1 1h4', 'M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z', 'M9 9h1', 'M9 13h6', 'M9 17h6'])
 
 export const Icons: Record<string, (props: IconProps) => React.ReactElement> = {
   Home, Folder, Present, Social, Docs, Sparkle, Calendar, Library, Settings,

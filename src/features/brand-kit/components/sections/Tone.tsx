@@ -116,9 +116,6 @@ const LOCATION_OPTIONS = [
 ]
 
 function TargetAudience({ kit, ed }: { kit: BrandKit; ed: EditorActions }) {
-  const [adding, setAdding] = useState(false)
-  const selectRef = useRef<HTMLSelectElement>(null)
-
   const ageMin    = kit.tone.ageMin    ?? 25
   const ageMax    = kit.tone.ageMax    ?? 44
   const gender    = kit.tone.gender    ?? 'All genders'
@@ -128,7 +125,6 @@ function TargetAudience({ kit, ed }: { kit: BrandKit; ed: EditorActions }) {
     if (loc && !locations.includes(loc)) {
       ed.setVal(['tone', 'locations'], [...locations, loc])
     }
-    setAdding(false)
   }
 
   return (
@@ -192,25 +188,16 @@ function TargetAudience({ kit, ed }: { kit: BrandKit; ed: EditorActions }) {
                 </button>
               </span>
             ))}
-            {adding ? (
-              <select
-                ref={selectRef}
-                className="audience-loc-select"
-                defaultValue=""
-                autoFocus
-                onChange={(e) => { if (e.target.value) addLocation(e.target.value) }}
-                onBlur={() => setAdding(false)}
-              >
-                <option value="" disabled>Select location…</option>
-                {LOCATION_OPTIONS.filter((l) => !locations.includes(l)).map((l) => (
-                  <option key={l} value={l}>{l}</option>
-                ))}
-              </select>
-            ) : (
-              <button className="audience-add-btn" onClick={() => setAdding(true)}>
-                + Add
-              </button>
-            )}
+            <select
+              className="audience-loc-select"
+              value=""
+              onChange={(e) => { if (e.target.value) addLocation(e.target.value) }}
+            >
+              <option value="" disabled>Select location…</option>
+              {LOCATION_OPTIONS.filter((l) => !locations.includes(l)).map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

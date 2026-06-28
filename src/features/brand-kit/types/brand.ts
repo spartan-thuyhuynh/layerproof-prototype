@@ -180,6 +180,7 @@ export interface BrandKit {
   id: string
   name: string
   tagline: string
+  mission?: string
   sample?: boolean
   onboarding?: boolean
   color: string
@@ -197,6 +198,7 @@ export interface BrandKit {
   layout: LayoutData
   categories: Category[]
   themes: BrandTheme[]
+  guidelineDoc?: string
 }
 
 export interface Category {

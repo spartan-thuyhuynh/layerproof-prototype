@@ -25,9 +25,19 @@
   gap: 16px;
   position: relative;
   border: 1.5px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, #ec4899 0%, #ffde42 100%) border-box;
+  background: var(--card);
+}
+.assets-style-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  padding: 1.5px;
+  background: linear-gradient(135deg, #ec4899 0%, #ffde42 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 .assets-style-card-header { }
 .assets-style-title { font-size: 16px; font-weight: 700; color: var(--t1); margin-bottom: 4px; letter-spacing: -.01em; }

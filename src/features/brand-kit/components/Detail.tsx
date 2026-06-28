@@ -10,6 +10,7 @@ import { Imagery } from '@/features/brand-kit/components/sections/Imagery'
 import { Tone } from '@/features/brand-kit/components/sections/Tone'
 import { Layout } from '@/features/brand-kit/components/sections/Layout'
 import { Themes } from '@/features/brand-kit/components/sections/Themes'
+import { Guideline } from '@/features/brand-kit/components/sections/Guideline'
 import { AddCategoryModal } from '@/features/brand-kit/components/modals/AddCategoryModal'
 import { GuidelineModal } from '@/features/brand-kit/components/modals/GuidelineModal'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
@@ -204,6 +205,7 @@ export function Detail({ kit }: DetailProps) {
       case 'tone': return <Tone kit={kit} ed={ed} />
       case 'layout': return <Layout kit={kit} ed={ed} />
       case 'themes': return <Themes kit={kit} />
+      case 'guideline': return <Guideline kit={kit} ed={ed} />
       default: {
         const cat = kit.categories.find((c: Category) => c.id === section)
         if (!cat) return <div className="fade-in" style={{ padding: 32, color: 'var(--t3)' }}>Section not found.</div>

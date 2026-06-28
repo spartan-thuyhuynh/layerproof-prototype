@@ -52,9 +52,9 @@
   .ov-type-tile { min-height: 72px; padding: 11px 13px; }
   .ov-tile-role { font-size: 10px; }
   .ov-tile-fam { font-size: 12px; }
-  .ov-te-title { font-size: 13px; }
-  .ov-te-desc { font-size: 11px; }
-  .ov-te-btn { font-size: 11px; padding: 6px 12px; }
+  .ov-te-title { font-size: 24px; }
+  .ov-te-desc { font-size: 14px; }
+  .ov-te-btn { font-size: 13px; padding: 8px 14px; }
   .ov-voice-box { width: 156px; }
   .ov-voice-box-name { font-size: 15px; }
 
@@ -194,9 +194,9 @@
   .ov-tile-role { font-size: 10.5px; }
   .ov-tile-fam { font-size: 13px; }
   .ov-voice-box { width: 200px; border-radius: 11px; padding: 16px; }
-  .ov-te-title { font-size: 13px; }
-  .ov-te-desc { font-size: 11px; max-width: 280px; }
-  .ov-te-btn { font-size: 11px; padding: 6px 12px; }
+  .ov-te-title { font-size: 26px; }
+  .ov-te-desc { font-size: 15px; max-width: 400px; }
+  .ov-te-btn { font-size: 14px; padding: 9px 16px; }
   .ov-voice-box-icon { font-size: 26px; }
   .ov-voice-box-name { font-size: 16px; }
 

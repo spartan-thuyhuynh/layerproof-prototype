@@ -32,6 +32,7 @@
 @import "./features/brand-kit/logos.css";
 @import "./features/brand-kit/voice.css";
 @import "./features/brand-kit/assets.css";
+@import "./features/brand-kit/guideline.css";
 
 /* Landing */
 @import "./features/landing/landing.css";
