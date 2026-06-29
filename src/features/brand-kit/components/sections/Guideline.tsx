@@ -307,28 +307,73 @@ export function buildGuidelineHTML(kit: BrandKit): string {
   s.push(`<h2>Brand Voice &amp; Tone</h2>`)
   const { tone } = kit
 
-  // Target audience as narrative sentence
+  // Target audience
   const audienceParts: string[] = []
   if (tone.ageMin !== undefined && tone.ageMax !== undefined)
     audienceParts.push(`${tone.ageMin}–${tone.ageMax} year olds`)
   else if (tone.ageMin !== undefined) audienceParts.push(`${tone.ageMin}+`)
   if (tone.gender) audienceParts.push(tone.gender)
   if (tone.locations?.length) audienceParts.push(`based in ${tone.locations.join(', ')}`)
-  if (audienceParts.length > 0)
+  if (audienceParts.length > 0) {
+    s.push(`<h3>Target Audience</h3>`)
     s.push(`<p>We write for <strong>${audienceParts.join(', ')}</strong> — every word should feel relevant, direct, and worth their time.</p>`)
+  }
 
+  // Voice characteristics
   if (tone.attrs?.length) {
+    s.push(`<h3>Voice Characteristics</h3>`)
     const attrStr = tone.attrs.map((a) => `<strong>${a.t}</strong> (not ${a.vs})`).join(', ')
     s.push(`<p>The ${kit.name} voice is ${attrStr}.</p>`)
     tone.attrs.forEach((a) => s.push(`<p>${a.d}</p>`))
   }
-  if (tone.use?.length)
-    s.push(`<p>Words we use: <em>${tone.use.join(', ')}</em></p>`)
-  if (tone.avoid?.length)
-    s.push(`<p>Words we avoid: <em>${tone.avoid.join(', ')}</em></p>`)
+
+  // Tone spectrum axes
+  if (tone.spectrum?.length) {
+    s.push(`<h3>Tone Spectrum</h3>`)
+    const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1)
+    const spectrumRows = tone.spectrum.map((axis) => {
+      const stop = axis.stops[axis.value] ?? axis.stops[0]
+      return `<strong>${capitalize(axis.id)}:</strong> ${stop.label} — <em>${stop.desc}</em>`
+    })
+    s.push(`<p>${spectrumRows.join('<br>')}</p>`)
+    if (tone.spectrumExample)
+      s.push(`<p>Tone example: <em>"${tone.spectrumExample}"</em></p>`)
+  }
+
+  // Writing style: language & text density
+  const writingStyleParts: string[] = []
+  if (tone.language) writingStyleParts.push(`Language: <strong>${tone.language}</strong>`)
+  if (tone.textDensity) {
+    const densityDesc = tone.textDensity === 'minimal'
+      ? 'Short, punchy — every word must earn its place.'
+      : tone.textDensity === 'concise'
+        ? 'Clear and purposeful — enough context, no filler.'
+        : 'Thorough and informative — depth over brevity.'
+    writingStyleParts.push(`Text density: <strong>${tone.textDensity.charAt(0).toUpperCase() + tone.textDensity.slice(1)}</strong> — ${densityDesc}`)
+  }
+  if (writingStyleParts.length > 0) {
+    s.push(`<h3>Writing Style</h3>`)
+    writingStyleParts.forEach((line) => s.push(`<p>${line}</p>`))
+  }
+
+  // Language choices
+  if (tone.use?.length || tone.avoid?.length) {
+    s.push(`<h3>Language Choices</h3>`)
+    if (tone.use?.length) s.push(`<p>Words we use: <em>${tone.use.join(', ')}</em></p>`)
+    if (tone.avoid?.length) s.push(`<p>Words we avoid: <em>${tone.avoid.join(', ')}</em></p>`)
+  }
+
+  // Custom instruction
+  if (tone.customInstruction) {
+    s.push(`<h3>Additional Guidance</h3>`)
+    s.push(`<p>${tone.customInstruction}</p>`)
+  }
+
+  // Examples
   if (tone.on) s.push(`<h3>On-brand example</h3><p>${tone.on}</p>`)
   if (tone.off) s.push(`<h3>Off-brand example</h3><p>${tone.off}</p>`)
-  if (!tone.attrs?.length && !tone.use?.length && !tone.on)
+
+  if (!tone.attrs?.length && !tone.use?.length && !tone.on && !tone.spectrum?.length)
     s.push(ph('voice and tone data'))
 
   /* Custom categories */

@@ -49,6 +49,73 @@ const DENSITY_OPTIONS = [
   },
 ]
 
+/* ── Brand Personality ────────────────────────────────────────── */
+function BrandPersonality({ kit, ed }: { kit: BrandKit; ed: EditorActions }) {
+  const attrs = kit.tone.attrs ?? []
+
+  function update(index: number, field: 't' | 'vs' | 'd', value: string) {
+    const next = attrs.map((a, i) => i === index ? { ...a, [field]: value } : a)
+    ed.setVal(['tone', 'attrs'], next)
+  }
+
+  function addTrait() {
+    ed.setVal(['tone', 'attrs'], [...attrs, { t: '', vs: '', v: 70, d: '' }])
+  }
+
+  function removeTrait(index: number) {
+    ed.setVal(['tone', 'attrs'], attrs.filter((_, i) => i !== index))
+  }
+
+  return (
+    <div className="voice-section-card">
+      <div className="voice-section-title">Brand Personality</div>
+      <div className="voice-section-sub">Define 3–5 traits that shape your brand's voice — and what each one isn't.</div>
+      <div className="bp-grid">
+        {attrs.map((attr, i) => {
+          const contrastWord = attr.vs.replace(/^not\s+/i, '')
+          return (
+            <div key={i} className="bp-card">
+              <button className="bp-remove" onClick={() => removeTrait(i)} title="Remove trait">
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+              <div className="bp-card-header">
+                <input
+                  className="bp-input bp-trait"
+                  placeholder="Confident"
+                  value={attr.t}
+                  onChange={(e) => update(i, 't', e.target.value)}
+                />
+                <div className="bp-not-row">
+                  <span className="bp-not-label">not</span>
+                  <input
+                    className="bp-input bp-not"
+                    placeholder="arrogant"
+                    value={contrastWord}
+                    onChange={(e) => update(i, 'vs', `not ${e.target.value}`)}
+                  />
+                </div>
+              </div>
+              <textarea
+                className="bp-input bp-desc"
+                placeholder="Use this space to explain how the brand embodies each voice trait in its writing."
+                value={attr.d}
+                rows={3}
+                onChange={(e) => update(i, 'd', e.target.value)}
+              />
+            </div>
+          )
+        })}
+        <button className="bp-add-card" onClick={addTrait}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Add trait
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ── Word tag chip ────────────────────────────────────────────── */
 function WordTag({ word, onRemove }: { word: string; onRemove: () => void }) {
   return (
@@ -223,6 +290,9 @@ export function Tone({ kit, ed }: ToneProps) {
       <div className="voice-section-card">
         <TargetAudience kit={kit} ed={ed} />
       </div>
+
+      {/* ── Brand personality ── */}
+      <BrandPersonality kit={kit} ed={ed} />
 
 {/* ── Amount of text ── */}
       <div className="voice-section-card">
