@@ -93,10 +93,20 @@ function buildKitSummary(kit: BrandKit): string {
     parts.push(`**Typography** — ${t}`)
   }
 
-  const voiceAttrs = kit.tone.attrs.slice(0, 3).map((a) => a.t).filter(Boolean)
+  const voiceAttrs = kit.tone.attrs.filter((a) => a.t)
   if (voiceAttrs.length) {
-    parts.push(`**Brand voice** — ${voiceAttrs.join(', ')}`)
+    const attrStr = voiceAttrs.slice(0, 4).map((a) => a.vs ? `${a.t} (${a.vs})` : a.t).join(', ')
+    parts.push(`**Brand personality** — ${attrStr}`)
   }
+  if (kit.tone.textDensity) parts.push(`**Text density** — ${kit.tone.textDensity}`)
+  if (kit.tone.use?.length) parts.push(`**Words to use** — ${kit.tone.use.slice(0, 5).join(', ')}`)
+  if (kit.tone.avoid?.length) parts.push(`**Words to avoid** — ${kit.tone.avoid.slice(0, 5).join(', ')}`)
+  const audienceParts: string[] = []
+  if (kit.tone.ageMin !== undefined && kit.tone.ageMax !== undefined) audienceParts.push(`${kit.tone.ageMin}–${kit.tone.ageMax}`)
+  if (kit.tone.gender) audienceParts.push(kit.tone.gender)
+  if (kit.tone.locations?.length) audienceParts.push(kit.tone.locations.join(', '))
+  if (audienceParts.length) parts.push(`**Target audience** — ${audienceParts.join(', ')}`)
+  if (kit.tone.customInstruction) parts.push(`**Tone guidance** — ${kit.tone.customInstruction}`)
 
   const logoCount = kit.logos.variants.length
   if (logoCount) {
@@ -112,11 +122,15 @@ function buildThemePrompt(kit: BrandKit, userInput: string): string {
   const accentColor = palette?.colors[1]?.name || palette?.colors[1]?.hex || 'an accent color'
   const displayFont = kit.type.display.family || 'the brand display font'
   const bodyFont = kit.type.body.family || 'the brand body font'
-  const voice = kit.tone.attrs.slice(0, 2).map((a) => a.t).filter(Boolean).join(' and ') || 'on-brand'
+  const voice = kit.tone.attrs.slice(0, 3).map((a) => a.vs ? `${a.t} (${a.vs})` : a.t).filter(Boolean).join(', ') || 'on-brand'
+  const wordsUse = kit.tone.use?.slice(0, 4).join(', ')
+  const wordsAvoid = kit.tone.avoid?.slice(0, 4).join(', ')
+  const density = kit.tone.textDensity
+  const customTone = kit.tone.customInstruction
 
   return `Use ${primaryColor} as the primary background with ${accentColor} for CTAs and highlights. Apply ${displayFont} for headlines and ${bodyFont} for body text at comfortable reading sizes.
 
-Imagery should feel ${voice} — authentic, purposeful, visually consistent with the brand. Avoid stock-photo clichés.
+Brand personality: ${voice}. Imagery should feel authentic and purposeful — avoid stock-photo clichés.${wordsUse ? `\n\nPrefer words like: ${wordsUse}.` : ''}${wordsAvoid ? ` Avoid: ${wordsAvoid}.` : ''}${density ? `\n\nText density: ${density} — keep copy ${density === 'minimal' ? 'extremely brief, visuals lead' : density === 'concise' ? 'clear and purposeful, no filler' : 'thorough with enough context to inform'}.` : ''}${customTone ? `\n\nAdditional tone guidance: ${customTone}` : ''}
 
 This theme is designed for ${userInput.trim()}. Keep layouts well-structured with generous whitespace. All elements should reinforce brand trust and clarity of message.`
 }

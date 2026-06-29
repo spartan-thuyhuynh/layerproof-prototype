@@ -485,14 +485,17 @@ const TEXT_AMOUNT_OPTIONS = [
 
 function ToneConfigExtras({
   textAmount, onTextAmountChange,
+  brandPersonality, onBrandPersonalityChange,
   wordsToAvoid, onWordsToAvoidChange,
   customInstruction, onCustomInstructionChange,
   autofillKitName, onDismissAutofill,
 }: {
   textAmount: string
   onTextAmountChange: (v: string) => void
-  wordsToAvoid: string
-  onWordsToAvoidChange: (v: string) => void
+  brandPersonality: string[]
+  onBrandPersonalityChange: (v: string[]) => void
+  wordsToAvoid: string[]
+  onWordsToAvoidChange: (v: string[]) => void
   customInstruction: string
   onCustomInstructionChange: (v: string) => void
   autofillKitName: string | null
@@ -533,16 +536,60 @@ function ToneConfigExtras({
         </div>
       </div>
 
+      {/* Brand personality */}
+      <div className="cp-tone-section">
+        <div className="cp-tone-section-title">Brand personality</div>
+        <div className="cp-personality-wrap">
+          {brandPersonality.map((trait, i) => (
+            <span key={i} className="cp-personality-chip">
+              {trait}
+              <button
+                className="cp-personality-remove"
+                onClick={() => onBrandPersonalityChange(brandPersonality.filter((_, j) => j !== i))}
+              >✕</button>
+            </span>
+          ))}
+          <input
+            className="cp-personality-input"
+            placeholder="Add trait…"
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ',') && e.currentTarget.value.trim()) {
+                e.preventDefault()
+                const val = e.currentTarget.value.trim()
+                if (!brandPersonality.includes(val)) onBrandPersonalityChange([...brandPersonality, val])
+                e.currentTarget.value = ''
+              }
+            }}
+          />
+        </div>
+      </div>
+
       {/* Words to avoid */}
       <div className="cp-tone-section">
         <div className="cp-tone-section-title">Words to avoid</div>
-        <input
-          className="cp-tone-input"
-          placeholder="Add word…"
-          value={wordsToAvoid}
-          onChange={e => onWordsToAvoidChange(e.target.value)}
-        />
-        <div className="cp-tone-section-hint">Avoid using these words when creating content</div>
+        <div className="cp-personality-wrap">
+          {wordsToAvoid.map((word, i) => (
+            <span key={i} className="cp-personality-chip">
+              {word}
+              <button
+                className="cp-personality-remove"
+                onClick={() => onWordsToAvoidChange(wordsToAvoid.filter((_, j) => j !== i))}
+              >✕</button>
+            </span>
+          ))}
+          <input
+            className="cp-personality-input"
+            placeholder="Add word…"
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ',') && e.currentTarget.value.trim()) {
+                e.preventDefault()
+                const val = e.currentTarget.value.trim()
+                if (!wordsToAvoid.includes(val)) onWordsToAvoidChange([...wordsToAvoid, val])
+                e.currentTarget.value = ''
+              }
+            }}
+          />
+        </div>
       </div>
 
       {/* Custom instruction */}
@@ -571,7 +618,7 @@ function getKitForTheme(theme: ThemeOption, kits: BrandKit[]) {
 function synthesizeToneFromKit(kit: BrandKit) {
   const tone = kit.tone
   const textAmount = tone?.textDensity ?? 'concise'
-  const wordsToAvoid = tone?.avoid?.length ? tone.avoid.slice(0, 8).join(', ') : ''
+  const wordsToAvoid = tone?.avoid?.slice(0, 8) ?? []
 
   let customInstruction = ''
   if (tone?.customInstruction) {
@@ -590,7 +637,8 @@ function synthesizeToneFromKit(kit: BrandKit) {
     customInstruction = parts.join(' ')
   }
 
-  return { textAmount, wordsToAvoid, customInstruction }
+  const brandPersonality = tone?.attrs?.map(a => a.t).filter(Boolean) ?? []
+  return { textAmount, brandPersonality, wordsToAvoid, customInstruction }
 }
 
 function ThemePickerSection({
@@ -613,7 +661,8 @@ function ThemePickerSection({
 
   // Tone config state — lifted here so brand theme autofill can drive them
   const [textAmount, setTextAmount] = useState('concise')
-  const [wordsToAvoid, setWordsToAvoid] = useState('')
+  const [brandPersonality, setBrandPersonality] = useState<string[]>([])
+  const [wordsToAvoid, setWordsToAvoid] = useState<string[]>([])
   const [customInstruction, setCustomInstruction] = useState('')
   const [autofillKitName, setAutofillKitName] = useState<string | null>(null)
 
@@ -624,7 +673,8 @@ function ThemePickerSection({
     if (!kit) { setAutofillKitName(null); return }
     const synth = synthesizeToneFromKit(kit)
     setTextAmount(synth.textAmount)
-    if (synth.wordsToAvoid) setWordsToAvoid(synth.wordsToAvoid)
+    if (synth.brandPersonality.length) setBrandPersonality(synth.brandPersonality)
+    if (synth.wordsToAvoid.length) setWordsToAvoid(synth.wordsToAvoid)
     if (synth.customInstruction) setCustomInstruction(synth.customInstruction)
     setAutofillKitName(kit.name)
   }, [selected?.id])
@@ -688,6 +738,8 @@ function ThemePickerSection({
             <ToneConfigExtras
               textAmount={textAmount}
               onTextAmountChange={setTextAmount}
+              brandPersonality={brandPersonality}
+              onBrandPersonalityChange={setBrandPersonality}
               wordsToAvoid={wordsToAvoid}
               onWordsToAvoidChange={setWordsToAvoid}
               customInstruction={customInstruction}

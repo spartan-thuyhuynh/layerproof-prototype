@@ -260,7 +260,7 @@ export function buildGuidelineHTML(kit: BrandKit): string {
   }
 
   if (kit.logos.donts.length > 0) {
-    s.push(`<h3>Never do this</h3><ul>`)
+    s.push(`<h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Never do this</h3><ul>`)
     kit.logos.donts.forEach((d) => s.push(`<li>${d}</li>`))
     s.push(`</ul>`)
   }
@@ -292,12 +292,12 @@ export function buildGuidelineHTML(kit: BrandKit): string {
 
 
   if (kit.imagery.dos.length > 0) {
-    s.push(`<h3>Do</h3><ul>`)
+    s.push(`<h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>Do</h3><ul>`)
     kit.imagery.dos.forEach((d) => s.push(`<li>${d}</li>`))
     s.push(`</ul>`)
   }
   if (kit.imagery.donts.length > 0) {
-    s.push(`<h3>Don't</h3><ul>`)
+    s.push(`<h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Don't</h3><ul>`)
     kit.imagery.donts.forEach((d) => s.push(`<li>${d}</li>`))
     s.push(`</ul>`)
   }
@@ -370,8 +370,8 @@ export function buildGuidelineHTML(kit: BrandKit): string {
   }
 
   // Examples
-  if (tone.on) s.push(`<h3>On-brand example</h3><p>${tone.on}</p>`)
-  if (tone.off) s.push(`<h3>Off-brand example</h3><p>${tone.off}</p>`)
+  if (tone.on) s.push(`<h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>On-brand example</h3><p>${tone.on}</p>`)
+  if (tone.off) s.push(`<h3 style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Off-brand example</h3><p>${tone.off}</p>`)
 
   if (!tone.attrs?.length && !tone.use?.length && !tone.on && !tone.spectrum?.length)
     s.push(ph('voice and tone data'))

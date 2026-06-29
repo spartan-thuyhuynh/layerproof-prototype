@@ -25,8 +25,20 @@ function buildKitSummary(kit: BrandKit) {
   const palette = kit.colors.palettes[0]
   if (palette?.colors.length) parts.push(`**Colors** — ${palette.colors.slice(0, 4).map((c) => c.name || c.hex).join(', ')}`)
   if (kit.type.display.family || kit.type.body.family) parts.push(`**Typography** — ${[kit.type.display.family, kit.type.body.family].filter(Boolean).join(' / ')}`)
-  const voice = kit.tone.attrs.slice(0, 3).map((a) => a.t).filter(Boolean)
-  if (voice.length) parts.push(`**Brand voice** — ${voice.join(', ')}`)
+  const voiceAttrs = kit.tone.attrs.filter((a) => a.t)
+  if (voiceAttrs.length) {
+    const attrStr = voiceAttrs.slice(0, 4).map((a) => a.vs ? `${a.t} (${a.vs})` : a.t).join(', ')
+    parts.push(`**Brand personality** — ${attrStr}`)
+  }
+  if (kit.tone.textDensity) parts.push(`**Text density** — ${kit.tone.textDensity}`)
+  if (kit.tone.use?.length) parts.push(`**Words to use** — ${kit.tone.use.slice(0, 5).join(', ')}`)
+  if (kit.tone.avoid?.length) parts.push(`**Words to avoid** — ${kit.tone.avoid.slice(0, 5).join(', ')}`)
+  const audienceParts: string[] = []
+  if (kit.tone.ageMin !== undefined && kit.tone.ageMax !== undefined) audienceParts.push(`${kit.tone.ageMin}–${kit.tone.ageMax}`)
+  if (kit.tone.gender) audienceParts.push(kit.tone.gender)
+  if (kit.tone.locations?.length) audienceParts.push(kit.tone.locations.join(', '))
+  if (audienceParts.length) parts.push(`**Target audience** — ${audienceParts.join(', ')}`)
+  if (kit.tone.customInstruction) parts.push(`**Tone guidance** — ${kit.tone.customInstruction}`)
   return parts.join('\n')
 }
 

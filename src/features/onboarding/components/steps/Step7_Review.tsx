@@ -89,7 +89,7 @@ export function Step7_Review() {
   const allColors = kit.colors.palettes.flatMap((p) => p.colors)
   const hasColors = allColors.length > 0
   const hasType   = kit.type.display.family !== 'Inter' || kit.type.body.family !== 'Inter'
-  const hasTone   = kit.tone.attrs.length > 0
+  const hasTone   = kit.tone.attrs.length > 0 || !!kit.tone.textDensity || kit.tone.use?.length > 0
 
   return (
     <div className="onb-step fade-in">
@@ -177,8 +177,14 @@ export function Step7_Review() {
             <div className="onb-review-label">Tone of Voice</div>
             {hasTone ? (
               <div className="onb-review-chips">
-                {kit.tone.attrs.slice(0, 3).map((a, i) => (
-                  <span key={i} className="chip">{a.t}</span>
+                {kit.tone.attrs.slice(0, 4).map((a, i) => (
+                  <span key={i} className="chip">{a.t}{a.vs ? <span style={{ opacity: .5, fontWeight: 400 }}> / {a.vs}</span> : null}</span>
+                ))}
+                {kit.tone.textDensity && (
+                  <span className="chip">{kit.tone.textDensity}</span>
+                )}
+                {kit.tone.use?.slice(0, 2).map((w, i) => (
+                  <span key={`u${i}`} className="chip" style={{ opacity: .7 }}>{w}</span>
                 ))}
               </div>
             ) : (

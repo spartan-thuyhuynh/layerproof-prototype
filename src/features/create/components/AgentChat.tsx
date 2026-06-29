@@ -297,6 +297,7 @@ function LookAndFeelModal({
   selected, onSelect, onClose,
   spectrumValues, onSpectrumChange,
   textAmount, onTextAmountChange,
+  brandPersonality, onBrandPersonalityChange,
   wordsToAvoid, onWordsToAvoidChange,
   customInstruction, onCustomInstructionChange,
 }: {
@@ -307,8 +308,10 @@ function LookAndFeelModal({
   onSpectrumChange: (key: string, v: number) => void
   textAmount: string
   onTextAmountChange: (v: string) => void
-  wordsToAvoid: string
-  onWordsToAvoidChange: (v: string) => void
+  brandPersonality: string[]
+  onBrandPersonalityChange: (v: string[]) => void
+  wordsToAvoid: string[]
+  onWordsToAvoidChange: (v: string[]) => void
   customInstruction: string
   onCustomInstructionChange: (v: string) => void
 }) {
@@ -331,7 +334,8 @@ function LookAndFeelModal({
     if (!kit) { setAutofillKit(null); return }
     const tone = kit.tone
     if (tone?.textDensity) onTextAmountChange(tone.textDensity)
-    if (tone?.avoid?.length) onWordsToAvoidChange(tone.avoid.slice(0, 6).join(', '))
+    if (tone?.attrs?.length) onBrandPersonalityChange(tone.attrs.map(a => a.t).filter(Boolean))
+    if (tone?.avoid?.length) onWordsToAvoidChange(tone.avoid.slice(0, 6))
     if (tone?.customInstruction) onCustomInstructionChange(tone.customInstruction)
     setAutofillKit(kit.name)
   }
@@ -433,14 +437,55 @@ function LookAndFeelModal({
 
             <div className="ac2-laf-divider" />
 
+            {/* Brand personality */}
+            <div className="ac2-laf-section-title">Brand personality</div>
+            <div className="ac2-laf-personality-wrap">
+              {brandPersonality.map((trait, i) => (
+                <span key={i} className="ac2-laf-trait-chip">
+                  {trait}
+                  <button
+                    className="ac2-laf-trait-remove"
+                    onClick={() => onBrandPersonalityChange(brandPersonality.filter((_, j) => j !== i))}
+                  >✕</button>
+                </span>
+              ))}
+              <input
+                className="ac2-laf-trait-input"
+                placeholder="Add trait…"
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === ',') && e.currentTarget.value.trim()) {
+                    e.preventDefault()
+                    const val = e.currentTarget.value.trim()
+                    if (!brandPersonality.includes(val)) onBrandPersonalityChange([...brandPersonality, val])
+                    e.currentTarget.value = ''
+                  }
+                }}
+              />
+            </div>
+
+            <div className="ac2-laf-divider" />
+
             {/* Words to avoid */}
             <div className="ac2-laf-section-title">Words to avoid</div>
-            <input
-              className="ac2-laf-input"
-              placeholder="e.g. leveraging, synergy, utilize…"
-              value={wordsToAvoid}
-              onChange={e => onWordsToAvoidChange(e.target.value)}
-            />
+            <div className="ac2-laf-personality-wrap">
+              {wordsToAvoid.map((word, i) => (
+                <span key={i} className="ac2-laf-trait-chip">
+                  {word}
+                  <button className="ac2-laf-trait-remove" onClick={() => onWordsToAvoidChange(wordsToAvoid.filter((_, j) => j !== i))}>×</button>
+                </span>
+              ))}
+              <input
+                className="ac2-laf-trait-input"
+                placeholder={wordsToAvoid.length === 0 ? 'e.g. leveraging, synergy…' : 'Add word…'}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault()
+                    const val = (e.currentTarget.value).trim().replace(/,$/, '')
+                    if (val) { onWordsToAvoidChange([...wordsToAvoid, val]); e.currentTarget.value = '' }
+                  }
+                }}
+              />
+            </div>
 
             {/* Custom instruction */}
             <div className="ac2-laf-section-title" style={{ marginTop: 14 }}>Custom instruction</div>
@@ -1559,7 +1604,8 @@ function OutlineEditor({
   const [platformPickerOpen, setPlatformPickerOpen] = useState(false)
   const [spectrumValues, setSpectrumValues] = useState<Record<string, number>>({})
   const [textAmount, setTextAmount] = useState('concise')
-  const [wordsToAvoid, setWordsToAvoid] = useState('')
+  const [brandPersonality, setBrandPersonality] = useState<string[]>([])
+  const [wordsToAvoid, setWordsToAvoid] = useState<string[]>([])
   const [customInstruction, setCustomInstruction] = useState('')
 
   const tone  = formValues.tone ?? 'Auto'
@@ -2009,6 +2055,8 @@ function OutlineEditor({
             onSpectrumChange={(key, v) => setSpectrumValues(prev => ({ ...prev, [key]: v }))}
             textAmount={textAmount}
             onTextAmountChange={setTextAmount}
+            brandPersonality={brandPersonality}
+            onBrandPersonalityChange={setBrandPersonality}
             wordsToAvoid={wordsToAvoid}
             onWordsToAvoidChange={setWordsToAvoid}
             customInstruction={customInstruction}
