@@ -1769,7 +1769,7 @@ function OutlineEditor({
                 <button
                   className="oe-confirm-generate"
                   style={{ background: '#fff', color: '#000' }}
-                  onClick={() => navigate(`/editor/${config.slug}`)}
+                  onClick={() => navigate('/matte-v3')}
                 >
                   Confirm &amp; Generate
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -1834,7 +1834,7 @@ function OutlineEditor({
                 <button
                   className="oe-confirm-generate"
                   style={{ background: '#fff', color: '#000' }}
-                  onClick={() => navigate(`/editor/${config.slug}`)}
+                  onClick={() => navigate('/matte-v3')}
                 >
                   Confirm &amp; Generate
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
