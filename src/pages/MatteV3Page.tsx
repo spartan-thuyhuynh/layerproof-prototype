@@ -1,6 +1,5 @@
-import { CreateFlow } from '@/features/create/components/CreateFlow'
-import { PRODUCT_CONFIGS } from '@/features/create/config'
+import { MatteV3Editor } from '@/features/create/components/MatteV3Editor'
 
 export function MatteV3Page() {
-  return <CreateFlow config={PRODUCT_CONFIGS['social-post']} />
+  return <MatteV3Editor />
 }
