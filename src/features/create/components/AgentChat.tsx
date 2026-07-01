@@ -1580,6 +1580,7 @@ function OutlineEditor({
   initialTheme?: ThemeOption | null
 }) {
   const navigate = useNavigate()
+  const Icon = I.Icons[config.icon]
   const [posts, setPosts] = useState<PostOutline[]>(() => generateOutline(brief))
   const [chatInput, setChatInput] = useState('')
   const [showJson, setShowJson] = useState(false)
@@ -1671,10 +1672,19 @@ function OutlineEditor({
 
   return (
     <div className="oe-shell">
-      {/* Page-level back button */}
-      <button className="oe-page-back" onClick={onBack}>
-        <ChevronLeft size={15} />
-      </button>
+      {/* ── Top nav — matches ac2-header style ── */}
+      <header className="oe-topnav">
+        <button className="oe-topnav-back" onClick={onBack}>
+          <ChevronLeft size={15} />
+        </button>
+        <div className="oe-topnav-info">
+          <div className="oe-topnav-title">Content outline</div>
+          <div className="oe-topnav-sub">Review and refine your post structure, then confirm to generate.</div>
+        </div>
+      </header>
+
+      {/* ── Body ── */}
+      <div className="oe-body">
 
       {/* ── Left: Guided chat panel ── */}
       <aside className="oe-sidebar">
@@ -1920,6 +1930,17 @@ function OutlineEditor({
             </div>
           </button>
 
+          {/* AI Model */}
+          <button className="oe-setup-card oe-setup-card--btn">
+            <div className="oe-setup-card-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            </div>
+            <div className="oe-setup-card-body">
+              <div className="oe-setup-card-title">AI Model</div>
+              <div className="oe-setup-card-sub">Auto</div>
+            </div>
+          </button>
+
           {/* Platform */}
           <div className="oe-setup-card" style={{ position: 'relative' }}>
             <button className="oe-setup-card-inner-btn" onClick={() => setPlatformPickerOpen(v => !v)}>
@@ -2033,14 +2054,6 @@ function OutlineEditor({
           ))}
         </div>
 
-        {/* Bottom bar */}
-        <div className="oe-generate-bar">
-          <button className="oe-auto-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            AI Model
-            <ChevronRight size={12} style={{ transform: 'rotate(90deg)' }} />
-          </button>
-        </div>
 
         {/* Look & Feel modal */}
         {showLookAndFeel && (
@@ -2064,6 +2077,7 @@ function OutlineEditor({
           />
         )}
       </main>
+      </div>{/* oe-body */}
     </div>
   )
 }
@@ -2418,14 +2432,10 @@ export function AgentChat({ config, userPrompt, onBack, initialTheme, initialTon
           <ChevronLeft size={15} />
         </button>
         <div className="ac2-header-info">
-          <div className="ac2-header-title">Chat with Agent</div>
+          <div className="ac2-header-title">{userPrompt.length > 72 ? userPrompt.slice(0, 72) + '…' : userPrompt}</div>
           <div className="ac2-header-sub">
             Confirm requirements in chat. When the brief is ready, follow the agent to generate.
           </div>
-        </div>
-        <div className="ac2-header-product" style={{ color: config.color }}>
-          {Icon && <Icon style={{ width: 15, height: 15 }} />}
-          <span>{config.label}</span>
         </div>
       </header>
 

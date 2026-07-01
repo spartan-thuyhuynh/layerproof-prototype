@@ -102,6 +102,10 @@ const PLATFORM_OPTIONS: PlatformOption[] = [
 export function MatteV3Editor() {
   const navigate = useNavigate()
   const [selected, setSelected] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [thumbMenuPos, setThumbMenuPos] = useState<{ x: number; y: number } | null>(null)
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const [dropIdx, setDropIdx] = useState<number | null>(null)
   const [pages, setPages] = useState([0, 1, 2])
   const [pageTitles, setPageTitles] = useState<Record<number, string>>({})
   const [activePage, setActivePage] = useState(0)
@@ -112,7 +116,7 @@ export function MatteV3Editor() {
   const [agentMessages, setAgentMessages] = useState<Array<{
     role: string
     text: string
-    variants?: Array<{ pageId: number; slot: number; label: string; description?: string }>
+    variants?: Array<{ pageId: number; slot: number; label: string; description?: string; insertAt?: number }>
     variantChosen?: number
   }>>([
     {
@@ -142,7 +146,7 @@ export function MatteV3Editor() {
   const [chatAttachments, setChatAttachments] = useState<Array<{id: string; label: string; bg: string}>>([])
   const pageIdRef = useRef(3)
   const [briefOpen, setBriefOpen] = useState(true)
-  const [pagePrompts] = useState<Record<number, { prompt: string; model: string; size: string; style: string; quality: string; seed: number }>>({
+  const [pagePrompts, setPagePrompts] = useState<Record<number, { prompt: string; model: string; size: string; style: string; quality: string; seed: number }>>({
     0: { prompt: 'A clean social campaign poster about safeguarding intellectual property on Apple platforms, featuring a lock icon, bold headline, and CTA button on a warm off-white background. Minimal, editorial design.', model: 'GPT Image 2', size: '1024×1024', style: 'Dynamic', quality: 'Low', seed: 666597 },
     1: { prompt: 'Dark-themed social post highlighting 3 ways to protect your IP on Apple platforms, with icon list and a blue accent CTA on a deep navy background. Clean, structured layout.', model: 'GPT Image 2', size: '1024×1024', style: 'Dynamic', quality: 'Low', seed: 842103 },
     2: { prompt: 'Purple-gradient social poster with rocket icon, bold headline encouraging developers to secure their innovation on Apple platforms, and a vibrant CTA. High energy, startup aesthetic.', model: 'GPT Image 2', size: '1024×1024', style: 'Dynamic', quality: 'Low', seed: 331847 },
@@ -370,15 +374,10 @@ export function MatteV3Editor() {
       const slotA = (sourceSlot + 1) % 3
       const slotB = (sourceSlot + 2) % 3
       const slotC = sourceSlot % 3
+      // Register platform/slot data but do NOT add to pages list yet
       setPageData(prev => ({ ...prev, [idA]: currentPlatform, [idB]: currentPlatform, [idC]: currentPlatform }))
       setPageRenderSlot(prev => ({ ...prev, [idA]: slotA, [idB]: slotB, [idC]: slotC }))
       const insertAt = activePage + 1
-      setPages(prev => {
-        const next = [...prev]
-        next.splice(insertAt, 0, idA, idB, idC)
-        return next
-      })
-      setActivePage(insertAt)
       const lower = text.toLowerCase()
       const isColor = lower.includes('colour') || lower.includes('color')
       const isLayout = lower.includes('layout')
@@ -390,15 +389,15 @@ export function MatteV3Editor() {
           text: `Here are 3 variants based on your direction — "${text}". Pick the one you'd like to keep:`,
           variants: [
             {
-              pageId: idA, slot: slotA, label: 'Version A',
+              pageId: idA, slot: slotA, label: 'Version A', insertAt,
               description: isColor ? 'Warmer tones with higher contrast — draws the eye to the CTA.' : isLayout ? 'Headline-first layout with generous white space for a premium feel.' : isCopy ? 'Punchy, direct copy — short headline, single-line CTA.' : 'Minimal approach — clean hierarchy, lots of breathing room.',
             },
             {
-              pageId: idB, slot: slotB, label: 'Version B',
+              pageId: idB, slot: slotB, label: 'Version B', insertAt,
               description: isColor ? 'Cooler palette, more muted — polished and professional.' : isLayout ? 'Visual-first layout — image leads, copy anchors the bottom third.' : isCopy ? 'Narrative-driven copy — hooks with a question, builds to the CTA.' : 'Bold approach — strong visual weight, accent colour on headline.',
             },
             {
-              pageId: idC, slot: slotC, label: 'Version C',
+              pageId: idC, slot: slotC, label: 'Version C', insertAt,
               description: isColor ? 'High-contrast dark mode — stands out in a busy feed.' : isLayout ? 'Split layout — left text, right visual, balanced weight.' : isCopy ? 'Emotional copy — speaks to the reader\'s ambition, softer CTA.' : 'Experimental — breaks the grid slightly for visual tension.',
             },
           ],
@@ -486,6 +485,22 @@ export function MatteV3Editor() {
 
   const prevPage = () => setActivePage(i => Math.max(i - 1, 0))
   const nextPage = () => setActivePage(i => Math.min(i + 1, pages.length - 1))
+
+  const reorderPages = (from: number, to: number) => {
+    if (from === to) return
+    setPages(prev => {
+      const next = [...prev]
+      const [item] = next.splice(from, 1)
+      next.splice(to, 0, item)
+      return next
+    })
+    setActivePage(prev => {
+      if (prev === from) return to
+      if (from < to && prev > from && prev <= to) return prev - 1
+      if (from > to && prev < from && prev >= to) return prev + 1
+      return prev
+    })
+  }
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     if (e.metaKey || e.ctrlKey) {
@@ -609,7 +624,7 @@ export function MatteV3Editor() {
             </svg>
             Outline
           </button>
-          <button className={`mv3-sub-pill-btn${agentOpen ? ' mv3-sub-pill-btn--active' : ''}`} onClick={() => setAgentOpen(o => !o)}>
+          <button className="mv3-sub-pill-btn mv3-sub-pill-btn--active">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
               <path d="M12 2l1.8 5.4L19.2 9l-5.4 1.8L12 16.2l-1.8-5.4L4.8 9l5.4-1.8L12 2z"/>
               <path d="M19 14l.9 2.7 2.7.9-2.7.9L19 21l-.9-2.7-2.7-.9 2.7-.9L19 14z" opacity=".6"/>
@@ -625,18 +640,50 @@ export function MatteV3Editor() {
       {/* ── Body ── */}
       <div className="mv3-body">
         {/* Left sidebar — Pages */}
-        <aside className="mv3-sidebar">
+        <aside className={`mv3-sidebar${sidebarCollapsed ? ' mv3-sidebar--collapsed' : ''}`}>
           <div className="mv3-sidebar-header">
-            <span className="mv3-sidebar-title">Pages</span>
-            <span className="mv3-sidebar-count">{activePage + 1}/{pages.length}</span>
+            {!sidebarCollapsed && (
+              <div className="mv3-sidebar-header-content">
+              </div>
+            )}
+            <button
+              className="mv3-sidebar-toggle"
+              onClick={() => setSidebarCollapsed(v => !v)}
+              data-tip={sidebarCollapsed ? 'Expand pages panel' : 'Collapse pages panel'}
+              data-tip-dir={sidebarCollapsed ? 'right' : undefined}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+                style={{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
           </div>
           <div className="mv3-pages-list">
             {pages.map((_, idx) => (
               <div
-                key={idx}
-                className="mv3-page-thumb-group"
+                key={pages[idx]}
+                className={`mv3-page-thumb-group${dragIdx === idx ? ' mv3-page-thumb-group--dragging' : ''}${dropIdx === idx && dragIdx !== idx ? ' mv3-page-thumb-group--drop-target' : ''}`}
+                draggable
+                onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragIdx(idx) }}
+                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDropIdx(idx) }}
+                onDragEnd={() => { setDragIdx(null); setDropIdx(null) }}
+                onDrop={e => { e.preventDefault(); if (dragIdx !== null) reorderPages(dragIdx, idx); setDragIdx(null); setDropIdx(null) }}
                 onMouseLeave={() => setThumbMenuPage(null)}
               >
+                {/* Insert between pages — appears on hover */}
+                {idx > 0 && (
+                  <button
+                    className="mv3-insert-page-btn"
+                    onClick={e => { e.stopPropagation(); setActivePage(idx - 1); addPage() }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Add page
+                  </button>
+                )}
+                <div className="mv3-page-thumb-row">
+                <span className={`mv3-page-num${idx === activePage ? ' mv3-page-num--active' : ''}`}>{idx + 1}</span>
                 <div className="mv3-page-thumb-wrap">
                   <button
                     className={`mv3-page-thumb-btn${idx === activePage ? ' mv3-page-thumb-btn--active' : ''}`}
@@ -650,18 +697,26 @@ export function MatteV3Editor() {
                   </button>
                   <button
                     className="mv3-thumb-more-btn"
-                    onClick={e => { e.stopPropagation(); setThumbMenuPage(thumbMenuPage === idx ? null : idx) }}
+                    onClick={e => {
+                      e.stopPropagation()
+                      if (thumbMenuPage === idx) { setThumbMenuPage(null); setThumbMenuPos(null) }
+                      else {
+                        const r = e.currentTarget.getBoundingClientRect()
+                        setThumbMenuPos({ x: r.right + 4, y: r.top })
+                        setThumbMenuPage(idx)
+                      }
+                    }}
                     title="Page options"
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
                     </svg>
                   </button>
-                  {thumbMenuPage === idx && (
+                  {thumbMenuPage === idx && thumbMenuPos && (
                     <>
-                      <div className="mv3-thumb-menu-backdrop" onClick={() => setThumbMenuPage(null)} />
-                      <div className="mv3-thumb-menu">
-                        <button className="mv3-thumb-menu-item mv3-thumb-menu-item--danger" onClick={() => { setThumbMenuPage(null); deletePage() }}>
+                      <div className="mv3-thumb-menu-backdrop" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null) }} />
+                      <div className="mv3-thumb-menu" style={{ left: thumbMenuPos.x, top: thumbMenuPos.y }}>
+                        <button className="mv3-thumb-menu-item mv3-thumb-menu-item--danger" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null); deletePage() }}>
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                           </svg>
@@ -671,8 +726,19 @@ export function MatteV3Editor() {
                     </>
                   )}
                 </div>
+                </div>{/* end mv3-page-thumb-row */}
               </div>
             ))}
+            {/* Add page — last slot */}
+            <div className="mv3-page-thumb-row">
+              <span style={{ width: 16, flexShrink: 0 }} />
+              <button className="mv3-sidebar-add-page-btn" onClick={e => { e.stopPropagation(); addPage() }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add page
+              </button>
+            </div>
           </div>
         </aside>
 
@@ -811,10 +877,18 @@ export function MatteV3Editor() {
                 return (
               <div className="mv3-canvas-wrap">
                 <div className="mv3-canvas-slot">
-                  {/* Canvas card */}
+                  <div className="mv3-canvas-inner" style={{ width: canvasW * (zoom / 100) }}>
+                  {/* Platform header */}
+                  <div className="mv3-canvas-platform-header">
+                    <span className="mv3-canvas-platform-name">{canvasPlatform.label}</span>
+                    <span className="mv3-canvas-platform-sep">·</span>
+                    <span className="mv3-canvas-platform-ratio">{canvasPlatform.ratio}</span>
+                  </div>
+                  {/* Canvas card — wrapper collapses layout to scaled size so banners sit flush below */}
+                  <div style={{ position: 'relative', width: canvasW * (zoom / 100), height: canvasH * (zoom / 100), flexShrink: 0 }}>
                   <div
                     className={`mv3-canvas-card${selected ? ' mv3-canvas-card--selected' : ''}${commentMode ? ' mv3-canvas-comment-mode' : ''}`}
-                    style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center', width: canvasW, height: canvasH }}
+                    style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left', width: canvasW, height: canvasH, position: 'absolute', top: 0, left: 0 }}
                     onClick={e => {
                       e.stopPropagation()
                       if (commentMode) {
@@ -864,14 +938,28 @@ export function MatteV3Editor() {
                       </div>
                     ))}
                   </div>
+                  </div>{/* end canvas-card scale wrapper */}
 
-                  {/* Add page below canvas — hidden in edit mode to avoid dead space */}
-                  {!tweakOpen && <button className="mv3-add-page-center" onClick={e => { e.stopPropagation(); addPage() }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    Add page
-                  </button>}
+                  {/* Undo banner — below canvas card */}
+                  {showUndoBanner && (
+                    <div className="mv3-undo-banner" onClick={() => setShowUndoBanner(false)}>
+                      <span className="mv3-undo-banner-text">Generation complete</span>
+                      <button
+                        className="mv3-undo-banner-btn"
+                        onClick={e => { e.stopPropagation(); undoGeneration(); setShowUndoBanner(false) }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
+                        </svg>
+                        Undo
+                      </button>
+                      <button className="mv3-undo-banner-close" onClick={e => { e.stopPropagation(); setShowUndoBanner(false) }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
 
                   {/* Rating — inline below the last page */}
                   {showRatingBanner && activePage === pages.length - 1 && !tweakOpen && (
@@ -913,6 +1001,7 @@ export function MatteV3Editor() {
                       </div>
                     </div>
                   )}
+                  </div>{/* end mv3-canvas-inner */}
                 </div>
               </div>
                 )
@@ -1029,9 +1118,8 @@ export function MatteV3Editor() {
           </div>
         </div>
 
-        {/* ── Right side panel: brief + agent ── */}
-        {(agentOpen || !!pagePrompts[pages[activePage]]) && (
-          <div className="mv3-agent-panel-wrap">
+        {/* ── Left side panel: brief + agent ── */}
+        <div className="mv3-agent-panel-wrap">
 
             {/* ── Brief panel — sits above the agent panel ── */}
             {(() => {
@@ -1105,11 +1193,6 @@ export function MatteV3Editor() {
                     </svg>
                     Clear
                   </button>
-                  <button className="mv3-agent-panel-close" onClick={() => setAgentOpen(false)} title="Close">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>
                 </div>
               </div>
 
@@ -1151,12 +1234,17 @@ export function MatteV3Editor() {
                                 <button
                                   className="mv3-variant-use-btn"
                                   onClick={() => {
-                                    const others = msg.variants!.filter(x => x.pageId !== v.pageId)
-                                    setPages(prev => prev.filter(p => !others.map(o => o.pageId).includes(p)))
+                                    // Insert only the chosen page into the pages list
+                                    const insertAt = v.insertAt ?? activePage + 1
+                                    // Copy the source page's brief so the brief panel stays visible
+                                    const sourcePageId = pages[insertAt - 1]
+                                    const sourceBrief = pagePrompts[sourcePageId]
+                                    if (sourceBrief) setPagePrompts(prev => ({ ...prev, [v.pageId]: sourceBrief }))
                                     setPages(prev => {
-                                      const idx = prev.indexOf(v.pageId)
-                                      if (idx !== -1) setActivePage(idx)
-                                      return prev
+                                      const next = [...prev]
+                                      next.splice(insertAt, 0, v.pageId)
+                                      setActivePage(insertAt)
+                                      return next
                                     })
                                     setAgentMessages(prev => prev.map((m, j) =>
                                       j === i ? { ...m, variantChosen: v.pageId } : m
@@ -1318,7 +1406,6 @@ export function MatteV3Editor() {
               </div>
             </aside>
           </div>
-        )}
 
       </div>
 
@@ -2015,26 +2102,6 @@ export function MatteV3Editor() {
         </div>
       )}
 
-      {/* ── Undo banner ── */}
-      {showUndoBanner && (
-        <div className="mv3-undo-banner" onClick={() => setShowUndoBanner(false)}>
-          <span className="mv3-undo-banner-text">Generation complete</span>
-          <button
-            className="mv3-undo-banner-btn"
-            onClick={e => { e.stopPropagation(); undoGeneration(); setShowUndoBanner(false) }}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
-            </svg>
-            Undo
-          </button>
-          <button className="mv3-undo-banner-close" onClick={e => { e.stopPropagation(); setShowUndoBanner(false) }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-      )}
 
     </div>
   )

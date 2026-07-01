@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import * as I from '@/shared/icons'
 import type { ProductConfig } from '../config'
@@ -224,216 +224,6 @@ function VoiceSpectrumPanel({ values, onChange }: { values: Record<string, numbe
   )
 }
 
-/* ── Tour tooltip (steps 2-4: suggestions, style, generate) ────────────── */
-
-const TOUR_STEPS = [
-  {
-    key: 'suggestions',
-    title: 'Not sure where to start?',
-    body: 'Pick a suggestion to fill your prompt instantly, or shuffle for fresh ideas.',
-    placement: 'top' as const,
-  },
-  {
-    key: 'attach',
-    title: 'Attach a file',
-    body: 'Give the AI more context — briefs, images, or references.',
-    placement: 'top' as const,
-  },
-  {
-    key: 'model',
-    title: 'Switch AI model',
-    body: 'Match the model to your task — fast drafts or quality final copy.',
-    placement: 'top' as const,
-  },
-  {
-    key: 'style',
-    title: 'Pick a style',
-    body: 'Choose a visual theme and fine-tune your brand voice before generating.',
-    placement: 'top' as const,
-  },
-  {
-    key: 'generate',
-    title: 'Ready? Hit Generate',
-    body: 'Your content will be created using your prompt, theme, and voice settings.',
-    placement: 'top' as const,
-  },
-]
-
-type TourPlacement = 'top' | 'bottom'
-
-interface TourRect { top: number; left: number; width: number; height: number }
-
-function TourTooltip({
-  step,
-  total,
-  title,
-  body,
-  placement,
-  getTargetRect,
-  onNext,
-  onSkip,
-}: {
-  step: number
-  total: number
-  title: string
-  body: string
-  placement: TourPlacement
-  getTargetRect: () => TourRect | null
-  onNext: () => void
-  onSkip: () => void
-}) {
-  const [targetRect, setTargetRect] = useState<TourRect | null>(null)
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setTargetRect(getTargetRect()))
-    return () => cancelAnimationFrame(id)
-  }, [getTargetRect])
-
-  if (!targetRect) return null
-
-  const PAD = 12
-  const TIP_W = 280
-  const scrollEl = document.querySelector('.cp-screen')
-  const scrollTop = scrollEl?.scrollTop ?? 0
-
-  const absTop = targetRect.top + scrollTop
-  const centerX = targetRect.left + targetRect.width / 2
-
-  const tipTop = placement === 'bottom'
-    ? absTop + targetRect.height + PAD
-    : absTop - PAD - 10
-
-  const tipLeft = Math.max(16, Math.min(centerX - TIP_W / 2, window.innerWidth - TIP_W - 16))
-  const arrowLeft = centerX - tipLeft
-
-  const spotPad = 8
-  const spotTop  = absTop - spotPad
-  const spotLeft = targetRect.left - spotPad
-  const spotW    = targetRect.width + spotPad * 2
-  const spotH    = targetRect.height + spotPad * 2
-
-  return (
-    <Portal>
-      <div className="cp-tour-overlay" onClick={onSkip}>
-        <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
-          <defs>
-            <mask id="cp-tour-mask">
-              <rect width="100%" height="100%" fill="white" />
-              <rect x={spotLeft} y={spotTop} width={spotW} height={spotH} rx={10} fill="black" />
-            </mask>
-          </defs>
-          <rect width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#cp-tour-mask)" />
-        </svg>
-        <div className="cp-tour-spot" style={{ top: spotTop, left: spotLeft, width: spotW, height: spotH }} />
-      </div>
-
-      <div
-        className={`cp-tour-tip cp-tour-tip--${placement}`}
-        style={{ top: tipTop, left: tipLeft, width: TIP_W }}
-        onClick={e => e.stopPropagation()}
-      >
-        {placement === 'bottom' && (
-          <div className="cp-tour-arrow cp-tour-arrow--up" style={{ left: arrowLeft }} />
-        )}
-        <div className="cp-tour-dots">
-          {Array.from({ length: total }).map((_, i) => (
-            <div key={i} className={`cp-tour-dot${i === step ? ' active' : ''}`} />
-          ))}
-        </div>
-        <div className="cp-tour-title">{title}</div>
-        <div className="cp-tour-body">{body}</div>
-        <div className="cp-tour-actions">
-          <button className="cp-tour-skip" onClick={onSkip}>Skip tour</button>
-          <button className="cp-tour-next" onClick={onNext}>
-            {step === total - 1 ? 'Done' : 'Next'}
-            {step < total - 1 && (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            )}
-          </button>
-        </div>
-        {placement === 'top' && (
-          <div className="cp-tour-arrow cp-tour-arrow--down" style={{ left: arrowLeft }} />
-        )}
-      </div>
-    </Portal>
-  )
-}
-
-/* ── Input tip (shown once after picking a suggestion) ─────────────────── */
-
-function InputTip({
-  attachRef,
-  modelRef,
-  onDismiss,
-}: {
-  attachRef: React.RefObject<HTMLElement | null>
-  modelRef: React.RefObject<HTMLElement | null>
-  onDismiss: () => void
-}) {
-  const [step, setStep]           = useState<0 | 1>(0)
-  const [attachRect, setAttachRect] = useState<DOMRect | null>(null)
-  const [modelRect, setModelRect]   = useState<DOMRect | null>(null)
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      if (attachRef.current) setAttachRect(attachRef.current.getBoundingClientRect())
-      if (modelRef.current)  setModelRect(modelRef.current.getBoundingClientRect())
-    })
-    return () => cancelAnimationFrame(id)
-  }, [attachRef, modelRef])
-
-  if (!attachRect || !modelRect) return null
-
-  const GAP = 10
-
-  const attachW    = 210
-  const attachTop  = attachRect.bottom + GAP
-  const attachLeft = Math.max(8, attachRect.left + attachRect.width / 2 - attachW / 2)
-  const attachArrow = attachRect.left + attachRect.width / 2 - attachLeft
-
-  const modelW    = 210
-  const modelTop  = modelRect.bottom + GAP
-  const modelLeft = Math.max(8, Math.min(modelRect.left + modelRect.width / 2 - modelW / 2, window.innerWidth - modelW - 8))
-  const modelArrow = modelRect.left + modelRect.width / 2 - modelLeft
-
-  return (
-    <Portal>
-      {step === 0 && (
-        <div className="cp-input-tip cp-input-tip--sm" style={{ top: attachTop, left: attachLeft, width: attachW }} onClick={e => e.stopPropagation()}>
-          <div className="cp-input-tip-arrow" style={{ left: Math.max(10, attachArrow) }} />
-          <div className="cp-input-tip-row">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-            </svg>
-            <span><strong>Attach a file</strong> to give the AI more context — briefs, images, or references.</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-            <span style={{ fontSize: 11, color: 'var(--t3)' }}>1 of 2</span>
-            <button className="cp-input-tip-dismiss" onClick={() => setStep(1)}>Next →</button>
-          </div>
-        </div>
-      )}
-
-      {step === 1 && (
-        <div className="cp-input-tip cp-input-tip--sm" style={{ top: modelTop, left: modelLeft, width: modelW }} onClick={e => e.stopPropagation()}>
-          <div className="cp-input-tip-arrow" style={{ left: Math.max(10, modelArrow) }} />
-          <div className="cp-input-tip-row">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-            </svg>
-            <span><strong>Switch AI model</strong> to match your task — fast drafts or quality final copy.</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-            <span style={{ fontSize: 11, color: 'var(--t3)' }}>2 of 2</span>
-            <button className="cp-input-tip-dismiss" onClick={onDismiss}>Got it</button>
-          </div>
-        </div>
-      )}
-    </Portal>
-  )
-}
 
 function ThemeCardInner({ t, onPreview }: { t: ThemeOption; onPreview?: (e: React.MouseEvent) => void }) {
   return (
@@ -657,7 +447,11 @@ function ThemePickerSection({
   const kitMenuRef = useRef<HTMLDivElement>(null)
   const [themeSearch, setThemeSearch] = useState('')
   const [themeCategory, setThemeCategory] = useState('General')
+  const [libraryExpanded, setLibraryExpanded] = useState(false)
   const [themeTab, setThemeTab] = useState<'brand' | 'library'>(() => appliedId ? 'brand' : 'library')
+  const [themeModalOpen, setThemeModalOpen] = useState(false)
+  const [modalSearch, setModalSearch] = useState('')
+  const [modalTab, setModalTab] = useState<'brand' | 'library'>('library')
 
   // Tone config state — lifted here so brand theme autofill can drive them
   const [textAmount, setTextAmount] = useState('concise')
@@ -693,13 +487,16 @@ function ThemePickerSection({
   // Onboarding kits get a single auto-generated theme; fully configured kits get all variants.
   const activeKitId = appliedId || newKitId || (kits[0]?.id ?? '')
   const appliedKit = kits.find(k => k.id === activeKitId) ?? null
-  const brandThemes: ThemeOption[] = appliedKit
-    ? (appliedKit.onboarding ? makeBrandKitThemes(appliedKit).slice(0, 1) : makeBrandKitThemes(appliedKit))
+  const allBrandKitThemes: ThemeOption[] = appliedKit
+    ? makeBrandKitThemes(appliedKit)
     : (() => {
         const onboardingKit = newKitId ? kits.find(k => k.id === newKitId) : null
-        const t = (!brandSkipped && onboardingKit) ? makeBrandKitThemes(onboardingKit)[0] ?? null : null
-        return t ? [t] : []
+        return (!brandSkipped && onboardingKit) ? makeBrandKitThemes(onboardingKit) : []
       })()
+  // Inline grid shows 2 for onboarding kits, all for fully configured kits
+  const brandThemes: ThemeOption[] = appliedKit
+    ? (appliedKit.onboarding ? allBrandKitThemes.slice(0, 2) : allBrandKitThemes)
+    : allBrandKitThemes.slice(0, 1)
 
   /* ── Selected state ── */
   if (selected) {
@@ -709,29 +506,32 @@ function ThemePickerSection({
           <ThemePreviewModal theme={previewTheme} onClose={() => setPreviewTheme(null)} onSelect={() => { onSelect(previewTheme); setPreviewTheme(null) }} />
         )}
         <div className="cp-style-group">
-          <div className="cp-style-group-header">
-            <div className="cp-style-group-label">Look & Feel</div>
-            <div className="cp-style-group-desc">Choose a theme to set the look and feel of your design.</div>
-          </div>
-          <button className="cp-selected-change" onClick={() => onSelect(null)}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-            Choose another theme
-          </button>
           <div className="cp-selected-theme-box cp-selected-theme-box--active">
-            <div className="cp-selected-theme-header">
-              <span className="cp-selected-chip">Selected</span>
-              <div className="cp-selected-theme-name">{selected.name}</div>
-            </div>
-            <div className="cp-selected-cols">
-              <button
-                className="cp-theme-card cp-theme-card--focused"
-                title="Click to change theme"
-              >
-                <ThemeCardInner t={selected} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(selected) }} />
+            <div className="cp-selected-theme-summary">
+              <button className="cp-selected-change" onClick={() => onSelect(null)}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                Change theme
               </button>
-              {selected.prompt && (
-                <div className="cp-selected-theme-prompt">{selected.prompt}</div>
-              )}
+              <div className="cp-selected-theme-row">
+                <div className="cp-selected-theme-thumb-sm" onClick={() => setPreviewTheme(selected)}>
+                  <ThemePreview colors={selected.colors} />
+                  <div className="cp-selected-thumb-preview-btn">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Preview
+                  </div>
+                </div>
+                <div className="cp-selected-theme-info-row">
+                  <div className="cp-selected-theme-label">Selected theme</div>
+                  <div className="cp-selected-theme-name">{selected.name}</div>
+                  {selected.section === 'brand' && (() => {
+                    const kitId = selected.id.replace(/^brand-/, '').replace(/-(?:primary|dark|minimal|light|accent)$/, '')
+                    const kitName = kits.find(k => k.id === kitId)?.name
+                    return kitName ? <div className="cp-selected-theme-kit">{kitName}</div> : null
+                  })()}
+                </div>
+              </div>
             </div>
 
             <div className="cp-selected-divider" />
@@ -762,112 +562,57 @@ function ThemePickerSection({
 
       <div className="cp-style-group">
         <div className="cp-style-group-header">
-          <div className="cp-style-group-label">Look & Feel</div>
-          <div className="cp-style-group-desc">Choose a theme to set the look and feel of your design.</div>
+          <div className="cp-style-group-label">Choose a theme</div>
+          <button className="cp-theme-view-more cp-theme-view-more--header" onClick={() => { setModalTab(brandThemes.length > 0 ? 'brand' : 'library'); setThemeModalOpen(true) }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            View more
+          </button>
         </div>
 
-        {/* Search — always visible below header */}
-        <div className="cp-theme-search-bar">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="cp-theme-search-icon cp-theme-search-icon--bar">
-            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-          </svg>
-          <input
-            className="cp-theme-library-search cp-theme-library-search--bar"
-            placeholder="Search themes…"
-            value={themeSearch}
-            onChange={e => setThemeSearch(e.target.value)}
-          />
-        </div>
-
-        {/* Top-level tabs: pill segmented control */}
         <div className="cp-theme-tabs-wrap">
-          <div className="cp-theme-seg">
-            {(kits.length > 0 || STANDALONE_THEMES.length > 0) && (
-              <button className={`cp-theme-seg-btn${themeTab === 'brand' ? ' active' : ''}`} onClick={() => setThemeTab('brand')}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>
-                Your Themes
-              </button>
-            )}
-            <button className={`cp-theme-seg-btn${themeTab === 'library' ? ' active' : ''}`} onClick={() => setThemeTab('library')}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-              </svg>
-              Theme Library
-            </button>
-          </div>
-
-          {/* Your Themes tab — brand kit themes (highlighted) + standalone themes */}
-          {themeTab === 'brand' && (
-            <div className="cp-brand-theme-section">
-              {brandThemes.length > 0 && (
-                <div className="cp-brand-highlight-card">
-                  <div className="cp-brand-highlight-header">
-                    <div className="cp-brand-highlight-title">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-                      </svg>
-                      From your brand kits
-                    </div>
-                    <div ref={kitMenuRef} style={{ position: 'relative' }}>
-                      <button className="cp-kit-switch-btn" onClick={() => setKitMenuOpen(o => !o)}>
-                        {appliedKit?.name ?? 'Select brand kit'}
-                        <svg viewBox="0 0 12 12" style={{ width: 10, height: 10, flexShrink: 0 }}>
-                          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                        </svg>
-                      </button>
-                      {kitMenuOpen && (
-                        <div className="cp-kit-switch-menu">
-                          {kits.map(k => (
-                            <button
-                              key={k.id}
-                              className={`cp-kit-switch-item${k.id === activeKitId ? ' active' : ''}`}
-                              onClick={() => { setAppliedId(k.id); setKitMenuOpen(false) }}
-                            >
-                              {k.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="cp-themes-grid">
-                    {brandThemes.map(t => (
-                      <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
-                        <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {STANDALONE_THEMES.length > 0 && (
-                <div className="cp-your-themes-group">
-                  <div className="cp-your-themes-group-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+          {/* Brand kit themes */}
+          {brandThemes.length > 0 && (
+            <div className="cp-brand-highlight-card">
+              <div className="cp-brand-highlight-header">
+                <div ref={kitMenuRef} style={{ position: 'relative' }}>
+                  <button className="cp-brand-highlight-title cp-brand-highlight-title--btn" onClick={() => setKitMenuOpen(o => !o)}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
                     </svg>
-                    Custom Themes
-                  </div>
-                  <div className="cp-themes-grid">
-                    {STANDALONE_THEMES.map(t => (
-                      <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
-                        <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
-                      </button>
-                    ))}
-                  </div>
+                    Brand kit · {appliedKit?.name ?? 'Select kit'}
+                    <svg viewBox="0 0 12 12" style={{ width: 10, height: 10, flexShrink: 0 }}>
+                      <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                    </svg>
+                  </button>
+                  {kitMenuOpen && (
+                    <div className="cp-kit-switch-menu">
+                      {kits.map(k => (
+                        <button
+                          key={k.id}
+                          className={`cp-kit-switch-item${k.id === activeKitId ? ' active' : ''}`}
+                          onClick={() => { setAppliedId(k.id); setKitMenuOpen(false) }}
+                        >
+                          {k.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {brandThemes.length === 0 && STANDALONE_THEMES.length === 0 && (
-                <div className="cp-theme-empty">No themes yet. Create a brand kit or save a custom theme.</div>
-              )}
+              </div>
+              <div className="cp-themes-grid">
+                {brandThemes.map(t => (
+                  <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
+                    <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Library tab */}
-          {themeTab === 'library' && (() => {
+          {/* Library themes with category filter */}
+          {(() => {
             const THEME_CATEGORIES: Record<string, string[]> = {
               General:   SYSTEM_THEMES.map(t => t.id),
               Academic:  ['clean-light','slate','minimal-dark','ocean'],
@@ -883,19 +628,17 @@ function ThemePickerSection({
               const inSearch = !themeSearch.trim() || t.name.toLowerCase().includes(themeSearch.toLowerCase())
               return inCat && inSearch
             })
+            const visible = libraryExpanded ? filtered : filtered.slice(0, 4)
             return (
               <div className="cp-theme-library">
-                <div className="cp-theme-cats">
-                  {cats.map(c => (
-                    <button
-                      key={c}
-                      className={`cp-theme-cat${themeCategory === c ? ' active' : ''}`}
-                      onClick={() => setThemeCategory(c)}
-                    >{c}</button>
-                  ))}
+                <div className="cp-your-themes-group-label">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </svg>
+                  Theme Library
                 </div>
                 <div className="cp-themes-grid">
-                  {filtered.map(t => (
+                  {visible.map(t => (
                     <button key={t.id} className="cp-theme-card" onClick={() => onSelect(t)}>
                       <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
                     </button>
@@ -908,6 +651,108 @@ function ThemePickerSection({
             )
           })()}
         </div>
+
+        {/* Theme picker modal */}
+        {themeModalOpen && (() => {
+          const THEME_CATEGORIES: Record<string, string[]> = {
+            General:   SYSTEM_THEMES.map(t => t.id),
+            Academic:  ['clean-light','slate','minimal-dark','ocean'],
+            Business:  ['slate','clean-light','minimal-dark','ocean'],
+            Marketing: ['bold-gradient','rose-gold','neon-accent','warm-terra'],
+            Strategy:  ['slate','minimal-dark','ocean','clean-light'],
+            Work:      ['clean-light','slate','minimal-dark','ocean'],
+            Education: ['clean-light','forest','ocean','slate'],
+          }
+          const cats = Object.keys(THEME_CATEGORIES)
+          const sq = modalSearch.toLowerCase().trim()
+          const libraryFiltered = SYSTEM_THEMES.filter(t => !sq || t.name.toLowerCase().includes(sq))
+          const kitGroups = kits.map(k => ({
+            kit: k,
+            themes: makeBrandKitThemes(k).filter(t => !sq || t.name.toLowerCase().includes(sq)),
+          })).filter(g => g.themes.length > 0)
+          const standaloneFiltered = STANDALONE_THEMES.filter(t => !sq || t.name.toLowerCase().includes(sq))
+          const hasYourThemes = kitGroups.length > 0 || standaloneFiltered.length > 0
+
+          const renderThemeBtn = (t: ThemeOption) => (
+            <button key={t.id} className={`cp-theme-card${selected?.id === t.id ? ' selected' : ''}`} onClick={() => { onSelect(t); setThemeModalOpen(false) }}>
+              <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
+            </button>
+          )
+
+          return (
+            <Portal>
+              <div className="cp-theme-modal-overlay" onClick={() => setThemeModalOpen(false)}>
+                <div className="cp-theme-modal" onClick={e => e.stopPropagation()}>
+                  <div className="cp-theme-modal-header">
+                    <div className="cp-theme-modal-search">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="cp-theme-modal-search-icon">
+                        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                      </svg>
+                      <input
+                        className="cp-theme-modal-search-input"
+                        placeholder="Search themes…"
+                        value={modalSearch}
+                        onChange={e => setModalSearch(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="cp-theme-modal-tabs">
+                      {hasYourThemes && (
+                        <button className={`cp-theme-modal-tab${modalTab === 'brand' ? ' active' : ''}`} onClick={() => setModalTab('brand')}>Your Themes</button>
+                      )}
+                      <button className={`cp-theme-modal-tab${modalTab === 'library' ? ' active' : ''}`} onClick={() => setModalTab('library')}>Theme Library</button>
+                    </div>
+                    <button className="cp-theme-modal-close" onClick={() => setThemeModalOpen(false)}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  {modalTab === 'library' && (
+                    <div className="cp-theme-modal-cats">
+                      {cats.map(c => (
+                        <button key={c} className={`cp-theme-cat${themeCategory === c ? ' active' : ''}`} onClick={() => setThemeCategory(c)}>{c}</button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="cp-theme-modal-body">
+                    {modalTab === 'library' ? (
+                      <div className="cp-themes-grid cp-themes-grid--modal">
+                        {libraryFiltered.map(renderThemeBtn)}
+                        {libraryFiltered.length === 0 && <div className="cp-theme-empty">No themes match "{modalSearch}"</div>}
+                      </div>
+                    ) : (
+                      <div className="cp-theme-modal-groups">
+                        {kitGroups.map(g => (
+                          <div key={g.kit.id} className="cp-theme-modal-group">
+                            <div className="cp-theme-modal-group-label">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                              </svg>
+                              {g.kit.name}
+                            </div>
+                            <div className="cp-themes-grid cp-themes-grid--modal">{g.themes.map(renderThemeBtn)}</div>
+                          </div>
+                        ))}
+                        {standaloneFiltered.length > 0 && (
+                          <div className="cp-theme-modal-group">
+                            <div className="cp-theme-modal-group-label">Custom Themes</div>
+                            <div className="cp-themes-grid cp-themes-grid--modal">{standaloneFiltered.map(renderThemeBtn)}</div>
+                          </div>
+                        )}
+                        {kitGroups.length === 0 && standaloneFiltered.length === 0 && (
+                          <div className="cp-theme-empty">No themes match "{modalSearch}"</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Portal>
+          )
+        })()}
       </div>
     </div>
   )
@@ -969,9 +814,9 @@ function getSuggestions(slug: string): string[] {
   return SUGGESTIONS[slug] ?? []
 }
 
-function pickThree(all: string[], offset: number): string[] {
+function pickFour(all: string[], offset: number): string[] {
   const len = all.length
-  return [all[offset % len], all[(offset + 1) % len], all[(offset + 2) % len]]
+  return [all[offset % len], all[(offset + 1) % len], all[(offset + 2) % len], all[(offset + 3) % len]]
 }
 
 export function PromptScreen({ config, onSubmit }: Props) {
@@ -981,7 +826,6 @@ export function PromptScreen({ config, onSubmit }: Props) {
   const [shuffleIdx, setShuffleIdx] = useState(0)
   const [selectedTheme, setSelectedTheme] = useState<ThemeOption | null>(null)
   const [spectrumValues, setSpectrumValues] = useState<Record<string, number>>({})
-  const [tourStep, setTourStep] = useState<number | null>(0)
   const textareaRef    = useRef<HTMLTextAreaElement>(null)
   const inputFootRef   = useRef<HTMLDivElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
@@ -992,38 +836,18 @@ export function PromptScreen({ config, onSubmit }: Props) {
   const fileInputRef   = useRef<HTMLInputElement>(null)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
 
-  const tourRefs: Record<string, React.RefObject<HTMLElement | null>> = {
-    suggestions: suggestionsRef,
-    style:       styleRef,
-    generate:    generateRef,
-    attach:      attachBtnRef,
-    model:       modelBtnRef,
-  }
-
-  const getTourRect = useCallback((key: string): TourRect | null => {
-    const el = tourRefs[key]?.current
-    if (!el) return null
-    const r = el.getBoundingClientRect()
-    return { top: r.top, left: r.left, width: r.width, height: r.height }
-  }, [])
   const Icon = I.Icons[config.icon]
 
   const allSuggestions = getSuggestions(config.slug)
-  const visibleSuggestions = pickThree(allSuggestions, shuffleIdx)
+  const visibleSuggestions = pickFour(allSuggestions, shuffleIdx)
 
   useEffect(() => {
     textareaRef.current?.focus()
   }, [])
 
-  function advanceTourIfOn(key: string) {
-    const idx = TOUR_STEPS.findIndex(s => s.key === key)
-    if (tourStep === idx) setTourStep(idx < TOUR_STEPS.length - 1 ? idx + 1 : null)
-  }
-
   function handleThemeSelect(t: ThemeOption | null) {
     setSelectedTheme(t)
     if (!t) setSpectrumValues({})
-    else advanceTourIfOn('style')
   }
 
   function handleSpectrumChange(key: string, v: number) {
@@ -1043,24 +867,8 @@ export function PromptScreen({ config, onSubmit }: Props) {
     setShuffleIdx(i => (i + 3) % allSuggestions.length)
   }
 
-  const activeTourStep = tourStep !== null ? TOUR_STEPS[tourStep] : null
-
   return (
     <div className="cp-screen">
-      {activeTourStep && (
-        <TourTooltip
-          step={tourStep!}
-          total={TOUR_STEPS.length}
-          title={activeTourStep.title}
-          body={activeTourStep.body}
-          placement={activeTourStep.placement}
-          getTargetRect={() => getTourRect(activeTourStep.key)}
-          onNext={() => setTourStep(s => (s !== null && s < TOUR_STEPS.length - 1 ? s + 1 : null))}
-          onSkip={() => setTourStep(null)}
-        />
-      )}
-
-
       <div className="cp-orb cp-orb-left" />
       <div className="cp-orb cp-orb-right" />
 
@@ -1080,6 +888,7 @@ export function PromptScreen({ config, onSubmit }: Props) {
         <h1 className="cp-heading">{renderTitle(config.promptTitle)}</h1>
         <p className="cp-sub">{config.promptSub}</p>
 
+        <div className="cp-input-shell">
         <div className="cp-input-wrap">
           <input
             ref={fileInputRef}
@@ -1107,10 +916,6 @@ export function PromptScreen({ config, onSubmit }: Props) {
             onKeyDown={handleKey}
             rows={2}
           />
-          <AttachmentChips
-            files={attachedFiles}
-            onRemove={(i) => setAttachedFiles(prev => prev.filter((_, idx) => idx !== i))}
-          />
           <div className="cp-input-foot" ref={inputFootRef}>
             <div className="cp-input-actions">
               <button
@@ -1118,7 +923,7 @@ export function PromptScreen({ config, onSubmit }: Props) {
                 className={`cp-action-btn${attachedFiles.length > 0 ? ' cp-action-btn--has-files' : ''}`}
                 title="Attach file"
                 data-count={attachedFiles.length > 0 ? String(attachedFiles.length) : undefined}
-                onClick={() => { advanceTourIfOn('attach'); fileInputRef.current?.click() }}
+                onClick={() => { fileInputRef.current?.click() }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
@@ -1151,48 +956,29 @@ export function PromptScreen({ config, onSubmit }: Props) {
                   </div>
                 )
               })()}
-            </div>
-            <div className="cp-input-right">
-              <div ref={modelBtnRef} style={{ display: 'inline-flex' }}><ModelSelector onOpen={() => advanceTourIfOn('model')} /></div>
-              {(() => {
-                const isReady = !!prompt.trim()
-                const hint = isReady ? '' : 'Add a prompt to get started'
-                return (
-                  <div className={`cp-generate-wrap${!isReady ? ' cp-generate-wrap--hint' : ''}`} data-hint={hint}>
-                    <button
-                      ref={generateRef}
-                      className="cp-generate-btn cp-generate-btn--inline"
-                      disabled={!isReady}
-                      onClick={handleSubmit}
-                      style={{ background: isReady ? config.color : undefined, color: isReady ? '#000' : undefined }}
-                    >
-                      Generate
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  </div>
-                )
-              })()}
+              <AttachmentChips
+                files={attachedFiles}
+                onRemove={(i) => setAttachedFiles(prev => prev.filter((_, idx) => idx !== i))}
+              />
             </div>
           </div>
         </div>
+        </div>
 
         <div className="cp-suggestions" ref={suggestionsRef}>
+          <div className="cp-suggestions-header">
+            <span className="cp-suggestions-label">Sample prompts</span>
+          </div>
           <div className="cp-suggestions-chips">
             {visibleSuggestions.map(s => (
-              <button key={s} className="cp-suggestion-chip" onClick={() => { setPrompt(s); advanceTourIfOn('suggestions') }}>
-                {s}
+              <button key={s} className="cp-suggestion-chip" onClick={() => { setPrompt(s) }}>
+                <span className="cp-suggestion-chip-text">{s}</span>
+                <svg className="cp-suggestion-chip-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 17L17 7M17 7H7M17 7v10"/>
+                </svg>
               </button>
             ))}
           </div>
-          <button className="cp-shuffle-btn" onClick={handleShuffle} title="Shuffle suggestions">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
-              <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
-            </svg>
-            Shuffle
-          </button>
         </div>
 
         <div ref={styleRef} style={{ width: '100%' }}>
@@ -1203,6 +989,47 @@ export function PromptScreen({ config, onSubmit }: Props) {
             spectrumValues={spectrumValues}
             onSpectrumChange={handleSpectrumChange}
           />
+        </div>
+      </div>
+
+      {/* Fixed footer */}
+      <div className="cp-fixed-footer">
+        <div className="cp-fixed-footer-inner">
+          <div className="cp-footer-tip">
+            <span className="cp-footer-tip-label">Tips</span>
+            Apply your brand kit to keep colors, fonts, and style consistent across every output
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {selectedTheme && (
+            <div className="cp-theme-pill">
+              <div className="cp-theme-pill-thumb">
+                <ThemePreview colors={selectedTheme.colors} />
+              </div>
+              <div className="cp-theme-pill-info">
+                <span className="cp-theme-pill-name">{selectedTheme.name}</span>
+              </div>
+              <button className="cp-theme-pill-remove" type="button" onClick={() => handleThemeSelect(null)}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          )}
+          <div className={`cp-generate-wrap${!prompt.trim() ? ' cp-generate-wrap--hint' : ''}`} data-hint={!prompt.trim() ? 'Add a prompt to get started' : ''}>
+            <button
+              ref={generateRef}
+              className="cp-generate-btn cp-generate-btn--inline"
+              disabled={!prompt.trim()}
+              onClick={handleSubmit}
+              style={{ background: config.color, color: '#000' }}
+            >
+              Generate
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          </div>
         </div>
       </div>
     </div>

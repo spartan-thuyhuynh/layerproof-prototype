@@ -85,28 +85,28 @@ export function makeBrandKitThemes(kit: BrandKit): ThemeOption[] {
   return [
     {
       id: `brand-${kit.id}-primary`,
-      name: 'Primary',
+      name: 'Primary Brand Colors',
       colors: primaryColors,
       section: 'brand',
       prompt: buildBrandPrompt(kit, 'Primary', primaryColors[0], primaryColors[2] ?? primaryColors[1]),
     },
     {
       id: `brand-${kit.id}-dark`,
-      name: 'Dark',
+      name: 'Dark Mode',
       colors: ['#0a0a0a', c[0] ?? '#ffffff', c[1] ?? '#fbbf24'],
       section: 'brand',
       prompt: buildBrandPrompt(kit, 'Dark', '#0a0a0a', c[0] ?? '#ffffff'),
     },
     {
       id: `brand-${kit.id}-minimal`,
-      name: 'Minimal',
+      name: 'Minimal Accent',
       colors: ['#18181b', '#e4e4e7', c[0] ?? '#6366f1'],
       section: 'brand',
       prompt: buildBrandPrompt(kit, 'Minimal', '#18181b', c[0] ?? '#6366f1'),
     },
     {
       id: `brand-${kit.id}-light`,
-      name: 'Light',
+      name: 'Light & Professional',
       colors: ['#f8f8f8', '#1a1a1a', c[0] ?? '#6366f1'],
       section: 'brand',
       prompt: buildBrandPrompt(kit, 'Light', '#f8f8f8', c[0] ?? '#6366f1'),
