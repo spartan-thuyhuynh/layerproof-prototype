@@ -37,6 +37,7 @@ interface PostOutline {
   subtitle: string
   imageDesc: string
   cta: string
+  description: string
 }
 
 /* ── helpers ─────────────────────────────────────────────────────── */
@@ -1558,12 +1559,17 @@ function generateOutline(brief: ReturnType<typeof generateBrief>): PostOutline[]
   const ctas = ['Start your journey today!', 'Learn more →', 'Try it yourself', 'Save & share this post', 'Drop a comment below ↓']
   return brief.topics.map((topic, i) => {
     const [head, rest] = topic.split(':')
+    const title = head?.trim() ?? topic
+    const subtitle = rest?.trim() ?? `Discover key insights about ${head?.toLowerCase() ?? 'this topic'}.`
+    const imageDesc = `An illustration representing ${head?.toLowerCase() ?? topic} — clean, modern, on-brand.`
+    const cta = ctas[i % ctas.length]
     return {
       index: i,
-      title: head?.trim() ?? topic,
-      subtitle: rest?.trim() ?? `Discover key insights about ${head?.toLowerCase() ?? 'this topic'}.`,
-      imageDesc: `An illustration representing ${head?.toLowerCase() ?? topic} — clean, modern, on-brand.`,
-      cta: ctas[i % ctas.length],
+      title,
+      subtitle,
+      imageDesc,
+      cta,
+      description: `A clean, modern illustration depicting ${title.toLowerCase()}. ${subtitle} The composition uses bold, minimal shapes with a contemporary color palette — on-brand and visually striking. The mood is confident and inviting, evoking a sense of clarity and forward momentum. Text overlay reads: "${cta}"`,
     }
   })
 }
@@ -1996,59 +2002,14 @@ function OutlineEditor({
                 <span className="oe-post-title-preview">{post.title}</span>
               </div>
 
-              {/* Fields */}
+              {/* Description */}
               <div className="oe-post-fields">
-                <div className="oe-post-field">
-                  <div className="oe-field-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
-                    TITLE
-                  </div>
-                  <div
-                    className="oe-field-value"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={e => updatePost(i, 'title', e.currentTarget.textContent ?? '')}
-                  >{post.title}</div>
-                </div>
-
-                <div className="oe-post-field">
-                  <div className="oe-field-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                    SUBTITLE <span className="oe-optional">(optional)</span>
-                  </div>
-                  <div
-                    className="oe-field-value"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={e => updatePost(i, 'subtitle', e.currentTarget.textContent ?? '')}
-                  >{post.subtitle}</div>
-                </div>
-
-                <div className="oe-post-field">
-                  <div className="oe-field-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                    IMAGE DESCRIPTION
-                  </div>
-                  <div
-                    className="oe-field-value oe-field-value--muted"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={e => updatePost(i, 'imageDesc', e.currentTarget.textContent ?? '')}
-                  >{post.imageDesc}</div>
-                </div>
-
-                <div className="oe-post-field">
-                  <div className="oe-field-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                    CTA <span className="oe-optional">(optional)</span>
-                  </div>
-                  <div
-                    className="oe-field-value"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={e => updatePost(i, 'cta', e.currentTarget.textContent ?? '')}
-                  >{post.cta}</div>
-                </div>
+                <div
+                  className="oe-field-value"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={e => updatePost(i, 'description', e.currentTarget.textContent ?? '')}
+                >{post.description}</div>
               </div>
             </div>
           ))}
