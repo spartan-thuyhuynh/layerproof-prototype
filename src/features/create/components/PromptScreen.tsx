@@ -674,7 +674,7 @@ function ThemePickerSection({
           const hasYourThemes = kitGroups.length > 0 || standaloneFiltered.length > 0
 
           const renderThemeBtn = (t: ThemeOption) => (
-            <button key={t.id} className={`cp-theme-card${selected?.id === t.id ? ' selected' : ''}`} onClick={() => { onSelect(t); setThemeModalOpen(false) }}>
+            <button key={t.id} className={`cp-theme-card${(selected as ThemeOption | null)?.id === t.id ? ' selected' : ''}`} onClick={() => { onSelect(t); setThemeModalOpen(false) }}>
               <ThemeCardInner t={t} onPreview={(e) => { e.stopPropagation(); setPreviewTheme(t) }} />
             </button>
           )
