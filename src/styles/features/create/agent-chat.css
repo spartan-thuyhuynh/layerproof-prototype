@@ -1037,8 +1037,8 @@
 .ac2-laf-kit-details { padding: 12px 14px 14px; border-top: 1px solid rgba(255,255,255,.1); background: none; display: flex; flex-direction: column; gap: 8px; }
 .ac2-laf-kit-detail-row { display: flex; align-items: center; gap: 10px; }
 .ac2-laf-kit-detail-row--assets { align-items: flex-start; }
-.ac2-laf-kit-detail-label { font-size: 12px; font-weight: 700; color: var(--t1); width: 50px; flex: none; }
-.ac2-laf-kit-detail-value { font-size: 12px; color: var(--t2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac2-laf-kit-detail-label { font-size: 14px; font-weight: 700; color: var(--t1); width: 60px; flex: none; }
+.ac2-laf-kit-detail-value { font-size: 14px; color: var(--t2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ac2-laf-brand-swatches { display: flex; gap: 5px; flex-wrap: wrap; }
 .ac2-laf-brand-swatch { width: 16px; height: 16px; border-radius: 99px; flex: none; box-shadow: 0 0 0 1px rgba(255,255,255,.15); }
 .ac2-laf-kit-grid { display: flex; flex-wrap: wrap; gap: 6px; }

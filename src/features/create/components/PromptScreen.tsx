@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type CSSProperties } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import * as I from '@/shared/icons'
 import type { ProductConfig } from '../config'
@@ -443,6 +444,7 @@ function ThemePickerSection({
   const { kits, appliedId, setAppliedId } = useBrandStore()
   const { newKitId, brandSkipped } = useOnboardingStore()
   const [previewTheme, setPreviewTheme] = useState<ThemeOption | null>(null)
+  const [kitExpanded, setKitExpanded] = useState(false)
   const [kitMenuOpen, setKitMenuOpen] = useState(false)
   const kitMenuRef = useRef<HTMLDivElement>(null)
   const [themeSearch, setThemeSearch] = useState('')
@@ -532,8 +534,70 @@ function ThemePickerSection({
                   })()}
                 </div>
               </div>
+              {selected.section === 'brand' && (() => {
+                const kit = getKitForTheme(selected, kits)
+                if (!kit) return null
+                const swatches = kit.colors.palettes.flatMap(p => p.colors.map(c => c.hex)).slice(0, 8)
+                const displayFont = kit.type?.display?.family ?? null
+                const bodyFont = kit.type?.body?.family ?? null
+                const traits = kit.tone?.attrs?.slice(0, 4).map(a => a.t).filter(Boolean) ?? []
+                return (
+                  <div className="ac2-laf-brand-kit-wrap" style={{ margin: '10px 0 0' }}>
+                    <button className="ac2-laf-brand-kit-card" onClick={() => setKitExpanded(v => !v)}>
+                      <div className="ac2-laf-brand-kit-card-logo" style={kit.symbolSrc ? { background: 'rgba(255,255,255,.06)' } : kit.logoStyle as CSSProperties}>
+                        {kit.symbolSrc
+                          ? <img src={kit.symbolSrc} alt={kit.name} style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
+                          : kit.logoText}
+                      </div>
+                      <div className="ac2-laf-brand-kit-card-left">
+                        <div className="ac2-laf-brand-kit-card-label">Brand Kit</div>
+                        <div className="ac2-laf-brand-kit-card-name">{kit.name}</div>
+                      </div>
+                      <ChevronDown size={14} strokeWidth={2} className={`ac2-laf-kit-chevron${kitExpanded ? ' open' : ''}`} />
+                    </button>
+                    {kitExpanded && (
+                      <div className="ac2-laf-kit-details">
+                        {swatches.length > 0 && (
+                          <div className="ac2-laf-kit-detail-row">
+                            <span className="ac2-laf-kit-detail-label">Colors</span>
+                            <div className="ac2-laf-brand-swatches">
+                              {swatches.map((hex, i) => (
+                                <span key={i} className="ac2-laf-brand-swatch" style={{ background: hex }} title={hex} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {(displayFont || bodyFont) && (
+                          <div className="ac2-laf-kit-detail-row">
+                            <span className="ac2-laf-kit-detail-label">Fonts</span>
+                            <span className="ac2-laf-kit-detail-value">{[displayFont, bodyFont].filter(Boolean).join(' · ')}</span>
+                          </div>
+                        )}
+                        {traits.length > 0 && (
+                          <div className="ac2-laf-kit-detail-row">
+                            <span className="ac2-laf-kit-detail-label">Tone</span>
+                            <span className="ac2-laf-kit-detail-value">{traits.join(', ')}</span>
+                          </div>
+                        )}
+                        {kit.imagery?.assets && kit.imagery.assets.length > 0 && (
+                          <div className="ac2-laf-kit-detail-row ac2-laf-kit-detail-row--assets">
+                            <span className="ac2-laf-kit-detail-label">Images</span>
+                            <div className="ac2-laf-kit-grid">
+                              {kit.imagery.assets.slice(0, 4).map((asset, i) => (
+                                <div key={i} className="ac2-laf-kit-sq" style={{ background: asset.preview ?? 'rgba(255,255,255,.08)' }} title={asset.name} />
+                              ))}
+                              {kit.imagery.assets.length > 4 && (
+                                <div className="ac2-laf-kit-sq ac2-laf-kit-sq--more">+{kit.imagery.assets.length - 4}</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
-
             <div className="cp-selected-divider" />
             <ToneConfigExtras
               textAmount={textAmount}
