@@ -1,3 +1,4 @@
+import type React from 'react'
 import type { BrandKit } from '@/features/brand-kit/types/brand'
 
 export interface ThemeOption {
@@ -7,6 +8,10 @@ export interface ThemeOption {
   colors: string[]
   section: 'system' | 'standalone' | 'brand'
   prompt?: string
+  kitLogoSrc?: string
+  kitLogoText?: string
+  kitLogoStyle?: React.CSSProperties
+  kitName?: string
 }
 
 export const SYSTEM_THEMES: ThemeOption[] = [
@@ -82,6 +87,12 @@ export function makeBrandKitThemes(kit: BrandKit): ThemeOption[] {
   }
   const c = allColors
   const primaryColors = c.slice(0, 3).length >= 2 ? c.slice(0, 3) : [...c.slice(0, 2), '#1a1a1a']
+  const logoProps = {
+    kitLogoSrc: kit.symbolSrc,
+    kitLogoText: kit.logoText,
+    kitLogoStyle: kit.logoStyle as React.CSSProperties | undefined,
+    kitName: kit.name,
+  }
   return [
     {
       id: `brand-${kit.id}-primary`,
@@ -89,6 +100,7 @@ export function makeBrandKitThemes(kit: BrandKit): ThemeOption[] {
       colors: primaryColors,
       section: 'brand',
       prompt: buildBrandPrompt(kit, 'Primary', primaryColors[0], primaryColors[2] ?? primaryColors[1]),
+      ...logoProps,
     },
     {
       id: `brand-${kit.id}-dark`,
@@ -96,6 +108,7 @@ export function makeBrandKitThemes(kit: BrandKit): ThemeOption[] {
       colors: ['#0a0a0a', c[0] ?? '#ffffff', c[1] ?? '#fbbf24'],
       section: 'brand',
       prompt: buildBrandPrompt(kit, 'Dark', '#0a0a0a', c[0] ?? '#ffffff'),
+      ...logoProps,
     },
     {
       id: `brand-${kit.id}-minimal`,
@@ -103,6 +116,7 @@ export function makeBrandKitThemes(kit: BrandKit): ThemeOption[] {
       colors: ['#18181b', '#e4e4e7', c[0] ?? '#6366f1'],
       section: 'brand',
       prompt: buildBrandPrompt(kit, 'Minimal', '#18181b', c[0] ?? '#6366f1'),
+      ...logoProps,
     },
     {
       id: `brand-${kit.id}-light`,
@@ -110,6 +124,7 @@ export function makeBrandKitThemes(kit: BrandKit): ThemeOption[] {
       colors: ['#f8f8f8', '#1a1a1a', c[0] ?? '#6366f1'],
       section: 'brand',
       prompt: buildBrandPrompt(kit, 'Light', '#f8f8f8', c[0] ?? '#6366f1'),
+      ...logoProps,
     },
   ]
 }

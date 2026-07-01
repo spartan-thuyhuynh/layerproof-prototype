@@ -1,5 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { useState, useRef, useCallback, useEffect, Fragment } from 'react'
+import { LookAndFeelModal } from './LookAndFeelModal'
+import type { ThemeOption } from '../themes'
+import { SYSTEM_THEMES } from '../themes'
 
 interface VersionEntry {
   id: number
@@ -76,10 +79,11 @@ interface Theme {
   label: string
   bg: string
   lines: Array<{ color: string; width: number }>
+  isBrand?: boolean
 }
 const THEMES: Theme[] = [
   { id: 'minimal-dark',   label: 'Minimal Dark',   bg: '#1c1c1e', lines: [{color:'#ffde42',width:68},{color:'#888',width:52},{color:'#666',width:44},{color:'#ffde42',width:36}] },
-  { id: 'bold-gradient',  label: 'Bold Gradient',  bg: 'linear-gradient(135deg,#5b21b6,#7c3aed)', lines: [{color:'#c4b5fd',width:72},{color:'#f9a8d4',width:58},{color:'#ffde42',width:40}] },
+  { id: 'bold-gradient',  label: 'Bold Gradient',  bg: 'linear-gradient(135deg,#5b21b6,#7c3aed)', lines: [{color:'#c4b5fd',width:72},{color:'#f9a8d4',width:58},{color:'#ffde42',width:40}], isBrand: true },
   { id: 'clean-light',    label: 'Clean Light',    bg: '#ffffff', lines: [{color:'#93c5fd',width:66},{color:'#60a5fa',width:50},{color:'#d1d5db',width:58},{color:'#9ca3af',width:40}] },
   { id: 'neon-accent',    label: 'Neon Accent',    bg: '#0d0d12', lines: [{color:'#a855f7',width:70},{color:'#22d3ee',width:52},{color:'#86efac',width:44},{color:'#a855f7',width:34}] },
   { id: 'warm-terra',     label: 'Warm Terra',     bg: '#1c1008', lines: [{color:'#fb923c',width:66},{color:'#fbbf24',width:54},{color:'#14b8a6',width:42},{color:'#fb923c',width:30}] },
@@ -154,12 +158,15 @@ export function MatteV3Editor() {
   const [lafOpen, setLafOpen] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<Theme>(THEMES[0])
   const [pendingTheme, setPendingTheme] = useState<Theme>(THEMES[0])
+  const [selectedThemeOption, setSelectedThemeOption] = useState<ThemeOption>(SYSTEM_THEMES[0])
   const [amountOfText, setAmountOfText] = useState<'minimal'|'concise'|'detailed'>('concise')
   const [pendingAmount, setPendingAmount] = useState<'minimal'|'concise'|'detailed'>('concise')
-  const [lafTab, setLafTab] = useState<'system'|'yours'>('system')
-  const [brandPersonality, setBrandPersonality] = useState('')
-  const [wordsToAvoid, setWordsToAvoid] = useState('')
+  const [outlineThemeSearch, setOutlineThemeSearch] = useState('')
+  const [outlineThemeCategory, setOutlineThemeCategory] = useState('All')
+  const [brandPersonality, setBrandPersonality] = useState<string[]>([])
+  const [wordsToAvoid, setWordsToAvoid] = useState<string[]>([])
   const [customInstruction, setCustomInstruction] = useState('')
+  const [spectrumValues, setSpectrumValues] = useState<Record<string, number>>({})
   const [commentMode, setCommentMode] = useState(false)
   const [tweakOpen, setTweakOpen]     = useState(false)
   const [pendingPins, setPendingPins] = useState<Array<{id:number,x:number,y:number,text:string}>>([])
@@ -875,7 +882,7 @@ export function MatteV3Editor() {
                 const canvasW = Math.round(BASE_PX * canvasPlatform.w / maxDim)
                 const canvasH = Math.round(BASE_PX * canvasPlatform.h / maxDim)
                 return (
-              <div className="mv3-canvas-wrap">
+              <div className={`mv3-canvas-wrap${sidebarCollapsed ? ' mv3-canvas-wrap--peek' : ''}`}>
                 <div className="mv3-canvas-slot">
                   <div className="mv3-canvas-inner" style={{ width: canvasW * (zoom / 100) }}>
                   {/* Platform header */}
@@ -1002,6 +1009,24 @@ export function MatteV3Editor() {
                     </div>
                   )}
                   </div>{/* end mv3-canvas-inner */}
+
+                  {/* Next page peek — only when pages sidebar is collapsed */}
+                  {sidebarCollapsed && activePage < pages.length - 1 && (() => {
+                    const nextPlatform = pageData[pages[activePage + 1]] ?? PLATFORM_OPTIONS[0]
+                    const maxDim2 = Math.max(nextPlatform.w, nextPlatform.h)
+                    const peekW = Math.round(600 * nextPlatform.w / maxDim2) * (zoom / 100)
+                    const peekH = Math.round(600 * nextPlatform.h / maxDim2) * (zoom / 100)
+                    return (
+                      <div className="mv3-canvas-next-peek" style={{ width: peekW }}>
+                        <div className="mv3-canvas-next-peek-inner" style={{ height: 48, overflow: 'hidden' }}>
+                          <div style={{ width: peekW, height: peekH, position: 'relative', transform: `scale(${zoom / 100})`, transformOrigin: 'top left', flexShrink: 0 }}>
+                            <PostPreview page={pageRenderSlot[pages[activePage + 1]] ?? (activePage + 1)} />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
                 </div>
               </div>
                 )
@@ -1410,58 +1435,143 @@ export function MatteV3Editor() {
       </div>
 
       {/* ── Outline modal ── */}
-      {showOutline && (
-        <div className="mv3-outline-overlay" onClick={() => setShowOutline(false)}>
-          <div className="mv3-outline-modal" onClick={e => e.stopPropagation()}>
-            <div className="mv3-outline-header">
-              <div className="mv3-outline-header-left">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="9" y2="18"/>
-                </svg>
-                <span className="mv3-outline-title">Outline</span>
-                <span className="mv3-outline-count">{pages.length} page{pages.length !== 1 ? 's' : ''}</span>
+      {showOutline && (() => {
+        const OUTLINE_THEME_CATEGORIES: Record<string, string[]> = {
+          All:       THEMES.map(t => t.id),
+          Dark:      ['minimal-dark','neon-accent','warm-terra','ocean','rose-gold','forest','slate'],
+          Light:     ['clean-light'],
+          Gradient:  ['bold-gradient'],
+          Vibrant:   ['neon-accent','rose-gold','bold-gradient'],
+          Neutral:   ['minimal-dark','slate','clean-light'],
+        }
+        const cats = Object.keys(OUTLINE_THEME_CATEGORIES)
+        const sq = outlineThemeSearch.toLowerCase().trim()
+        const catIds = OUTLINE_THEME_CATEGORIES[outlineThemeCategory] ?? THEMES.map(t => t.id)
+        const filteredThemes = THEMES.filter(t => {
+          const inCat = catIds.includes(t.id)
+          const inSearch = !sq || t.label.toLowerCase().includes(sq)
+          return inCat && inSearch
+        })
+        return (
+          <div className="mv3-outline-overlay" onClick={() => setShowOutline(false)}>
+            <div className="mv3-outline-modal mv3-outline-modal--wide" onClick={e => e.stopPropagation()}>
+              <div className="mv3-outline-header">
+                <div className="mv3-outline-header-left">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="9" y2="18"/>
+                  </svg>
+                  <span className="mv3-outline-title">Outline</span>
+                  <span className="mv3-outline-count">{pages.length} page{pages.length !== 1 ? 's' : ''}</span>
+                </div>
+                <button className="mv3-outline-close" onClick={() => setShowOutline(false)}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
               </div>
-              <button className="mv3-outline-close" onClick={() => setShowOutline(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-            <div className="mv3-outline-body">
-              {pages.map((pageId, idx) => {
-                const brief = pagePrompts[pageId]
-                const platform = pageData[pageId] ?? PLATFORM_OPTIONS[0]
-                const slot = pageRenderSlot[pageId] ?? idx
-                const isActive = idx === activePage
-                return (
-                  <div
-                    key={pageId}
-                    className={`mv3-outline-row${isActive ? ' mv3-outline-row--active' : ''}`}
-                    onClick={() => { setActivePage(idx); setShowOutline(false) }}
-                  >
-                    <div className="mv3-outline-row-num">{idx + 1}</div>
-                    <div className="mv3-outline-row-thumb">
-                      <MiniPostPreview page={slot} />
-                    </div>
-                    <div className="mv3-outline-row-content">
-                      <div className="mv3-outline-row-top">
-                        <span className="mv3-outline-row-platform">{platform.label}</span>
-                        <span className="mv3-outline-row-ratio">{platform.ratio}</span>
-                        {isActive && <span className="mv3-outline-row-badge">Viewing</span>}
+              <div className="mv3-outline-split">
+                {/* Left — page list */}
+                <div className="mv3-outline-body">
+                  {pages.map((pageId, idx) => {
+                    const brief = pagePrompts[pageId]
+                    const platform = pageData[pageId] ?? PLATFORM_OPTIONS[0]
+                    const slot = pageRenderSlot[pageId] ?? idx
+                    const isActive = idx === activePage
+                    return (
+                      <div
+                        key={pageId}
+                        className={`mv3-outline-row${isActive ? ' mv3-outline-row--active' : ''}`}
+                        onClick={() => { setActivePage(idx); setShowOutline(false) }}
+                      >
+                        <div className="mv3-outline-row-num">{idx + 1}</div>
+                        <div className="mv3-outline-row-thumb">
+                          <MiniPostPreview page={slot} />
+                        </div>
+                        <div className="mv3-outline-row-content">
+                          <div className="mv3-outline-row-top">
+                            <span className="mv3-outline-row-platform">{platform.label}</span>
+                            <span className="mv3-outline-row-ratio">{platform.ratio}</span>
+                            {isActive && <span className="mv3-outline-row-badge">Viewing</span>}
+                          </div>
+                          {brief ? (
+                            <p className="mv3-outline-row-brief">{brief.prompt}</p>
+                          ) : (
+                            <p className="mv3-outline-row-brief mv3-outline-row-brief--empty">No brief — blank page</p>
+                          )}
+                        </div>
                       </div>
-                      {brief ? (
-                        <p className="mv3-outline-row-brief">{brief.prompt}</p>
-                      ) : (
-                        <p className="mv3-outline-row-brief mv3-outline-row-brief--empty">No brief — blank page</p>
-                      )}
-                    </div>
+                    )
+                  })}
+                </div>
+
+                {/* Right — Look & Feel panel */}
+                <div className="mv3-outline-laf">
+                  <div className="mv3-outline-laf-heading">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    Look &amp; Feel
                   </div>
-                )
-              })}
+
+                  {/* Search */}
+                  <div className="mv3-laf-search-wrap">
+                    <svg className="mv3-laf-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input
+                      className="mv3-laf-search"
+                      placeholder="Search themes…"
+                      value={outlineThemeSearch}
+                      onChange={e => setOutlineThemeSearch(e.target.value)}
+                    />
+                    {outlineThemeSearch && (
+                      <button className="mv3-laf-search-clear" onClick={() => setOutlineThemeSearch('')}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Category chips */}
+                  {!outlineThemeSearch && (
+                    <div className="mv3-outline-laf-cats">
+                      {cats.map(c => (
+                        <button
+                          key={c}
+                          className={`mv3-outline-laf-cat${outlineThemeCategory === c ? ' mv3-outline-laf-cat--active' : ''}`}
+                          onClick={() => setOutlineThemeCategory(c)}
+                        >{c}</button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Theme grid */}
+                  {filteredThemes.length > 0 ? (
+                    <div className="mv3-outline-laf-grid">
+                      {filteredThemes.map(t => (
+                        <button
+                          key={t.id}
+                          className={`mv3-laf-theme-card${pendingTheme.id === t.id ? ' mv3-laf-theme-card--active' : ''}${t.isBrand ? ' mv3-laf-theme-card--brand' : ''}`}
+                          onClick={() => { setPendingTheme(t); setSelectedTheme(t) }}
+                        >
+                          <div className="mv3-laf-theme-preview" style={{ background: t.bg }}>
+                            {t.lines.map((l, i) => (
+                              <div key={i} className="mv3-laf-theme-line" style={{ background: l.color, width: `${l.width}%` }} />
+                            ))}
+                            {t.isBrand && <span className="mv3-laf-brand-badge">Brand</span>}
+                          </div>
+                          <span className="mv3-laf-theme-label">{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mv3-laf-yours-empty"><span>No themes match "{outlineThemeSearch}"</span></div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* ── Add Page size picker ── */}
       {showAddPagePicker && (
@@ -1497,125 +1607,22 @@ export function MatteV3Editor() {
 
       {/* ── Look & Feel modal ── */}
       {lafOpen && (
-        <div className="mv3-laf-overlay" onClick={() => setLafOpen(false)}>
-          <div className="mv3-laf-modal" onClick={e => e.stopPropagation()}>
-            <div className="mv3-laf-modal-header">
-              <span className="mv3-laf-modal-title">Look &amp; Feel</span>
-              <button className="mv3-laf-close" onClick={() => setLafOpen(false)}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-
-            <div className="mv3-laf-body">
-              {/* Left — themes */}
-              <div className="mv3-laf-left">
-                <div className="mv3-laf-section-label">THEME</div>
-                <div className="mv3-laf-tabs">
-                  <button className={`mv3-laf-tab${lafTab === 'system' ? ' mv3-laf-tab--active' : ''}`} onClick={() => setLafTab('system')}>System</button>
-                  <button className={`mv3-laf-tab${lafTab === 'yours' ? ' mv3-laf-tab--active' : ''}`} onClick={() => setLafTab('yours')}>Your themes</button>
-                </div>
-                {lafTab === 'system' ? (
-                  <div className="mv3-laf-theme-grid">
-                    {THEMES.map(t => (
-                      <button
-                        key={t.id}
-                        className={`mv3-laf-theme-card${pendingTheme.id === t.id ? ' mv3-laf-theme-card--active' : ''}`}
-                        onClick={() => setPendingTheme(t)}
-                      >
-                        <div className="mv3-laf-theme-preview" style={{ background: t.bg }}>
-                          {t.lines.map((l, i) => (
-                            <div key={i} className="mv3-laf-theme-line" style={{ background: l.color, width: `${l.width}%` }} />
-                          ))}
-                        </div>
-                        <span className="mv3-laf-theme-label">{t.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mv3-laf-yours-empty">
-                    <span>No saved themes yet.</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Right — settings */}
-              <div className="mv3-laf-right">
-                <div className="mv3-laf-section-label">AMOUNT OF TEXT</div>
-                <div className="mv3-laf-amount-row">
-                  {(['minimal','concise','detailed'] as const).map(opt => (
-                    <button
-                      key={opt}
-                      className={`mv3-laf-amount-card${pendingAmount === opt ? ' mv3-laf-amount-card--active' : ''}`}
-                      onClick={() => setPendingAmount(opt)}
-                    >
-                      <span className="mv3-laf-amount-name">{opt.charAt(0).toUpperCase() + opt.slice(1)}</span>
-                      <span className="mv3-laf-amount-desc">
-                        {opt === 'minimal' ? 'Short captions, hooks only.' : opt === 'concise' ? 'Balanced, punchy copy.' : 'Paragraph-style detail.'}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mv3-laf-section-label" style={{ marginTop: 24 }}>BRAND PERSONALITY</div>
-                <input
-                  className="mv3-laf-input"
-                  placeholder="Add trait…"
-                  value={brandPersonality}
-                  onChange={e => setBrandPersonality(e.target.value)}
-                />
-
-                <div className="mv3-laf-section-label" style={{ marginTop: 18 }}>WORDS TO AVOID</div>
-                <input
-                  className="mv3-laf-input"
-                  placeholder="e.g. leveraging, synergy…"
-                  value={wordsToAvoid}
-                  onChange={e => setWordsToAvoid(e.target.value)}
-                />
-
-                <div className="mv3-laf-section-label" style={{ marginTop: 18 }}>CUSTOM INSTRUCTION</div>
-                <textarea
-                  className="mv3-laf-textarea"
-                  placeholder="Describe the desired tone, personality, or style…"
-                  value={customInstruction}
-                  onChange={e => setCustomInstruction(e.target.value)}
-                  rows={4}
-                />
-              </div>
-            </div>
-
-            <div className="mv3-laf-footer">
-              <button
-                className="mv3-laf-apply-btn"
-                onClick={() => {
-                  const themeChanged = pendingTheme.id !== selectedTheme.id
-                  const amountChanged = pendingAmount !== amountOfText
-                  setSelectedTheme(pendingTheme)
-                  setAmountOfText(pendingAmount)
-                  setLafOpen(false)
-                  if (themeChanged || amountChanged) {
-                    const changes: string[] = []
-                    if (themeChanged) changes.push(`theme to ${pendingTheme.label}`)
-                    if (amountChanged) changes.push(`copy density to ${pendingAmount}`)
-                    logToChat(
-                      `Apply Look & Feel — ${changes.join(', ')}`,
-                      themeChanged && amountChanged
-                        ? `I've updated the visual style to the ${pendingTheme.label} theme and adjusted the copy density to ${pendingAmount}. All pages have been regenerated with the new look. Want me to fine-tune any specific element?`
-                        : themeChanged
-                        ? `I've applied the ${pendingTheme.label} theme across all ${pages.length} pages. The colour palette, typography, and background treatment have all been updated to match. Let me know if you'd like to tweak anything.`
-                        : `I've set the copy density to ${pendingAmount} across all pages — ${pendingAmount === 'minimal' ? 'short hooks and captions only' : pendingAmount === 'concise' ? 'balanced, punchy copy' : 'paragraph-style detail with more context'}. Want me to regenerate a specific page with this in mind?`,
-                      true,
-                      themeChanged ? `Applying ${pendingTheme.label} theme…` : 'Updating copy style…'
-                    )
-                  }
-                }}
-              >
-                Apply for all pages
-              </button>
-            </div>
-          </div>
-        </div>
+        <LookAndFeelModal
+          selected={selectedThemeOption.id}
+          onSelect={t => setSelectedThemeOption(t)}
+          onClose={() => setLafOpen(false)}
+          spectrumValues={spectrumValues}
+          onSpectrumChange={(key, v) => setSpectrumValues(prev => ({ ...prev, [key]: v }))}
+          textAmount={amountOfText}
+          onTextAmountChange={v => setAmountOfText(v as 'minimal' | 'concise' | 'detailed')}
+          brandPersonality={brandPersonality}
+          onBrandPersonalityChange={setBrandPersonality}
+          wordsToAvoid={wordsToAvoid}
+          onWordsToAvoidChange={setWordsToAvoid}
+          customInstruction={customInstruction}
+          onCustomInstructionChange={setCustomInstruction}
+          onOpenBrandKit={() => { setLafOpen(false); navigate('/brand-kit') }}
+        />
       )}
 
       {/* ── Version History modal ── */}
