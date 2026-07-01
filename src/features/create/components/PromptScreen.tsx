@@ -792,9 +792,11 @@ function ThemePickerSection({
                         {kitGroups.map(g => (
                           <div key={g.kit.id} className="cp-theme-modal-group">
                             <div className="cp-theme-modal-group-label">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-                              </svg>
+                              <div className="cp-theme-modal-kit-logo" style={g.kit.symbolSrc ? { background: 'rgba(255,255,255,.08)' } : g.kit.logoStyle as CSSProperties}>
+                                {g.kit.symbolSrc
+                                  ? <img src={g.kit.symbolSrc} alt={g.kit.name} style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
+                                  : g.kit.logoText}
+                              </div>
                               {g.kit.name}
                             </div>
                             <div className="cp-themes-grid cp-themes-grid--modal">{g.themes.map(renderThemeBtn)}</div>
