@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { BrandKit, LogoVariant } from '@/features/brand-kit/types/brand'
 import type { EditorActions } from './types'
-import { X } from '@/shared/icons'
+import { X, Info } from '@/shared/icons'
+import { Tip } from '@/shared/components/ui/Tip'
 import { CategoryUploadModal } from '@/features/brand-kit/components/modals/CategoryUploadModal'
 import { Portal } from '@/shared/lib/Portal'
 
@@ -42,8 +43,12 @@ export function Logos({ kit }: LogosProps) {
     <div className="fade-in logos-page">
       <div className="logos-page-header">
         <div>
-          <h2 className="logos-page-title">Logos ({count})</h2>
-          <p className="logos-page-sub">Add your brand&apos;s logo to keep your branding consistent</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <h2 className="logos-page-title">Logos ({count})</h2>
+            <Tip label="Add your brand's logo to keep your branding consistent" side="right">
+              <span className="section-info-icon"><Info style={{ width: 20, height: 20 }} /></span>
+            </Tip>
+          </div>
         </div>
         <button className="logos-upload-btn" onClick={() => setShowUpload(true)}>Upload Logos</button>
       </div>

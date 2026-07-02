@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Pencil } from '@/shared/icons'
+import { Tip } from '@/shared/components/ui/Tip'
 import { Portal } from '@/shared/lib/Portal'
 import type { BrandKit, BrandTheme } from '@/features/brand-kit/types/brand'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
@@ -205,9 +206,9 @@ function EditChatPanel({ theme, kit, kitId, currentPrompt, onBack, onSaved }: Ed
         {/* Body */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'row', minHeight: 0 }}>
           {/* Left: previews + prompt panel */}
-          <div style={{ width: 440, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#0a0a0a', padding: 16, gap: 12, borderRight: '1px solid var(--line)', overflowY: 'auto' }}>
+          <div style={{ width: 440, flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'var(--panel)', padding: 16, gap: 12, borderRight: '1px solid var(--line)', overflowY: 'auto' }}>
             {/* Name */}
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '.09em', marginBottom: 2 }}>Theme name</div>
+            <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.09em', marginBottom: 2 }}>Theme name</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>{nameDraft}</div>
 
             {/* Prompt toggle */}
@@ -220,7 +221,7 @@ function EditChatPanel({ theme, kit, kitId, currentPrompt, onBack, onSaved }: Ed
                   {promptOpen ? 'Hide prompt' : 'View prompt'}
                 </button>
                 {promptOpen && (
-                  <div style={{ fontSize: 11, color: 'var(--t2)', lineHeight: 1.65, whiteSpace: 'pre-wrap', background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 10px', border: '1px solid rgba(255,255,255,0.07)', maxHeight: 180, overflowY: 'auto' }}>
+                  <div style={{ fontSize: 11, color: 'var(--t2)', lineHeight: 1.65, whiteSpace: 'pre-wrap', background: 'var(--card)', borderRadius: 8, padding: '8px 10px', border: '1px solid var(--line)', maxHeight: 180, overflowY: 'auto' }}>
                     {promptDraft}
                   </div>
                 )}
@@ -308,14 +309,16 @@ function EditChatPanel({ theme, kit, kitId, currentPrompt, onBack, onSaved }: Ed
                 </div>
               )}
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-                <button onClick={() => imageInputRef.current?.click()} title="Attach image reference"
-                  className="chat-input-btn"
-                  style={{ background: 'var(--card)', border: '1px solid var(--line-2)', color: 'var(--t3)', cursor: 'pointer' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--t1)' }} onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--t3)' }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
-                    <path d="M8 2v12M2 8h12" />
-                  </svg>
-                </button>
+                <Tip label="Attach image reference" side="top">
+                  <button onClick={() => imageInputRef.current?.click()}
+                    className="chat-input-btn"
+                    style={{ background: 'var(--card)', border: '1px solid var(--line-2)', color: 'var(--t3)', cursor: 'pointer' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--t1)' }} onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--t3)' }}>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
+                      <path d="M8 2v12M2 8h12" />
+                    </svg>
+                  </button>
+                </Tip>
                 <textarea ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(input) } }}
                   placeholder="Describe what to change or attach a layout reference…"
@@ -433,7 +436,7 @@ export function ThemeDetailModal({ theme, kit, kitId, onClose, onCreateWithTheme
           onClick={(e) => e.stopPropagation()}
         >
           {/* Left: 3 stacked previews */}
-          <div style={{ width: '40%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 3, padding: 12, background: '#0a0a0a' }}>
+          <div style={{ width: '40%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 3, padding: 12, background: 'var(--panel)' }}>
             {PREVIEWS.map((p, i) => (
               <PreviewPanel key={i} src={theme.thumbnailSrc} gradient={p.gradient} label={p.label} index={i} />
             ))}
@@ -460,7 +463,7 @@ export function ThemeDetailModal({ theme, kit, kitId, onClose, onCreateWithTheme
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.09em', color: 'var(--t3)', marginBottom: 10 }}>
                 Theme prompt
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', background: '#0d0d0d', border: '1px solid var(--line)', borderRadius: 10, padding: '12px 14px', fontSize: 13, lineHeight: 1.7, color: 'var(--t2)', whiteSpace: 'pre-wrap', minHeight: 0 }}>
+              <div style={{ flex: 1, overflowY: 'auto', background: 'var(--card-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '12px 14px', fontSize: 13, lineHeight: 1.7, color: 'var(--t2)', whiteSpace: 'pre-wrap', minHeight: 0 }}>
                 {prompt || <span style={{ color: 'var(--t3)' }}>No prompt defined. Click "Edit theme" to add one.</span>}
               </div>
               {saved && (

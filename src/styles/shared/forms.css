@@ -1,8 +1,8 @@
 
 /* ============================================================  INLINE EDIT  */
 .edit-text { outline: none; cursor: text; border-radius: 5px; margin: 0 -3px; padding: 0 3px; transition: background .12s, box-shadow .12s; }
-.edit-text:hover { background: rgba(255,255,255,.06); }
-.edit-text:focus { background: rgba(255,255,255,.09); box-shadow: 0 0 0 1.5px var(--accent-line); }
+.edit-text:hover { background: rgba(127,127,127,.10); }
+.edit-text:focus { background: rgba(127,127,127,.14); box-shadow: 0 0 0 1.5px var(--accent-line); }
 .edit-text:empty::before { content: attr(data-ph); color: var(--t3); pointer-events: none; }
 .edit-text.block { display: block; }
 .swatch .meta .between { gap: 8px; align-items: center; }
@@ -14,15 +14,15 @@
 .edit-color-dot svg { width: 12px; height: 12px; color: #fff; }
 .edit-color:hover .edit-color-dot { opacity: 1; }
 
-.row-x { width: 24px; height: 24px; border-radius: 7px; background: #1e1e1e; border: 1px solid var(--line); color: var(--t3); display: grid; place-items: center; flex: none; padding: 0; }
+.row-x { width: 24px; height: 24px; border-radius: 7px; background: var(--card-2); border: 1px solid var(--line); color: var(--t3); display: grid; place-items: center; flex: none; padding: 0; }
 .row-x svg { width: 13px; height: 13px; }
-.row-x:hover { color: var(--c-red); border-color: var(--c-red); background: #251515; }
+.row-x:hover { color: var(--c-red); border-color: var(--c-red); background: color-mix(in srgb, var(--c-red) 12%, var(--card-2)); }
 
 .add-row { width: 100%; border: 1px dashed var(--line-2); background: none; color: var(--t2); border-radius: 11px; padding: 11px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; }
 .add-row:hover { border-color: var(--accent-line); color: var(--accent); background: var(--accent-soft); }
 .add-row svg { width: 15px; height: 15px; }
 
-.etag { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: 13px; padding: 5px 7px 5px 11px; border-radius: 8px; background: #1e1e1e; border: 1px solid var(--line); color: var(--t1); }
+.etag { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: 13px; padding: 5px 7px 5px 11px; border-radius: 8px; background: var(--card-2); border: 1px solid var(--line); color: var(--t1); }
 .wordtags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .wordtags .etag, .wordtags .etag-add { flex: none; }
 .wordtags .etag .edit-text { white-space: nowrap; }
@@ -30,16 +30,16 @@
 .wordbox.avoid .wordtags .etag { color: var(--t3); }
 .wordbox.avoid .wordtags .etag .edit-text { text-decoration: line-through; }
 .etag-x { background: none; border: none; color: var(--t3); width: 17px; height: 17px; display: grid; place-items: center; border-radius: 5px; font-size: 15px; line-height: 1; padding: 0; }
-.etag-x:hover { color: var(--c-red); background: #2a2a2a; }
+.etag-x:hover { color: var(--c-red); background: var(--card-2); }
 .etag-add { font-size: 13px; padding: 5px 11px; border-radius: 8px; background: none; border: 1px dashed var(--line-2); color: var(--t2); display: inline-flex; align-items: center; gap: 5px; font-weight: 700; }
 .etag-add:hover { border-color: var(--accent-line); color: var(--accent); }
 
 /* tone meter slider */
-.meter-edit { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 20px; background: #2a2a2a; margin: 10px 0 0; cursor: pointer; }
+.meter-edit { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 20px; background: var(--line-2); margin: 10px 0 0; cursor: pointer; }
 .meter-edit::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%; background: var(--accent); border: 2px solid var(--card); cursor: grab; box-shadow: 0 0 0 1px var(--accent); }
 .meter-edit::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background: var(--accent); border: 2px solid var(--card); cursor: grab; }
 
-.edit-hint { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--t3); border: 1px solid var(--line); background: #161616; border-radius: 7px; padding: 4px 9px; white-space: nowrap; }
+.edit-hint { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--t3); border: 1px solid var(--line); background: var(--card); border-radius: 7px; padding: 4px 9px; white-space: nowrap; }
 .edit-hint svg { width: 13px; height: 13px; color: var(--accent); }
 
 /* swatch / row remove placement */
@@ -60,7 +60,7 @@
 .logo-tile:hover .tile-x { opacity: 1; }
 .logo-tile .cap b.edit-text { font-size: 13px; }
 .logo-tile .cap .edit-text.block { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.dont .stage .x { background: #2a2a2a; transition: background .12s; }
+.dont .stage .x { background: var(--card-2); transition: background .12s; }
 .dont:hover .stage .x { background: var(--c-red); }
 
 .scale-row .samp { flex: 1; min-width: 0; }

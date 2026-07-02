@@ -11,7 +11,7 @@
 
 /* ============================================================  TYPOGRAPHY PAGE  */
 .type-page { display: flex; flex-direction: column; }
-.type-page-header { margin-bottom: 24px; }
+.type-page-header { margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .type-page-title { font-size: 22px; font-weight: 800; margin: 0 0 4px; letter-spacing: -.02em; color: var(--t1); }
 .type-page-sub { font-size: 13px; color: var(--t2); margin: 0; }
 
@@ -38,6 +38,30 @@
 .type-select:focus { outline: none; border-color: var(--accent); }
 .type-select-chevron { position: absolute; right: 10px; pointer-events: none; color: var(--t2); }
 
+/* unavailable font badge */
+.font-unavailable-badge {
+  position: absolute;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  color: #f59e0b;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color .12s;
+}
+.font-unavailable-badge:hover { color: #fbbf24; }
+.font-unavailable-icon { display: block; }
+
+/* font upload button */
+.font-upload-btn {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px;
+  height: 36px; padding: 0 18px; border-radius: 9px;
+  border: 1.5px solid var(--line-2); background: transparent; color: var(--t1);
+  font-size: 13.5px; font-weight: 500; font-family: inherit; cursor: pointer;
+  transition: border-color .15s, background .15s; white-space: nowrap;
+}
+.font-upload-btn:hover { border-color: var(--line-2); background: var(--card-2); }
+
 /* bold / italic toggles */
 .type-toggle {
   width: 34px; height: 34px; border-radius: 8px;
@@ -60,9 +84,21 @@
   letter-spacing: .1em; color: var(--t3); margin-bottom: 12px;
 }
 .type-preview-heading {
-  font-size: 62px; line-height: 1.05; letter-spacing: -.02em;
+  font-size: 40px; line-height: 1.1; letter-spacing: -.02em;
   color: var(--t1); word-break: break-word;
 }
 .type-preview-divider { height: 1px; background: var(--line); margin: 28px 0; }
 .type-preview-body-name { font-size: 26px; font-weight: 400; color: var(--t1); margin-bottom: 18px; }
 .type-preview-body-text { font-size: 17px; line-height: 1.8; color: var(--t2); margin: 0; }
+
+/* ── Unavailable font banner ── */
+.type-unavail-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card-2); border: none;
+  color: var(--t2); border-radius: 10px; padding: 10px 14px;
+  font-size: 13px; line-height: 1.4; margin-bottom: 20px;
+}
+.type-unavail-banner svg { color: var(--c-orange); flex-shrink: 0; }
+.type-unavail-banner strong { color: var(--t1); font-weight: 600; }
+.type-unavail-link { color: var(--t1); font-weight: 500; text-decoration: underline; cursor: pointer; }
+.type-unavail-link:hover { opacity: .7; }

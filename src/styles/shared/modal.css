@@ -2,17 +2,53 @@
 /* ============================================================  MODAL  */
 .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(3px); display: grid; place-items: center; z-index: 1000; padding: 24px; animation: fade .15s; }
 @keyframes fade { from { opacity: 0; } }
-.modal { background: #161616; border: 1px solid var(--line-2); border-radius: 18px; width: 100%; max-width: 540px; box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; animation: pop .18s cubic-bezier(.2,.8,.3,1.1); max-height: 88vh; display: flex; flex-direction: column; }
+.modal { background: var(--card); border: 1px solid var(--line-2); border-radius: 18px; width: 100%; max-width: 540px; box-shadow: var(--shadow); overflow: hidden; animation: pop .18s cubic-bezier(.2,.8,.3,1.1); max-height: 88vh; display: flex; flex-direction: column; }
 .modal.wide { max-width: 920px; }
 @keyframes pop { from { transform: translateY(12px) scale(.97); opacity: 0; } }
 .modal .mhead { padding: 22px 24px 0; }
-.modal .mhead .x { float: right; background: #1e1e1e; border: 1px solid var(--line); color: var(--t2); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; }
+.modal .mhead .x { float: right; background: var(--card-2); border: 1px solid var(--line); color: var(--t2); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; }
 .modal .mhead .x:hover { color: var(--t1); }
 .modal .mbody { padding: 18px 24px; overflow-y: auto; overflow-x: hidden; }
 .modal .mfoot { padding: 16px 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 
+/* ── Font Manager Modal ─────────────────────────────────────── */
+.fm-modal { max-width: 580px; background: var(--bg, #fff); }
+.fm-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 24px 0;
+}
+.fm-title { font-size: 22px; font-weight: 700; color: var(--t1); margin: 0; letter-spacing: -.02em; }
+.modal-x-btn {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--card-2); border: 1px solid var(--line);
+  color: var(--t2); display: grid; place-items: center; cursor: pointer;
+  flex: none;
+}
+.modal-x-btn:hover { color: var(--t1); }
+.fm-body { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 0; }
+.fm-empty { color: var(--t3); font-size: 13px; text-align: center; padding: 32px 0; }
+
+.fm-family { border-bottom: 1px solid var(--line); }
+.fm-family:last-child { border-bottom: none; }
+.fm-family-row, .fm-variant-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 0;
+}
+.fm-expand-btn {
+  width: 22px; height: 22px; display: grid; place-items: center;
+  background: none; border: none; color: var(--t2); cursor: pointer; flex: none;
+}
+.fm-family-name { flex: 1; font-size: 15px; color: var(--t1); }
+.fm-variant-name { flex: 1; font-size: 14px; color: var(--t2); padding-left: 32px; }
+.fm-delete-btn {
+  width: 30px; height: 30px; display: grid; place-items: center; flex: none;
+  background: none; border: none; color: var(--t3); cursor: pointer; border-radius: 6px;
+  transition: color .12s, background .12s;
+}
+.fm-delete-btn:hover { color: var(--t1); background: var(--card-2); }
+
 .kitpick { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; transition: all .12s; margin-bottom: 10px; }
-.kitpick:hover { border-color: var(--line-2); background: #1c1c1c; }
+.kitpick:hover { border-color: var(--line-2); background: var(--card-2); }
 .kitpick.sel { border-color: var(--accent); background: var(--accent-soft); }
 .kitpick .logo { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; flex: none; }
 .kitpick .radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-2); flex: none; display: grid; place-items: center; }

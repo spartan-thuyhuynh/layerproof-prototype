@@ -38,7 +38,7 @@ export const BRAND_KITS: BrandKit[] = [
       ],
     },
     type: {
-      display: { family: 'Anton', weight: '400', note: 'Headlines, hero, big numbers' },
+      display: { family: 'Anton Custom', weight: '400', note: 'Headlines, hero, big numbers' },
       body: { family: 'DM Sans', weight: '400', note: 'UI, body copy, captions' },
       scale: [
         { lbl: 'Display', sz: 56, w: 800, txt: 'Make it on-brand' },

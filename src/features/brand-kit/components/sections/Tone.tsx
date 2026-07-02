@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import type { BrandKit } from '@/features/brand-kit/types/brand'
-import { X } from '@/shared/icons'
+import { X, Info } from '@/shared/icons'
+import { Tip } from '@/shared/components/ui/Tip'
 import type { EditorActions } from './types'
 import { VoiceSpectrum } from './VoiceSpectrum'
 
@@ -280,10 +281,12 @@ export function Tone({ kit, ed }: ToneProps) {
     <div className="fade-in voice-page">
       {/* header */}
       <div className="voice-page-header">
-        <h2 className="voice-page-title">Brand Voice</h2>
-        <p className="voice-page-sub">
-          How your copy should sound to engage and resonate with your audience
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <h2 className="voice-page-title">Brand Voice</h2>
+          <Tip label="How your copy should sound to engage and resonate with your audience" side="right">
+            <span className="section-info-icon"><Info style={{ width: 20, height: 20 }} /></span>
+          </Tip>
+        </div>
       </div>
 
       {/* ── Target audience ── */}

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import type { BrandKit } from '@/features/brand-kit/types/brand'
 import type { EditorActions } from './types'
+import { Info } from '@/shared/icons'
+import { Tip } from '@/shared/components/ui/Tip'
 
 interface ImageryProps {
   kit: BrandKit
@@ -115,10 +117,12 @@ export function Imagery({ kit, ed }: ImageryProps) {
       {/* ── page header ── */}
       <div className="assets-page-header">
         <div>
-          <h2 className="assets-page-title">Image Assets</h2>
-          <p className="assets-page-sub">
-            Incorporate visual elements and brand assets to maintain design consistency
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <h2 className="assets-page-title">Image Assets</h2>
+            <Tip label="Incorporate visual elements and brand assets to maintain design consistency" side="right">
+              <span className="section-info-icon"><Info style={{ width: 20, height: 20 }} /></span>
+            </Tip>
+          </div>
         </div>
         <button className="assets-upload-btn">
           <UploadIcon /> Upload Images

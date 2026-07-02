@@ -15,8 +15,8 @@
 
   /* text */
   --t1: #f6f6f6;
-  --t2: #9a9a9a;
-  --t3: #6b6b6b;
+  --t2: #ababab;
+  --t3: #848484;
 
   /* accent (product yellow) */
   --accent: #ffde42;
@@ -83,19 +83,13 @@ html.light {
   --panel: #fafafa;
   --card: #ffffff;
   --card-2: #f4f4f4;
-  --line: #e4e4e4;
-  --line-2: #d0d0d0;
+  --line: #d4d4d4;
+  --line-2: #b8b8b8;
   --t1: #1a1a1a;
   --t2: #555555;
   --t3: #888888;
   --shadow: 0 1px 0 rgba(0,0,0,0.04) inset, 0 8px 30px rgba(0,0,0,0.10);
 }
-
-html.light .card.hover:hover { background: #f4f4f4; }
-html.light .ov-card { background: #ffffff; border-color: var(--line); }
-html.light .ov-card:hover { background: #f4f4f4; border-color: var(--line-2); }
-html.light .ov-card-title { color: var(--t1); }
-html.light .ov-card-count { color: var(--t2); }
 
 /* Sidebar light mode fixes */
 html.light .side { background: #ebebeb; border-right-color: #d8d8d8; }
@@ -110,26 +104,17 @@ html.light .create-dropdown { box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
 html.light .side-icon-btn:hover { background: rgba(0,0,0,0.07); }
 html.light .user-menu { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
 
-/* Overview banner & generate button */
-html.light .ov-banner { background: color-mix(in srgb, var(--accent) 12%, #fffff0); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
-html.light .ov-banner-title { color: var(--t1); }
-html.light .ov-banner-right { color: var(--t2); }
-html.light .ov-gen-btn { border-color: var(--line-2); color: var(--t1); }
-html.light .ov-gen-btn:hover { border-color: var(--line-2); background: var(--card-2); }
-
-/* Overview card inner tiles */
-html.light .ov-type-tile { background: var(--card-2); }
-html.light .ov-tile-role { color: var(--t3); }
-html.light .ov-tile-fam { color: var(--t2); }
-html.light .ov-tile-ag { color: var(--t1); }
-html.light .ov-voice-box { background: var(--card-2); }
-html.light .ov-voice-box-lang { color: var(--t3); }
-html.light .ov-voice-box-name { color: var(--t1); }
-html.light .ov-voice-box-chip { background: var(--card); border-color: var(--line); color: var(--t2); }
-html.light .ov-voice-chip-dot { background: var(--t3); }
-html.light .ov-theme-tile { background: var(--card-2); border-color: var(--line); }
-html.light .ov-theme-tile-name { color: var(--t1); }
-html.light .ov-theme-tile-count { color: var(--t3); }
+/* Accent-colored text — yellow is invisible on light backgrounds */
+html.light .ov-viewall,
+html.light .ov-link,
+html.light .ov-banner-tag,
+html.light .kit-banner .btag,
+html.light .ov-voice-box-icon,
+html.light .voice-density-opt.active .voice-density-icon,
+html.light .voice-density-opt.active .voice-density-label,
+html.light .vspec-example-label,
+html.light .vspec-desc strong,
+html.light .h-eyebrow { color: #7a6600; }
 
 /* Home page "New" chip */
 html.light .hp-new-chip { border-color: rgba(0,0,0,0.18); }
@@ -137,7 +122,7 @@ html.light .hp-new-chip:hover { background: rgba(0,0,0,0.05); border-color: rgba
 html.light .hp-new-chip-badge { background: var(--t1); color: var(--panel); }
 html.light .hp-feature-chip { background: var(--line); color: var(--t2); }
 html.light .hp-vellum-title { color: #1a1a1a; text-shadow: none; }
-html.light .hp-vellum-desc { color: rgba(0,0,0,0.55); }
+html.light .hp-vellum-desc { color: rgba(0,0,0,0.70); }
 html.light .hp-vellum-overlay { background: linear-gradient(to top, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.15) 45%, transparent 75%); }
 html.light .hp-vellum-wrap:hover .hp-vellum-overlay { background: rgba(255,255,255,0.25); }
 html.light .hp-vellum-btn--primary { background: #1a1a1a; color: #fff; }
@@ -159,10 +144,6 @@ html.light .ob-upload-btn:hover { border-color: #555; background: #333; }
 html.light .detail-panel { background: var(--panel); }
 html.light .detail-body::-webkit-scrollbar-thumb { border-color: var(--panel); }
 html.light .detail-body::-webkit-scrollbar-track { background: var(--panel); }
-
-/* Brand kit banner */
-html.light .kit-banner { background: linear-gradient(100deg, var(--accent-soft), transparent 60%), var(--card); }
-html.light .kit-banner h3 { color: var(--t1); }
 
 /* Kit switcher trigger (sidebar selected kit) */
 html.light .switch-trigger { background: var(--card); border-color: var(--line-2); }
@@ -189,12 +170,7 @@ html.light .kit-switch-ic { background: var(--card-2); border-color: var(--line)
 /* Kit header */
 html.light .kit-header-inline-row:hover { background: rgba(0,0,0,0.04); }
 
-/* Modals */
-html.light .modal { background: var(--card); box-shadow: 0 30px 80px rgba(0,0,0,0.15); }
-
 /* Misc dark elements */
-html.light .kbd-note { background: var(--card-2); }
-html.light .edit-hint { background: var(--card-2); }
 html.light .sub-enforce { background: var(--card-2); }
 html.light .cat-empty { background: var(--card-2); }
 html.light .ptile.more .pthumb { background: var(--card-2); }
@@ -217,4 +193,14 @@ html.light .onb-proc-step.active { background: var(--card-2); }
 html.light .onb-review-icon { background: var(--card-2); border-color: var(--line); }
 html.light .onb-swatch { border-color: rgba(0,0,0,0.1); }
 html.light .onb-proc-swatch { border-color: rgba(0,0,0,0.08); }
+
+
+/* ── Light mode: layout viz (thumbnail radius preview) ── */
+html.light .pthumb .rr { background: var(--line-2); }
+
+/* Light mode scrollbars — slim, soft grey */
+html.light ::-webkit-scrollbar-thumb { background: #d4d4d4; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #b4b4b4; }
+
+
 

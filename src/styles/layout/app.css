@@ -139,12 +139,12 @@
   right: 0;
   top: calc(100% + 8px);
   z-index: 200;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--card);
+  border: 1px solid var(--line-2);
   border-radius: 12px;
   padding: 6px;
   min-width: 210px;
-  box-shadow: 0 12px 36px rgba(0,0,0,.6);
+  box-shadow: var(--shadow);
 }
 .design-menu-label {
   font-size: 10.5px;
@@ -169,18 +169,18 @@
   text-align: left;
   transition: background .12s;
 }
-.design-menu-item:hover { background: #2c2c2c; }
+.design-menu-item:hover { background: var(--card-2); }
 .design-menu-item-icon {
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  background: #2a2a2a;
+  background: var(--card-2);
   display: grid;
   place-items: center;
   flex-shrink: 0;
   color: var(--t2);
 }
-.design-menu-item:hover .design-menu-item-icon { background: #353535; color: var(--t1); }
+.design-menu-item:hover .design-menu-item-icon { background: var(--line); color: var(--t1); }
 .design-menu-item-label { font-size: 13.5px; font-weight: 600; }
 .design-menu-empty { padding: 8px 10px 10px; }
 .design-menu-empty-text { font-size: 12.5px; color: var(--t2); line-height: 1.5; margin: 0 0 10px; }
@@ -258,8 +258,7 @@
 .kit-more-item.danger:hover { background: rgba(248,113,113,.1); color: #f87171; }
 .kit-more-divider { height: 1px; background: var(--line); margin: 5px 0; }
 .detail-body { flex: 1; overflow-y: auto; padding: var(--gut); }
-.detail-body::-webkit-scrollbar-thumb { border-color: #111111; }
-.detail-body::-webkit-scrollbar-track { background: #111111; }
+.detail-body::-webkit-scrollbar-track { background: transparent; }
 
 /* ============================================================  SUBSIDEBAR  */
 .subsidebar { width: 244px; flex: none; border-right: 1px solid var(--line); display: flex; flex-direction: column; overflow: hidden; background: var(--app); padding-top: 10px; }

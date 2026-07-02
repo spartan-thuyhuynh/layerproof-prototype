@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Portal } from '@/shared/lib/Portal'
+import { Tip } from '@/shared/components/ui/Tip'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
 import { useUIStore } from '@/shared/store/useUIStore'
 import type { BrandKit, BrandTheme } from '@/features/brand-kit/types/brand'
@@ -210,6 +211,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   const guideImageInputRef = useRef<HTMLInputElement>(null)
 
   const [attachedImages, setAttachedImages] = useState<string[]>([])
+  const [chatInputFocused, setChatInputFocused] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -288,7 +290,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
       if (trimmed.toLowerCase().includes('looks good') || trimmed.toLowerCase().includes('create')) {
         addMessage({
           role: 'bot',
-          content: `Your theme is ready! Click **Create theme** in the top right to save it to your brand kit.`,
+          content: `Your theme is ready! Click **Save theme** in the top right to save it to your brand kit.`,
         })
       } else {
         addMessage({
@@ -337,14 +339,13 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--t1)' }}>New Brand Theme</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn ghost" onClick={onClose}>Cancel</button>
             <button
               className="btn primary"
               onClick={handleCreate}
               style={{ opacity: canCreate ? 1 : 0.4 }}
               disabled={!canCreate}
             >
-              Create theme
+              Save theme
             </button>
           </div>
         </div>
@@ -352,7 +353,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
         {/* Body */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'row-reverse', minHeight: 0 }}>
           {/* Right: preview */}
-          <div style={{ width: 560, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#0a0a0a', padding: 16, gap: 14, borderLeft: '1px solid var(--line)', overflowY: 'auto' }}>
+          <div style={{ width: 560, flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'var(--panel)', padding: 16, gap: 14, borderLeft: '1px solid var(--line)', overflowY: 'auto' }}>
             {/* Name + prompt toggle — above previews */}
             <PromptSidebar themeName={themeName} themePrompt={themePrompt} onNameChange={setThemeName} />
 
@@ -371,13 +372,13 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                 ))
               ) : (
                 ['Preview', 'Social', 'Campaign'].map((label, i) => (
-                  <div key={i} style={{ width: '100%', aspectRatio: '16/9', borderRadius: 12, background: 'linear-gradient(160deg,#1a1a1a,#222)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, position: 'relative', flexShrink: 0 }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22 }}>
+                  <div key={i} style={{ width: '100%', aspectRatio: '16/9', borderRadius: 12, background: 'var(--card-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, position: 'relative', flexShrink: 0 }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--line-2)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22 }}>
                       <rect x="3" y="3" width="18" height="18" rx="3" />
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <path d="M3 15l5-5 4 4 3-3 6 6" />
                     </svg>
-                    <div style={{ position: 'absolute', bottom: 6, left: 8, fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,0.2)', letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
+                    <div style={{ position: 'absolute', bottom: 6, left: 8, fontSize: 8, fontWeight: 700, color: 'var(--t3)', letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
                   </div>
                 ))
               )}
@@ -385,28 +386,28 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
           </div>
 
           {/* Left: guide form or chat */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, padding: 20, background: '#0a0a0a' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, padding: 20, background: 'var(--panel)' }}>
             {/* ── Guide form (step 0) ── */}
             {step === 0 && (
-              <div style={{ flex: 1, overflowY: 'auto', paddingTop: 72, paddingBottom: 40, paddingLeft: 'max(32px, calc((100% - 480px) / 2))', paddingRight: 'max(32px, calc((100% - 480px) / 2))', display: 'flex', flexDirection: 'column', gap: 32, background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ flex: 1, overflowY: 'auto', paddingTop: 72, paddingBottom: 40, paddingLeft: 'max(32px, calc((100% - 480px) / 2))', paddingRight: 'max(32px, calc((100% - 480px) / 2))', display: 'flex', flexDirection: 'column', gap: 32, background: 'var(--card)', borderRadius: 16, border: '1px solid var(--line)' }}>
                 <input ref={guideImageInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleGuideImageAttach} />
 
                 {/* Greeting */}
                 <div>
-                  <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>Hi! Let's build a new Brand Theme for {kit.name}.</h2>
-                  <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', margin: 0, lineHeight: 1.6 }}>A Brand Theme is a rule set that tells AI how to apply your brand to a specific type of content.</p>
+                  <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t1)', margin: '0 0 6px' }}>Hi! Let's build a new Brand Theme for {kit.name}.</h2>
+                  <p style={{ fontSize: 14, color: 'var(--t2)', margin: 0, lineHeight: 1.6 }}>A Brand Theme is a rule set that tells AI how to apply your brand to a specific type of content.</p>
                 </div>
 
                 {/* Image asset selection — trigger button */}
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', marginBottom: 12 }}>
                     Which brand assets should I use?
                   </div>
                   <button
                     onClick={() => setAssetPickerOpen(true)}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', cursor: 'pointer', fontFamily: 'inherit', transition: 'border-color .15s, background .15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--card-2)', cursor: 'pointer', fontFamily: 'inherit', transition: 'border-color .15s, background .15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--line-2)'; e.currentTarget.style.background = 'var(--card-2)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = 'var(--card-2)' }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       {/* Tiny thumbnails of selected assets */}
@@ -416,25 +417,25 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                             <span key={a.name} style={{ width: 28, height: 28, borderRadius: 5, background: a.preview, display: 'block', flexShrink: 0 }} />
                           ))}
                           {selectedImageAssets.size > 4 && (
-                            <span style={{ width: 28, height: 28, borderRadius: 5, background: 'rgba(255,255,255,0.08)', display: 'grid', placeItems: 'center', fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>
+                            <span style={{ width: 28, height: 28, borderRadius: 5, background: 'var(--card-2)', display: 'grid', placeItems: 'center', fontSize: 10, color: 'var(--t2)' }}>
                               +{selectedImageAssets.size - 4}
                             </span>
                           )}
                         </span>
                       ) : (
-                        <span style={{ width: 28, height: 28, borderRadius: 5, background: 'rgba(255,255,255,0.06)', display: 'grid', placeItems: 'center' }}>
-                          <svg viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" style={{ width: 12, height: 12 }}>
+                        <span style={{ width: 28, height: 28, borderRadius: 5, background: 'var(--card-2)', display: 'grid', placeItems: 'center' }}>
+                          <svg viewBox="0 0 16 16" fill="none" stroke="var(--t3)" strokeWidth="1.5" strokeLinecap="round" style={{ width: 12, height: 12 }}>
                             <rect x="2" y="2" width="12" height="12" rx="2" />
                             <circle cx="5.5" cy="5.5" r="1" />
                             <path d="M2 10l3-3 3 3 2-2 4 4" />
                           </svg>
                         </span>
                       )}
-                      <span style={{ fontSize: 13, color: selectedImageAssets.size > 0 ? '#fff' : 'rgba(255,255,255,0.4)' }}>
+                      <span style={{ fontSize: 13, color: selectedImageAssets.size > 0 ? 'var(--t1)' : 'var(--t3)' }}>
                         {selectedImageAssets.size > 0 ? `${selectedImageAssets.size} asset${selectedImageAssets.size !== 1 ? 's' : ''} selected` : 'Choose from brand image assets'}
                       </span>
                     </span>
-                    <svg viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="var(--t3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
                       <path d="M6 4l4 4-4 4" />
                     </svg>
                   </button>
@@ -442,8 +443,8 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
 
                 {/* Image references — only relevant when Imagery asset is selected */}
                 {guideAssets.has('Imagery') && <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 4 }}>Any image references?</div>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 12 }}>Drop in some example designs — the more, the better for matching your style.</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', marginBottom: 4 }}>Any image references?</div>
+                  <div style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 12 }}>Drop in some example designs — the more, the better for matching your style.</div>
                   {guideImages.length > 0 && (
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
                       {guideImages.map((src, i) => (
@@ -472,7 +473,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
 
                 {/* Purpose selection */}
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 12 }}>What's this theme for?</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', marginBottom: 12 }}>What's this theme for?</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                     {THEME_PURPOSES.map((p) => {
                       const active = guidePurpose === p
@@ -480,7 +481,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                         <button
                           key={p}
                           onClick={() => setGuidePurpose(active ? '' : p)}
-                          style={{ padding: '8px 18px', borderRadius: 20, border: `1.5px solid ${active ? 'rgba(255,222,66,0.5)' : 'rgba(255,255,255,0.14)'}`, background: active ? 'rgba(255,222,66,0.12)' : 'rgba(255,255,255,0.05)', color: active ? 'var(--accent)' : 'rgba(255,255,255,0.55)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: active ? 600 : 400, transition: 'all .15s' }}
+                          style={{ padding: '8px 18px', borderRadius: 20, border: `1.5px solid ${active ? 'rgba(255,222,66,0.5)' : 'var(--line-2)'}`, background: active ? 'rgba(255,222,66,0.12)' : 'var(--card-2)', color: active ? 'var(--accent)' : 'var(--t2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: active ? 600 : 400, transition: 'all .15s' }}
                         >
                           {p}
                         </button>
@@ -503,16 +504,16 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
 
                 {/* Custom instruction */}
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 4 }}>Any custom instructions?</div>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 10 }}>Anything specific about style, mood, or restrictions for this theme.</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', marginBottom: 4 }}>Any custom instructions?</div>
+                  <div style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 10 }}>Anything specific about style, mood, or restrictions for this theme.</div>
                   <textarea
                     value={guideCustomInstruction}
                     onChange={e => setGuideCustomInstruction(e.target.value)}
                     onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-line)' }}
-                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--line-2)' }}
                     placeholder="e.g. Always use dark backgrounds, avoid sans-serif for headlines, keep copy under 10 words…"
                     rows={3}
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, color: '#fff', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.6, padding: '10px 14px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', transition: 'border-color .15s' }}
+                    style={{ width: '100%', background: 'var(--card)', border: '1px solid var(--line-2)', borderRadius: 10, color: 'var(--t1)', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.6, padding: '10px 14px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', transition: 'border-color .15s' }}
                   />
                 </div>
 
@@ -530,7 +531,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
 
             {/* ── Chat (step 1+) ── */}
             {step > 0 && (<>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: 'rgba(255,255,255,0.06)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: 'var(--card)', borderRadius: 16, border: '1px solid var(--line)', overflow: 'hidden' }}>
             <div style={{ flex: 1, overflowY: 'auto', paddingTop: 24, paddingBottom: 24, paddingLeft: 'max(28px, calc((100% - 640px) / 2))', paddingRight: 'max(28px, calc((100% - 640px) / 2))', display: 'flex', flexDirection: 'column', gap: 20 }}>
               {messages.map((msg) => (
                 <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
@@ -615,25 +616,37 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+              {/* Unified input container */}
+              <div style={{
+                display: 'flex', alignItems: 'flex-end', gap: 0,
+                background: 'var(--card)', border: `1.5px solid ${chatInputFocused ? 'var(--accent-line)' : 'var(--line-2)'}`,
+                borderRadius: 14, padding: '6px 6px 6px 8px', transition: 'border-color .15s',
+                boxShadow: chatInputFocused ? '0 0 0 3px var(--accent-soft)' : 'none',
+              }}>
                 {/* Attach image button */}
-                <button
-                  onClick={() => imageInputRef.current?.click()}
-                  title="Attach image reference"
-                  className="chat-input-btn"
-                  style={{ background: 'var(--card)', border: '1px solid var(--line-2)', color: 'var(--t3)', cursor: 'pointer' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--t1)'; e.currentTarget.style.borderColor = 'var(--line)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--t3)'; e.currentTarget.style.borderColor = 'var(--line-2)' }}
-                >
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
-                    <path d="M8 2v12M2 8h12" />
-                  </svg>
-                </button>
+                <Tip label="Attach image reference" side="top">
+                  <button
+                    onClick={() => imageInputRef.current?.click()}
+                    className="chat-input-btn"
+                    style={{ background: 'transparent', border: 'none', color: 'var(--t3)', cursor: 'pointer', flexShrink: 0 }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--t1)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--t3)' }}
+                  >
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
+                      <path d="M13.5 7.5l-6.5 6.5a3.5 3.5 0 01-5-5l7-7a2 2 0 012.8 2.8l-7 7a.5.5 0 01-.7-.7l6.5-6.5" />
+                    </svg>
+                  </button>
+                </Tip>
 
                 <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value)
+                    const el = e.target
+                    el.style.height = 'auto'
+                    el.style.height = Math.min(el.scrollHeight, 160) + 'px'
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault()
@@ -643,9 +656,9 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                   placeholder="Describe your theme or attach a layout reference…"
                   rows={1}
                   className="chat-input-text"
-                  style={{ flex: 1, resize: 'none', background: 'var(--card)', border: '1px solid var(--line-2)', borderRadius: 12, color: 'var(--t1)', fontFamily: 'inherit', lineHeight: 1.6, padding: '9px 13px', outline: 'none', maxHeight: 120, overflowY: 'auto' }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--accent-line)' }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line-2)' }}
+                  style={{ flex: 1, resize: 'none', background: 'transparent', border: 'none', color: 'var(--t1)', fontFamily: 'inherit', fontSize: 14, lineHeight: 1.6, padding: '6px 8px', outline: 'none', overflowY: 'auto', minHeight: 32, maxHeight: 160 }}
+                  onFocus={() => setChatInputFocused(true)}
+                  onBlur={() => setChatInputFocused(false)}
                 />
 
                 {/* Send button */}
@@ -653,7 +666,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                   onClick={() => handleSend(input)}
                   disabled={(!input.trim() && attachedImages.length === 0) || thinking}
                   className="chat-input-btn"
-                  style={{ background: (input.trim() || attachedImages.length > 0) && !thinking ? 'var(--accent)' : 'var(--card)', border: '1px solid var(--line-2)', color: (input.trim() || attachedImages.length > 0) && !thinking ? '#000' : 'var(--t3)', cursor: (input.trim() || attachedImages.length > 0) && !thinking ? 'pointer' : 'not-allowed', transition: 'background .15s, color .15s' }}
+                  style={{ background: (input.trim() || attachedImages.length > 0) && !thinking ? 'var(--accent)' : 'var(--card-2)', border: 'none', color: (input.trim() || attachedImages.length > 0) && !thinking ? '#000' : 'var(--t3)', cursor: (input.trim() || attachedImages.length > 0) && !thinking ? 'pointer' : 'default', transition: 'background .15s, color .15s', flexShrink: 0 }}
                 >
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
                     <path d="M2 14L14 8 2 2v5l8 1-8 1z" />
@@ -674,14 +687,14 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
             {/* Backdrop */}
             <div onClick={() => setAssetPickerOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
             {/* Dialog */}
-            <div style={{ position: 'relative', width: 560, maxWidth: '90vw', background: 'var(--app)', borderRadius: 16, border: '1px solid var(--line)', padding: 28, display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ position: 'relative', width: 560, maxWidth: '90vw', background: 'var(--card)', borderRadius: 16, border: '1px solid var(--line-2)', padding: 28, display: 'flex', flexDirection: 'column', gap: 20, boxShadow: 'var(--shadow)' }}>
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>Brand image assets</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>Select the assets you want to include in this theme.</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--t1)' }}>Brand image assets</div>
+                  <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>Select the assets you want to include in this theme.</div>
                 </div>
-                <button onClick={() => setAssetPickerOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', padding: 4, display: 'grid', placeItems: 'center' }}>
+                <button onClick={() => setAssetPickerOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', padding: 4, display: 'grid', placeItems: 'center' }}>
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ width: 16, height: 16 }}>
                     <path d="M4 4l8 8M12 4l-8 8" />
                   </svg>
@@ -700,7 +713,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                         selected ? next.delete(asset.name) : next.add(asset.name)
                         return next
                       })}
-                      style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: `2px solid ${selected ? 'var(--accent)' : 'rgba(255,255,255,0.08)'}`, cursor: 'pointer', padding: 0, background: 'none', transition: 'border-color .15s' }}
+                      style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: `2px solid ${selected ? 'var(--accent)' : 'var(--line)'}`, cursor: 'pointer', padding: 0, background: 'none', transition: 'border-color .15s' }}
                     >
                       <div style={{ width: '100%', aspectRatio: '4/3', background: asset.preview }} />
                       <div style={{ padding: '6px 8px', background: 'rgba(0,0,0,0.6)', fontSize: 11, color: 'rgba(255,255,255,0.8)', textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -724,7 +737,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                   onClick={() => setSelectedImageAssets(
                     selectedImageAssets.size === imageryAssets.length ? new Set() : new Set(imageryAssets.map(a => a.name))
                   )}
-                  style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline', padding: 0 }}
+                  style={{ fontSize: 12, color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline', padding: 0 }}
                 >
                   {selectedImageAssets.size === imageryAssets.length ? 'Deselect all' : 'Select all'}
                 </button>

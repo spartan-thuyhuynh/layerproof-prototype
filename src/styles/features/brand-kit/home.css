@@ -21,7 +21,7 @@
   min-height: 240px; color: var(--t2); border-radius: var(--radius); cursor: pointer; transition: all .15s;
 }
 .newkit:hover { border-color: var(--accent-line); color: var(--accent); background: var(--accent-soft); }
-.newkit .plus { width: 46px; height: 46px; border-radius: 12px; background: #1e1e1e; display: grid; place-items: center; margin-bottom: 12px; }
+.newkit .plus { width: 46px; height: 46px; border-radius: 12px; background: var(--card-2); display: grid; place-items: center; margin-bottom: 12px; }
 
 /* kit switcher (focused-first nav) */
 .kit-switch { position: relative; margin: 2px 6px 14px; }
@@ -34,10 +34,10 @@
 .switch-trigger .chev { margin-left: auto; color: var(--t3); width: 16px; height: 16px; flex: none; transition: transform .15s; }
 .switch-trigger.open .chev { transform: rotate(180deg); }
 
-.switch-menu { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 60; background: #1a1a1a; border: 1px solid var(--line-2); border-radius: 14px; padding: 6px; box-shadow: 0 18px 50px rgba(0,0,0,.55); animation: pop .14s cubic-bezier(.2,.8,.3,1.1); }
+.switch-menu { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 60; background: var(--card); border: 1px solid var(--line-2); border-radius: 14px; padding: 6px; box-shadow: 0 18px 50px rgba(0,0,0,.35); animation: pop .14s cubic-bezier(.2,.8,.3,1.1); }
 .switch-menu .mlbl { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--t3); font-weight: 700; padding: 8px 8px 5px; }
 .switch-opt { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 9px; background: none; border: none; color: var(--t1); text-align: left; }
-.switch-opt:hover { background: #242424; }
+.switch-opt:hover { background: var(--card-2); }
 .switch-opt.active { background: var(--accent-soft); }
 .switch-opt .logo { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-weight: 800; font-size: 13px; flex: none; }
 .switch-opt .nm { font-size: 13.5px; font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -45,8 +45,8 @@
 .switch-opt .applied-mini { margin-left: auto; color: var(--accent); display: flex; flex: none; }
 .switch-div { height: 1px; background: var(--line); margin: 6px 4px; }
 .switch-new { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 9px; background: none; border: none; color: var(--t2); font-weight: 700; font-size: 13px; text-align: left; }
-.switch-new:hover { background: #242424; color: var(--t1); }
-.switch-new .ic { width: 32px; height: 32px; border-radius: 8px; background: #242424; display: grid; place-items: center; flex: none; color: var(--t2); }
+.switch-new:hover { background: var(--card-2); color: var(--t1); }
+.switch-new .ic { width: 32px; height: 32px; border-radius: 8px; background: var(--card-2); display: grid; place-items: center; flex: none; color: var(--t2); }
 
 /* ============================================================  HOME PAGE  */
 
@@ -79,7 +79,7 @@
   text-align: left; font-family: inherit;
   transition: border-color .15s, background .15s, transform .15s;
 }
-.hp-create-card:hover { border-color: var(--line-2); background: #1f1f1f; transform: translateY(-2px); }
+.hp-create-card:hover { border-color: var(--line-2); background: var(--card-2); transform: translateY(-2px); }
 .hp-create-icon {
   width: 44px; height: 44px; border-radius: 12px;
   display: grid; place-items: center;

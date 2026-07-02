@@ -243,12 +243,11 @@ function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
           const grad = grads[t.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % grads.length]
           return (
             <div key={t.id} className="ov-theme-tile">
-              <div style={{ aspectRatio: '16 / 9', background: t.thumbnailSrc ? undefined : grad, position: 'relative' }}>
+              <div style={{ aspectRatio: '16 / 9', background: t.thumbnailSrc ? undefined : grad, position: 'relative', borderRadius: 10, overflow: 'hidden' }}>
                 {t.thumbnailSrc && <img src={t.thumbnailSrc} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
               </div>
               <div className="ov-theme-tile-footer">
                 <div className="ov-theme-tile-name">{t.name}</div>
-                <div className="ov-theme-tile-count">{t.rules.length} guideline{t.rules.length !== 1 ? 's' : ''}</div>
               </div>
             </div>
           )
@@ -302,7 +301,7 @@ export function Overview({ kit, go, ed, showWelcomeBanner, onDismissBanner }: Ov
           tag="SAMPLE BRAND KIT"
           title={<>What is<br />Brand Kit?</>}
           description="Brand Kit locks in your logo, colors, fonts, and voice across presentations, social, and everything you create. Set it once, customize anytime."
-          style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, #0e0c00) 0%, color-mix(in srgb, var(--accent) 6%, #0a0e1a) 100%)' }}
+          style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, var(--panel)) 0%, color-mix(in srgb, var(--accent) 6%, var(--card)) 100%)' }}
         />
       )}
 

@@ -11,7 +11,7 @@
 /* ── Colors page (palette cards) ────────────────────────────── */
 .colors-page { padding: 0; }
 .colors-page-header {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
   padding: 32px 32px 24px;
 }
 .colors-page-title { margin: 0 0 4px; font-size: 20px; font-weight: 700; letter-spacing: -.02em; color: var(--t1); }
@@ -19,17 +19,17 @@
 .colors-new-btn {
   flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px;
   height: 36px; padding: 0 18px; border-radius: 9px;
-  border: 1.5px solid #3a3a3a; background: transparent; color: #e0e0e0;
+  border: 1.5px solid var(--line-2); background: transparent; color: var(--t1);
   font-size: 13.5px; font-weight: 500; font-family: inherit; cursor: pointer;
   transition: border-color .15s, background .15s; white-space: nowrap;
 }
-.colors-new-btn:hover { border-color: #505050; background: rgba(255,255,255,.04); }
+.colors-new-btn:hover { border-color: var(--line-2); background: var(--card-2); }
 
 .color-palettes { display: flex; flex-direction: column; gap: 16px; padding: 0 32px 32px; }
 .colors-empty { padding: 48px 0; text-align: center; color: var(--t3); font-size: 14px; }
 
 .color-palette-card {
-  background: #1a1a1a; border: 1px solid #2e2e2e; border-radius: 14px; padding: 20px 22px 22px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px 22px;
 }
 
 /* palette header */
@@ -37,7 +37,7 @@
 .pal-name-area { display: flex; align-items: center; gap: 8px; }
 .pal-name { font-size: 15px; font-weight: 700; color: var(--t1); }
 .pal-name-input {
-  font-size: 15px; font-weight: 700; color: var(--t1); background: #252525;
+  font-size: 15px; font-weight: 700; color: var(--t1); background: var(--card-2);
   border: 1px solid var(--accent-line); border-radius: 6px; padding: 2px 8px;
   outline: none; font-family: inherit; width: 180px;
 }
@@ -46,12 +46,12 @@
   color: var(--t3); cursor: pointer; display: grid; place-items: center;
   transition: background .12s, color .12s;
 }
-.pal-icon-btn:hover { background: #2a2a2a; color: var(--t1); }
+.pal-icon-btn:hover { background: var(--card-2); color: var(--t1); }
 .pal-menu-wrap { position: relative; }
 .pal-menu {
   position: absolute; right: 0; top: calc(100% + 6px); z-index: 50;
-  background: #222; border: 1px solid #333; border-radius: 10px;
-  padding: 6px; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  background: var(--card); border: 1px solid var(--line-2); border-radius: 10px;
+  padding: 6px; min-width: 160px; box-shadow: var(--shadow);
 }
 .pal-menu-item {
   display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px;
@@ -59,18 +59,18 @@
   font-size: 13px; font-family: inherit; color: var(--t2); text-align: left;
   transition: background .1s;
 }
-.pal-menu-item:hover { background: #2a2a2a; }
+.pal-menu-item:hover { background: var(--card-2); }
 .pal-menu-item.danger { color: #f87171; }
 .pal-menu-item.danger:hover { background: rgba(248,113,113,.1); }
 
 /* description */
 .pal-desc {
   width: 100%; resize: none; overflow: hidden; background: transparent;
-  border: none; border-bottom: 1px solid #2a2a2a; outline: none;
+  border: none; border-bottom: 1px solid var(--line); outline: none;
   font-size: 13px; color: var(--t2); font-family: inherit; line-height: 1.5;
   padding: 0 0 8px; margin-bottom: 18px; transition: border-color .15s;
 }
-.pal-desc:focus { border-bottom-color: #444; color: var(--t1); }
+.pal-desc:focus { border-bottom-color: var(--line-2); color: var(--t1); }
 .pal-desc::placeholder { color: var(--t3); }
 
 /* swatches row */
@@ -101,25 +101,25 @@
   padding: 1px 4px; border-radius: 4px; transition: background .1s;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.pal-swatch-name:focus { background: #252525; }
+.pal-swatch-name:focus { background: var(--card-2); }
 .pal-swatch-hex {
   font-size: 11px; color: var(--t3); font-family: ui-monospace, "SF Mono", Menlo, monospace;
   letter-spacing: .02em;
 }
 
 .pal-add-swatch {
-  width: 80px; height: 80px; border-radius: 10px; border: 1.5px dashed #333;
-  background: #141414; color: var(--t3); display: flex; flex-direction: column;
+  width: 80px; height: 80px; border-radius: 10px; border: 1.5px dashed var(--line-2);
+  background: var(--card-2); color: var(--t3); display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 4px; cursor: pointer;
   font-size: 11px; font-family: inherit; font-weight: 500;
   transition: border-color .15s, color .15s, background .15s;
 }
-.pal-add-swatch:hover { border-color: #555; color: var(--t1); background: #1e1e1e; }
+.pal-add-swatch:hover { border-color: var(--t3); color: var(--t1); background: var(--card-2); }
 
 /* rule list */
 .rule { display: flex; gap: 14px; align-items: flex-start; padding: 15px 0; border-bottom: 1px solid var(--line); }
 .rule:last-child { border-bottom: none; }
-.rule .rk { width: 30px; height: 30px; border-radius: 8px; background: #1e1e1e; display: grid; place-items: center; flex: none; color: var(--t2); }
+.rule .rk { width: 30px; height: 30px; border-radius: 8px; background: var(--card-2); display: grid; place-items: center; flex: none; color: var(--t2); }
 .rule .rk svg { width: 15px; height: 15px; }
 .rule .rbody { flex: 1; }
 .rule .rbody b { font-size: 14px; font-weight: 700; }

@@ -72,7 +72,7 @@ export function Themes({ kit }: ThemesProps) {
           title={<>What is<br />Brand Theme?</>}
           description="Each brand can hold multiple themes. A theme adapts your brand colors, fonts, and voice for a specific campaign, product, or audience."
           onDismiss={() => { localStorage.setItem('themes_banner_dismissed', '1'); setBannerDismissed(true) }}
-          style={{ margin: '0 0 24px', background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, #0e0c00) 0%, color-mix(in srgb, var(--accent) 6%, #0a0e1a) 100%)', alignItems: 'flex-end' }}
+          style={{ margin: '0 0 24px', background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, var(--panel)) 0%, color-mix(in srgb, var(--accent) 6%, var(--card)) 100%)', alignItems: 'flex-end' }}
         />
       )}
 
@@ -175,14 +175,11 @@ function ThemeCard({ theme, gradients, onClick, onDelete }: ThemeCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <div
-      className="card hover"
-      style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
-    >
-      {/* Thumbnail */}
+    <div style={{ cursor: 'pointer', position: 'relative' }}>
+      {/* Thumbnail — fully rounded, no wrapper background */}
       <div
         onClick={onClick}
-        style={{ height: 160, position: 'relative', overflow: 'hidden' }}
+        style={{ height: 160, position: 'relative', overflow: 'hidden', borderRadius: 12 }}
       >
         {theme.thumbnailSrc ? (
           <img
@@ -195,11 +192,10 @@ function ThemeCard({ theme, gradients, onClick, onDelete }: ThemeCardProps) {
         )}
       </div>
 
-      {/* Footer */}
-      <div style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Footer — transparent, sits below the image */}
+      <div style={{ padding: '8px 4px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent' }}>
         <div onClick={onClick} style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{theme.name}</div>
-          <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 2 }}>{theme.rules.length} guideline{theme.rules.length !== 1 ? 's' : ''}</div>
         </div>
 
         {/* Kebab menu */}

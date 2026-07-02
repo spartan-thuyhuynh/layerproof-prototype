@@ -18,6 +18,7 @@ import { useUIStore } from '@/shared/store/useUIStore'
 import { deepClone } from '@/shared/lib/utils'
 import type { EditorActions, PathSegment } from '@/features/brand-kit/components/sections/types'
 import { Wand, Zap, Pencil, Trash } from '@/shared/icons'
+import { Tip } from '@/shared/components/ui/Tip'
 
 const BUILT_IN_CATEGORIES: Category[] = [
   { id: 'logos', label: 'Logos', icon: 'Star', hidden: false },
@@ -272,9 +273,11 @@ export function Detail({ kit }: DetailProps) {
               ) : (
                 <div className="kit-header-inline-row" onClick={() => setEditingName(true)}>
                   <span className="kit-header-name">{kit.name}</span>
-                  <span className="kit-header-inline-edit-btn" title="Rename">
-                    <Pencil style={{ width: 11, height: 11 }} />
-                  </span>
+                  <Tip label="Rename" side="top">
+                    <span className="kit-header-inline-edit-btn">
+                      <Pencil style={{ width: 11, height: 11 }} />
+                    </span>
+                  </Tip>
                 </div>
               )}
 
@@ -297,9 +300,11 @@ export function Detail({ kit }: DetailProps) {
                   <span className="kit-header-sub">
                     {kit.tagline || <span className="kit-header-sub--empty">Add a description…</span>}
                   </span>
-                  <span className="kit-header-inline-edit-btn" title="Edit description">
-                    <Pencil style={{ width: 10, height: 10 }} />
-                  </span>
+                  <Tip label="Edit description" side="top">
+                    <span className="kit-header-inline-edit-btn">
+                      <Pencil style={{ width: 10, height: 10 }} />
+                    </span>
+                  </Tip>
                 </div>
               )}
             </div>
@@ -382,17 +387,18 @@ export function Detail({ kit }: DetailProps) {
 
           {/* three-dot menu */}
           <div className="kit-more-wrap" ref={menuRef}>
-            <button
-              className="kit-header-more"
-              onClick={() => setMenuOpen((o) => !o)}
-              title="Kit options"
-            >
-              <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 18, height: 18 }}>
-                <circle cx="10" cy="4" r="1.5" />
-                <circle cx="10" cy="10" r="1.5" />
-                <circle cx="10" cy="16" r="1.5" />
-              </svg>
-            </button>
+            <Tip label="Kit options" side="top">
+              <button
+                className="kit-header-more"
+                onClick={() => setMenuOpen((o) => !o)}
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 18, height: 18 }}>
+                  <circle cx="10" cy="4" r="1.5" />
+                  <circle cx="10" cy="10" r="1.5" />
+                  <circle cx="10" cy="16" r="1.5" />
+                </svg>
+              </button>
+            </Tip>
 
             {menuOpen && (
               <div className="kit-more-menu">

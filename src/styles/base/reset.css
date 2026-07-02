@@ -14,6 +14,7 @@ button { font-family: inherit; cursor: pointer; }
 ::selection { background: var(--accent); color: #000; }
 
 /* scrollbars */
-::-webkit-scrollbar { width: 11px; height: 11px; }
-::-webkit-scrollbar-thumb { background: #2c2c2c; border-radius: 20px; border: 3px solid var(--panel); }
-::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 20px; }
+::-webkit-scrollbar-thumb:hover { background: var(--t3); }

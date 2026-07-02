@@ -3,7 +3,7 @@
 .guideline-tag {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 7px;
-  border: 1px solid var(--line-2); background: #181818; color: var(--t2);
+  border: 1px solid var(--line-2); background: var(--card-2); color: var(--t2);
   white-space: nowrap;
 }
 .guideline-tag svg { width: 13px; height: 13px; }
@@ -11,10 +11,10 @@
 
 .chip {
   display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
-  padding: 4px 10px; border-radius: 7px; background: #1e1e1e; border: 1px solid var(--line); color: var(--t2);
+  padding: 4px 10px; border-radius: 7px; background: var(--card-2); border: 1px solid var(--line); color: var(--t2);
 }
 .chip.solid { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
 .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
 
-.kbd-note { display:flex; gap:9px; align-items:flex-start; font-size:13px; color: var(--t2); background:#161616; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+.kbd-note { display:flex; gap:9px; align-items:flex-start; font-size:13px; color: var(--t2); background: var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
 .kbd-note svg { width:16px;height:16px;flex:none;color:var(--accent);margin-top:1px;}

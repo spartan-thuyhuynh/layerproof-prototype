@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import type { BrandKit, ColorPalette } from '@/features/brand-kit/types/brand'
-import { Plus, Pencil, Trash } from '@/shared/icons'
+import { Plus, Pencil, Trash, Info } from '@/shared/icons'
+import { Tip } from '@/shared/components/ui/Tip'
 import type { EditorActions } from './types'
 import { SaveableField } from '@/features/brand-kit/components/edit/SaveableField'
 
@@ -44,12 +45,13 @@ function SwatchItem({
           className="pal-color-input"
           onChange={(e) => ed.setVal(['colors', 'palettes', pi, 'colors', ci, 'hex'], e.target.value)}
         />
-        <button
-          className="pal-swatch-remove"
-          style={{ color: lum > 140 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)' }}
-          onClick={(e) => { e.stopPropagation(); ed.removeItem(['colors', 'palettes', pi, 'colors'], ci) }}
-          title="Remove"
-        >×</button>
+        <Tip label="Remove" side="top">
+          <button
+            className="pal-swatch-remove"
+            style={{ color: lum > 140 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)' }}
+            onClick={(e) => { e.stopPropagation(); ed.removeItem(['colors', 'palettes', pi, 'colors'], ci) }}
+          >×</button>
+        </Tip>
       </div>
       <input
         className="pal-swatch-name"
@@ -115,19 +117,23 @@ function PaletteCard({ palette, pi, ed }: { palette: ColorPalette; pi: number; e
           ) : (
             <span className="pal-name">{palette.name}</span>
           )}
-          <button className="pal-icon-btn" onClick={startEdit} title="Rename palette">
-            <Pencil style={{ width: 13, height: 13 }} />
-          </button>
+          <Tip label="Rename palette" side="top">
+            <button className="pal-icon-btn" onClick={startEdit}>
+              <Pencil style={{ width: 13, height: 13 }} />
+            </button>
+          </Tip>
         </div>
 
         <div className="pal-menu-wrap" ref={menuRef}>
-          <button className="pal-icon-btn" onClick={() => setShowMenu((o) => !o)} title="More options">
-            <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 16, height: 16 }}>
-              <circle cx="10" cy="4.5" r="1.5" />
-              <circle cx="10" cy="10" r="1.5" />
-              <circle cx="10" cy="15.5" r="1.5" />
-            </svg>
-          </button>
+          <Tip label="More options" side="top">
+            <button className="pal-icon-btn" onClick={() => setShowMenu((o) => !o)}>
+              <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 16, height: 16 }}>
+                <circle cx="10" cy="4.5" r="1.5" />
+                <circle cx="10" cy="10" r="1.5" />
+                <circle cx="10" cy="15.5" r="1.5" />
+              </svg>
+            </button>
+          </Tip>
           {showMenu && (
             <div className="pal-menu">
               <button
@@ -175,10 +181,12 @@ export function Colors({ kit, ed }: ColorsProps) {
     <div className="fade-in colors-page">
       <div className="colors-page-header">
         <div>
-          <h2 className="colors-page-title">Colors</h2>
-          <p className="colors-page-sub">
-            Choose your brand colors to create a consistent and impactful visual identity across all your materials
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <h2 className="colors-page-title">Colors</h2>
+            <Tip label="Choose your brand colors to create a consistent and impactful visual identity across all your materials" side="right">
+              <span className="section-info-icon"><Info style={{ width: 20, height: 20 }} /></span>
+            </Tip>
+          </div>
         </div>
         <button className="colors-new-btn" onClick={addPalette}>
           <Plus style={{ width: 14, height: 14 }} /> New Palette
