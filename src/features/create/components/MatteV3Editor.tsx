@@ -150,6 +150,27 @@ export function MatteV3Editor() {
   const [chatAttachments, setChatAttachments] = useState<Array<{id: string; label: string; bg: string}>>([])
   const pageIdRef = useRef(3)
   const [briefOpen, setBriefOpen] = useState(true)
+  const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false)
+  const [chatPanelWidth, setChatPanelWidth] = useState(400)
+  const chatResizeRef = useRef<{ startX: number; startW: number } | null>(null)
+
+  const onChatResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    chatResizeRef.current = { startX: e.clientX, startW: chatPanelWidth }
+    const onMove = (ev: MouseEvent) => {
+      if (!chatResizeRef.current) return
+      const delta = chatResizeRef.current.startX - ev.clientX
+      const next = Math.min(600, Math.max(280, chatResizeRef.current.startW + delta))
+      setChatPanelWidth(next)
+    }
+    const onUp = () => {
+      chatResizeRef.current = null
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
   const [pagePrompts, setPagePrompts] = useState<Record<number, { prompt: string; model: string; size: string; style: string; quality: string; seed: number }>>({
     0: { prompt: 'A clean social campaign poster about safeguarding intellectual property on Apple platforms, featuring a lock icon, bold headline, and CTA button on a warm off-white background. Minimal, editorial design.', model: 'GPT Image 2', size: '1024×1024', style: 'Dynamic', quality: 'Low', seed: 666597 },
     1: { prompt: 'Dark-themed social post highlighting 3 ways to protect your IP on Apple platforms, with icon list and a blue accent CTA on a deep navy background. Clean, structured layout.', model: 'GPT Image 2', size: '1024×1024', style: 'Dynamic', quality: 'Low', seed: 842103 },
@@ -588,20 +609,24 @@ export function MatteV3Editor() {
               <path d="M9 21V12h6v9"/>
             </svg>
           </button>
+          {chatPanelCollapsed && (
+            <button
+              className="mv3-icon-btn"
+              onClick={() => setChatPanelCollapsed(false)}
+              title="Expand panel"
+            >
+              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1.5" y="1.5" width="17" height="17" rx="2.5"/>
+                <line x1="7" y1="1.5" x2="7" y2="18.5"/>
+              </svg>
+            </button>
+          )}
           <div className="mv3-divider-v" />
           <div className="mv3-breadcrumb">
             <span className="mv3-campaign-title">Social Campaign – Present intellectual property</span>
           </div>
         </div>
         <div className="mv3-topbar-right">
-          <button className="mv3-sub-pill-btn" onClick={() => { setPendingTheme(selectedTheme); setPendingAmount(amountOfText); setLafOpen(true) }}>
-            <div className="mv3-laf-thumb-mini" style={{ background: selectedTheme.bg }}>
-              {selectedTheme.lines.slice(0, 3).map((l, i) => (
-                <div key={i} className="mv3-laf-thumb-mini-line" style={{ background: l.color, width: `${l.width * 0.55}%` }} />
-              ))}
-            </div>
-            Look &amp; Feel
-          </button>
           <div className="mv3-topbar-hist-group">
             <button
               className="mv3-topbar-hist-btn"
@@ -631,15 +656,26 @@ export function MatteV3Editor() {
             </svg>
             Outline
           </button>
-          <button className="mv3-sub-pill-btn mv3-sub-pill-btn--active">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-              <path d="M12 2l1.8 5.4L19.2 9l-5.4 1.8L12 16.2l-1.8-5.4L4.8 9l5.4-1.8L12 2z"/>
-              <path d="M19 14l.9 2.7 2.7.9-2.7.9L19 21l-.9-2.7-2.7-.9 2.7-.9L19 14z" opacity=".6"/>
+          <button className="mv3-sub-pill-btn" onClick={() => { setPendingTheme(selectedTheme); setPendingAmount(amountOfText); setLafOpen(true) }}>
+            <div className="mv3-laf-thumb-mini" style={{ background: selectedTheme.bg }}>
+              {selectedTheme.lines.slice(0, 3).map((l, i) => (
+                <div key={i} className="mv3-laf-thumb-mini-line" style={{ background: l.color, width: `${l.width * 0.55}%` }} />
+              ))}
+            </div>
+            Look &amp; Feel
+          </button>
+          <button className="mv3-rate-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
-            Agent
+            Rate
           </button>
           <button className="mv3-sub-share-btn" onClick={() => { setShareTab('publish'); setShowShareMenu(true) }}>Share</button>
           <div className="mv3-divider-v" />
+          <div className="mv3-plan-badge">
+            <span className="mv3-plan-label">Plan:</span>
+            <span className="mv3-plan-value">Unlimited</span>
+          </div>
           <div className="mv3-avatar">T</div>
         </div>
       </header>
@@ -1144,7 +1180,8 @@ export function MatteV3Editor() {
         </div>
 
         {/* ── Left side panel: brief + agent ── */}
-        <div className="mv3-agent-panel-wrap">
+        <div className={`mv3-agent-panel-wrap${chatPanelCollapsed ? ' mv3-agent-panel-wrap--collapsed' : ''}`} style={chatPanelCollapsed ? undefined : { width: chatPanelWidth }}>
+          <div className="mv3-chat-resize-handle" onMouseDown={onChatResizeStart} />
 
             {/* ── Brief panel — sits above the agent panel ── */}
             {(() => {
@@ -1217,6 +1254,16 @@ export function MatteV3Editor() {
                       <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
                     </svg>
                     Clear
+                  </button>
+                  <button
+                    className="mv3-agent-collapse-btn"
+                    title={chatPanelCollapsed ? 'Expand panel' : 'Collapse panel'}
+                    onClick={() => setChatPanelCollapsed(c => !c)}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="1.5" y="1.5" width="17" height="17" rx="2.5"/>
+                      <line x1="7" y1="1.5" x2="7" y2="18.5"/>
+                    </svg>
                   </button>
                 </div>
               </div>

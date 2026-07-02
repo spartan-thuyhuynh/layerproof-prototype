@@ -1350,6 +1350,7 @@ function OutlineEditor({
   const [liveBrief, setLiveBrief] = useState(brief)
   const sidebarThreadRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLInputElement>(null)
+  const [chatCollapsed, setChatCollapsed] = useState(false)
 
   // Setup card state
   const PLATFORMS = ['Instagram', 'LinkedIn', 'X (Twitter)', 'All Platforms']
@@ -1447,13 +1448,23 @@ function OutlineEditor({
       <div className="oe-body">
 
       {/* ── Left: Guided chat panel ── */}
-      <aside className="oe-sidebar">
+      <aside className={`oe-sidebar${chatCollapsed ? ' oe-sidebar--collapsed' : ''}`}>
         <div className="oe-sidebar-header">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             strokeWidth={2} className="oe-sidebar-icon">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
-          <span className="oe-sidebar-title">Guided chat</span>
+          {!chatCollapsed && <span className="oe-sidebar-title">Guided chat</span>}
+          <button
+            className="oe-sidebar-collapse-btn"
+            onClick={() => setChatCollapsed(c => !c)}
+            title={chatCollapsed ? 'Expand chat' : 'Collapse chat'}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+              style={{ transform: chatCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
         </div>
 
         <div className="oe-sidebar-thread" ref={sidebarThreadRef}>
