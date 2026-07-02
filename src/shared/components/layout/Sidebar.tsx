@@ -180,27 +180,21 @@ export function Sidebar({ showBack }: SidebarProps) {
           <I.Home /> Home
         </button>
         <button className="navitem">
-          <I.Grid /> All workspaces
+          <I.Grid /> All Projects
         </button>
 
         <div className="navlabel">Brand</div>
-        <button className="navitem">
+        <button className={`navitem${pathname.startsWith('/brand-kit') ? ' active' : ''}`} onClick={() => navigate('/brand-kit')}>
           <I.Layers /> Brand Kit <span className="new-badge">NEW</span>
         </button>
         <button className="navitem">
           <I.Palette /> Theme
-        </button>
-        <button className="navitem">
-          <I.Mic /> Tones
         </button>
 
         <div className="navlabel">Tools</div>
         <button className="navitem">
           <I.Zap /> AI Tools
           <I.ArrowRight style={{ width: 15, height: 15, marginLeft: 'auto' }} />
-        </button>
-        <button className="navitem">
-          <I.Calendar /> Schedule
         </button>
       </nav>
 
