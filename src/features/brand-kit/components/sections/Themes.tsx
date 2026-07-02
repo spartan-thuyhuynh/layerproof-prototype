@@ -59,7 +59,7 @@ export function Themes({ kit }: ThemesProps) {
     <div className="fade-in themes-page">
       <SecHead
         title="Brand Themes"
-        desc="Define prompt rule sets for applying this brand kit to campaigns, templates, and creative briefs."
+        desc="A rule set that tells AI how to apply your brand to presentations, social posts, and more."
         right={
           <button className="logos-upload-btn" onClick={() => setModal({ type: 'new-theme' })}>
             + New Theme
@@ -69,11 +69,10 @@ export function Themes({ kit }: ThemesProps) {
 
       {!bannerDismissed && (
         <Banner
-          tag="BRAND THEMES"
-          title={<>Prompt rules for<br />on-brand content</>}
-          description="Brand Themes are reusable prompt rule sets that tell AI how to apply your brand — colors, fonts, and voice — to a specific type of content. Create a theme for social posts, pitch decks, or email campaigns, then select it when generating to stay on-brand."
+          title={<>What is<br />Brand Theme?</>}
+          description="Each brand can hold multiple themes. A theme adapts your brand colors, fonts, and voice for a specific campaign, product, or audience."
           onDismiss={() => { localStorage.setItem('themes_banner_dismissed', '1'); setBannerDismissed(true) }}
-          style={{ margin: '0 0 24px' }}
+          style={{ margin: '0 0 24px', background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, #0e0c00) 0%, color-mix(in srgb, var(--accent) 6%, #0a0e1a) 100%)', alignItems: 'flex-end' }}
         />
       )}
 

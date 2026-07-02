@@ -190,13 +190,14 @@ function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
       <div style={{
         gridColumn: '1 / -1', display: 'flex', borderRadius: 12, overflow: 'hidden',
         border: '1px solid var(--line)', minHeight: 180, position: 'relative',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
       }}>
         {/* Left: info + CTA */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, padding: '22px 24px', zIndex: 1 }}>
           <div className="ov-te-tag">Brand Themes</div>
           <div className="ov-te-title">Define your creative direction</div>
           <div className="ov-te-desc">
-            Set prompt rules for how AI applies your brand to campaigns, social posts, pitch decks, and more.
+            A rule set that tells AI how to apply your brand to presentations, social posts, and more.
           </div>
           <button
             className="ov-te-btn"
@@ -299,8 +300,9 @@ export function Overview({ kit, go, ed, showWelcomeBanner, onDismissBanner }: Ov
       {kit.sample && (
         <Banner
           tag="SAMPLE BRAND KIT"
-          title={<>Discover the power<br />of Brand Kit</>}
-          description="Explore how this sample Brand Kit controls design, voice, and content consistency. Then create one tailored to your brand!"
+          title={<>What is<br />Brand Kit?</>}
+          description="Brand Kit locks in your logo, colors, fonts, and voice across presentations, social, and everything you create. Set it once, customize anytime."
+          style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, #0e0c00) 0%, color-mix(in srgb, var(--accent) 6%, #0a0e1a) 100%)' }}
         />
       )}
 
@@ -312,13 +314,6 @@ export function Overview({ kit, go, ed, showWelcomeBanner, onDismissBanner }: Ov
           onDismiss={onDismissBanner}
         />
       )}
-
-      <div className="ov-head-row">
-        <div>
-          <div className="ov-head-title">Overview</div>
-          <div className="ov-head-sub">Comprehensive summary of your brand kit elements and guidelines</div>
-        </div>
-      </div>
 
       <div className="ov-grid">
         <ThemesCard kit={kit} go={() => go('themes')} />

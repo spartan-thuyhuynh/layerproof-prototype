@@ -45,9 +45,11 @@
 /* ============================================================  OVERVIEW REDESIGN  */
 .ov-wrap { padding: 0; }
 .ov-banner { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: color-mix(in srgb, var(--accent) 10%, #0e0c00); border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent); border-radius: 14px; padding: 26px 28px; margin: 24px 32px 24px; }
+.ov-banner--single { grid-template-columns: 1fr; }
+.ov-banner--single .ov-banner-right { align-items: flex-start; }
 .ov-banner-left { padding-right: 28px; }
 .ov-banner-tag { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
-.ov-banner-title { font-size: 23px; font-weight: 800; letter-spacing: -.025em; color: var(--t1); margin: 0; line-height: 1.2; }
+.ov-banner-title { font-size: 23px; font-weight: 700; letter-spacing: -.025em; color: var(--t1); margin: 0; line-height: 1.2; }
 .ov-banner-right { font-size: 14px; color: var(--t2); line-height: 1.6; display: flex; align-items: center; }
 .ov-head-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 24px 32px 16px; gap: 16px; }
 .ov-head-title { font-size: 20px; font-weight: 800; color: var(--t1); letter-spacing: -.01em; }
@@ -75,10 +77,11 @@
 .ov-theme-tile-count { font-size: 10px; color: #666; margin-top: 2px; }
 
 /* empty state banner inside ThemesCard */
-.ov-te-tag { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.ov-te-tag { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--t2); }
 .ov-te-title { font-size: 22px; font-weight: 700; color: var(--t1); line-height: 1.2; letter-spacing: -.01em; }
 .ov-te-desc { font-size: 13px; color: var(--t3); line-height: 1.6; max-width: 380px; }
-.ov-te-btn { margin-top: 4px; align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); border: none; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.ov-te-btn { margin-top: 4px; align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; background: rgba(255,255,255,0.08); color: var(--t1); border: 1px solid var(--line); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.ov-te-btn:hover { background: rgba(255,255,255,0.13); }
 
 /* typography specimen tiles — own container, no ov-thumb base (avoids overflow:hidden) */
 .ov-type-thumbs { display: flex; flex-direction: column; gap: 6px; width: 148px; flex-shrink: 0; }

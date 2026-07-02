@@ -20,20 +20,23 @@ export function SecHead({ title, desc, right }: SecHeadProps) {
 }
 
 interface BannerProps {
-  tag: string
-  title: ReactNode
+  tag?: string
+  title?: ReactNode
   description: ReactNode
   onDismiss?: () => void
   style?: React.CSSProperties
+  singleColumn?: boolean
 }
 
-export function Banner({ tag, title, description, onDismiss, style }: BannerProps) {
+export function Banner({ tag, title, description, onDismiss, style, singleColumn }: BannerProps) {
   return (
-    <div className="ov-banner" style={{ position: 'relative', ...style }}>
-      <div className="ov-banner-left">
-        <div className="ov-banner-tag">{tag}</div>
-        <h2 className="ov-banner-title">{title}</h2>
-      </div>
+    <div className={`ov-banner${singleColumn ? ' ov-banner--single' : ''}`} style={{ position: 'relative', ...style }}>
+      {(tag || title) && (
+        <div className="ov-banner-left">
+          {tag && <div className="ov-banner-tag">{tag}</div>}
+          {title && <h2 className="ov-banner-title">{title}</h2>}
+        </div>
+      )}
       <div className="ov-banner-right">{description}</div>
       {onDismiss && (
         <button
