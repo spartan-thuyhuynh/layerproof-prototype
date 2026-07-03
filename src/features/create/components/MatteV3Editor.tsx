@@ -113,6 +113,17 @@ export function MatteV3Editor() {
   const [pages, setPages] = useState([0, 1, 2])
   const [pageTitles, setPageTitles] = useState<Record<number, string>>({})
   const [activePage, setActivePage] = useState(0)
+  const [sections, setSections] = useState<{ id: number; title: string; collapsed: boolean; afterPageId: number }[]>([])
+  const [editingSectionId, setEditingSectionId] = useState<number | null>(null)
+  const [editingSectionTitle, setEditingSectionTitle] = useState('')
+  const nextSectionIdRef = useRef(1)
+  const [insertMenuIdx, setInsertMenuIdx] = useState<number | null>(null)
+  const [insertMenuPos, setInsertMenuPos] = useState<{ x: number; y: number } | null>(null)
+  const [dropSectionId, setDropSectionId] = useState<number | null>(null)
+  const [sectionMenuId, setSectionMenuId] = useState<number | null>(null)
+  const [sectionMenuPos, setSectionMenuPos] = useState<{ x: number; y: number } | null>(null)
+  const [pageCtxIdx, setPageCtxIdx] = useState<number | null>(null)
+  const [pageCtxPos, setPageCtxPos] = useState<{ x: number; y: number } | null>(null)
   const [zoom, setZoom] = useState(100)
   const [gridView, setGridView] = useState(false)
   const [agentOpen, setAgentOpen] = useState(true)
@@ -530,6 +541,40 @@ export function MatteV3Editor() {
     })
   }
 
+  const addSection = (prevIdx: number) => {
+    const id = nextSectionIdRef.current++
+    const count = sections.length + 1
+    const afterPageId = pages[prevIdx]
+    setSections(prev => [...prev, { id, title: `Section ${count}`, collapsed: false, afterPageId }])
+    setEditingSectionId(id)
+    setEditingSectionTitle(`Section ${count}`)
+  }
+
+  const movePageToSection = (pageIdx: number, sectionId: number) => {
+    const sec = sections.find(s => s.id === sectionId)
+    if (!sec) return
+    const anchorIdx = pages.indexOf(sec.afterPageId)
+    if (anchorIdx === -1) return
+    // Insert right after the anchor (first slot of that section)
+    const targetIdx = anchorIdx + 1
+    reorderPages(pageIdx, targetIdx)
+  }
+
+  const deleteSection = (id: number) => {
+    setSections(prev => prev.filter(s => s.id !== id))
+  }
+
+  const toggleSectionCollapse = (id: number) => {
+    setSections(prev => prev.map(s => s.id === id ? { ...s, collapsed: !s.collapsed } : s))
+  }
+
+  const commitSectionTitle = () => {
+    if (editingSectionId === null) return
+    const title = editingSectionTitle.trim() || 'Section'
+    setSections(prev => prev.map(s => s.id === editingSectionId ? { ...s, title } : s))
+    setEditingSectionId(null)
+  }
+
   const handleWheel = useCallback((e: React.WheelEvent) => {
     if (e.metaKey || e.ctrlKey) {
       e.preventDefault()
@@ -627,28 +672,6 @@ export function MatteV3Editor() {
           </div>
         </div>
         <div className="mv3-topbar-right">
-          <div className="mv3-topbar-hist-group">
-            <button
-              className="mv3-topbar-hist-btn"
-              onClick={undoGeneration}
-              disabled={undoStack.length === 0}
-              title="Undo (⌘Z)"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
-              </svg>
-            </button>
-            <button
-              className="mv3-topbar-hist-btn"
-              onClick={redoGeneration}
-              disabled={redoStack.length === 0}
-              title="Redo (⌘⇧Z)"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.5"/>
-              </svg>
-            </button>
-          </div>
           <div className="mv3-divider-v" />
           <button className={`mv3-sub-pill-btn${showOutline ? ' mv3-sub-pill-btn--active' : ''}`} onClick={() => setShowOutline(true)}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -702,84 +725,176 @@ export function MatteV3Editor() {
             </button>
           </div>
           <div className="mv3-pages-list">
-            {pages.map((_, idx) => (
-              <div
-                key={pages[idx]}
-                className={`mv3-page-thumb-group${dragIdx === idx ? ' mv3-page-thumb-group--dragging' : ''}${dropIdx === idx && dragIdx !== idx ? ' mv3-page-thumb-group--drop-target' : ''}`}
-                draggable
-                onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragIdx(idx) }}
-                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDropIdx(idx) }}
-                onDragEnd={() => { setDragIdx(null); setDropIdx(null) }}
-                onDrop={e => { e.preventDefault(); if (dragIdx !== null) reorderPages(dragIdx, idx); setDragIdx(null); setDropIdx(null) }}
-                onMouseLeave={() => setThumbMenuPage(null)}
-              >
-                {/* Insert between pages — appears on hover */}
-                {idx > 0 && (
-                  <button
-                    className="mv3-insert-page-btn"
-                    onClick={e => { e.stopPropagation(); setActivePage(idx - 1); addPage() }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    Add page
-                  </button>
-                )}
-                <div className="mv3-page-thumb-row">
-                <span className={`mv3-page-num${idx === activePage ? ' mv3-page-num--active' : ''}`}>{idx + 1}</span>
-                <div className="mv3-page-thumb-wrap">
-                  <button
-                    className={`mv3-page-thumb-btn${idx === activePage ? ' mv3-page-thumb-btn--active' : ''}`}
-                    onClick={() => setActivePage(idx)}
-                  >
-                    <div className="mv3-page-thumb-preview">
-                      <div className="mv3-page-thumb-inner">
-                        <MiniPostPreview page={pageRenderSlot[pages[idx]] ?? idx} />
+            {(() => {
+              const items: React.ReactNode[] = []
+              // Map pageId → section anchored after that page
+              const sectionAfterPage: Record<number, typeof sections[0]> = {}
+              sections.forEach(s => { sectionAfterPage[s.afterPageId] = s })
+
+              // Track which section each page currently falls under
+              let currentSection: typeof sections[0] | null = null
+
+              pages.forEach((pageId, idx) => {
+                // Insert between-page zone and any section header before this page (except before first)
+                if (idx > 0) {
+                  const prevPageId = pages[idx - 1]
+                  const prevIdx = idx - 1
+                  items.push(
+                    <div key={`between-${idx}`} className="mv3-between-pages">
+                      <button
+                        className="mv3-insert-plus-btn"
+                        onClick={e => {
+                          e.stopPropagation()
+                          if (insertMenuIdx === prevIdx) { setInsertMenuIdx(null); setInsertMenuPos(null) }
+                          else {
+                            const r = e.currentTarget.getBoundingClientRect()
+                            setInsertMenuPos({ x: r.right + 6, y: r.top + r.height / 2 })
+                            setInsertMenuIdx(prevIdx)
+                          }
+                        }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                      </button>
+                    </div>
+                  )
+                  // Section header anchored after prevPageId
+                  if (sectionAfterPage[prevPageId]) {
+                    const sec = sectionAfterPage[prevPageId]
+                    currentSection = sec
+                    items.push(
+                      <div
+                        key={`sec-${sec.id}`}
+                        className={`mv3-section-header${dropSectionId === sec.id ? ' mv3-section-header--drop-target' : ''}`}
+                        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDropSectionId(sec.id) }}
+                        onDragLeave={() => setDropSectionId(null)}
+                        onDrop={e => { e.preventDefault(); setDropSectionId(null); if (dragIdx !== null) movePageToSection(dragIdx, sec.id) }}
+                      >
+                        <button
+                          className="mv3-section-chevron"
+                          onClick={() => toggleSectionCollapse(sec.id)}
+                          title={sec.collapsed ? 'Expand section' : 'Collapse section'}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+                            style={{ transform: sec.collapsed ? 'rotate(-90deg)' : 'none', transition: 'transform .15s' }}>
+                            <polyline points="6 9 12 15 18 9"/>
+                          </svg>
+                        </button>
+                        {editingSectionId === sec.id ? (
+                          <input
+                            className="mv3-section-title-input"
+                            value={editingSectionTitle}
+                            autoFocus
+                            onChange={e => setEditingSectionTitle(e.target.value)}
+                            onBlur={commitSectionTitle}
+                            onKeyDown={e => { if (e.key === 'Enter') commitSectionTitle(); if (e.key === 'Escape') { setEditingSectionId(null) } }}
+                            onClick={e => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span
+                            className="mv3-section-title"
+                            onDoubleClick={() => { setEditingSectionId(sec.id); setEditingSectionTitle(sec.title) }}
+                            onContextMenu={e => { e.preventDefault(); e.stopPropagation(); setSectionMenuId(sec.id); setSectionMenuPos({ x: e.clientX, y: e.clientY }) }}
+                          >{sec.title}</span>
+                        )}
+                      </div>
+                    )
+                  }
+                }
+
+                // Page is collapsed if it falls under a collapsed section
+                const isCollapsed = currentSection?.collapsed ?? false
+
+                if (!isCollapsed) {
+                  items.push(
+                    <div
+                      key={pageId}
+                      className={`mv3-page-thumb-group${dragIdx === idx ? ' mv3-page-thumb-group--dragging' : ''}${dropIdx === idx && dragIdx !== idx ? ' mv3-page-thumb-group--drop-target' : ''}`}
+                      draggable
+                      onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragIdx(idx) }}
+                      onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDropIdx(idx) }}
+                      onDragEnd={() => { setDragIdx(null); setDropIdx(null); setDropSectionId(null) }}
+                      onDrop={e => { e.preventDefault(); if (dragIdx !== null) reorderPages(dragIdx, idx); setDragIdx(null); setDropIdx(null) }}
+                      onMouseLeave={() => setThumbMenuPage(null)}
+                    >
+                      <div className="mv3-page-thumb-row">
+                        <span className={`mv3-page-num${idx === activePage ? ' mv3-page-num--active' : ''}`}>{idx + 1}</span>
+                        <div className="mv3-page-thumb-wrap">
+                          <button
+                            className={`mv3-page-thumb-btn${idx === activePage ? ' mv3-page-thumb-btn--active' : ''}`}
+                            onClick={() => setActivePage(idx)}
+                            onContextMenu={e => {
+                              e.preventDefault(); e.stopPropagation()
+                              setThumbMenuPos({ x: e.clientX, y: e.clientY })
+                              setThumbMenuPage(idx)
+                            }}
+                          >
+                            <div className="mv3-page-thumb-preview">
+                              <div className="mv3-page-thumb-inner">
+                                <MiniPostPreview page={pageRenderSlot[pages[idx]] ?? idx} />
+                              </div>
+                            </div>
+                          </button>
+                          <button
+                            className="mv3-thumb-more-btn"
+                            onClick={e => {
+                              e.stopPropagation()
+                              if (thumbMenuPage === idx) { setThumbMenuPage(null); setThumbMenuPos(null) }
+                              else {
+                                const r = e.currentTarget.getBoundingClientRect()
+                                setThumbMenuPos({ x: r.right + 4, y: r.top })
+                                setThumbMenuPage(idx)
+                              }
+                            }}
+                            title="Page options"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                              <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                            </svg>
+                          </button>
+                          {thumbMenuPage === idx && thumbMenuPos && (
+                            <>
+                              <div className="mv3-thumb-menu-backdrop" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null) }} />
+                              <div className="mv3-thumb-menu" style={{ left: thumbMenuPos.x, top: thumbMenuPos.y }}>
+                                {sections.length > 0 && (
+                                  <>
+                                    <div className="mv3-thumb-menu-label">Move to section</div>
+                                    {sections.map(sec => (
+                                      <button key={sec.id} className="mv3-thumb-menu-item" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null); movePageToSection(idx, sec.id) }}>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                                        </svg>
+                                        {sec.title}
+                                      </button>
+                                    ))}
+                                    <div className="mv3-thumb-menu-divider" />
+                                  </>
+                                )}
+                                <button className="mv3-thumb-menu-item mv3-thumb-menu-item--danger" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null); deletePage() }}>
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                  </svg>
+                                  Delete page
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </button>
-                  <button
-                    className="mv3-thumb-more-btn"
-                    onClick={e => {
-                      e.stopPropagation()
-                      if (thumbMenuPage === idx) { setThumbMenuPage(null); setThumbMenuPos(null) }
-                      else {
-                        const r = e.currentTarget.getBoundingClientRect()
-                        setThumbMenuPos({ x: r.right + 4, y: r.top })
-                        setThumbMenuPage(idx)
-                      }
-                    }}
-                    title="Page options"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
-                    </svg>
-                  </button>
-                  {thumbMenuPage === idx && thumbMenuPos && (
-                    <>
-                      <div className="mv3-thumb-menu-backdrop" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null) }} />
-                      <div className="mv3-thumb-menu" style={{ left: thumbMenuPos.x, top: thumbMenuPos.y }}>
-                        <button className="mv3-thumb-menu-item mv3-thumb-menu-item--danger" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null); deletePage() }}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                          </svg>
-                          Delete page
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-                </div>{/* end mv3-page-thumb-row */}
-              </div>
-            ))}
+                  )
+                }
+              })
+              return items
+            })()}
             {/* Add page — last slot */}
-            <div className="mv3-page-thumb-row">
+            <div className="mv3-page-thumb-row" style={{ marginTop: 4 }}>
               <span style={{ width: 16, flexShrink: 0 }} />
-              <button className="mv3-sidebar-add-page-btn" onClick={e => { e.stopPropagation(); addPage() }}>
+              <button className="mv3-sidebar-add-page-btn" onClick={e => { e.stopPropagation(); addPage() }} title="Add page">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
-                Add page
               </button>
             </div>
           </div>
@@ -787,6 +902,94 @@ export function MatteV3Editor() {
 
         {/* Main content */}
         <div className="mv3-main">
+
+          {/* ── Page toolbar bar ── */}
+          {!(commentMode || tweakOpen) && (
+          <div className="mv3-page-toolbar" onClick={e => e.stopPropagation()}>
+            <>
+                {(() => {
+                  const tbPlatform = pageData[pages[activePage]] ?? PLATFORM_OPTIONS[0]
+                  return (
+                    <div className="mv3-platform-btn-wrap">
+                      <button className="mv3-platform-btn" onClick={e => { e.stopPropagation(); setShowPlatformPicker(p => !p) }}>
+                        <span className="mv3-platform-btn-label">{tbPlatform.label}</span>
+                        <span className="mv3-platform-btn-ratio">{tbPlatform.ratio}</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      </button>
+                      {showPlatformPicker && (
+                        <div className="mv3-platform-picker" onClick={e => e.stopPropagation()}>
+                          <div className="mv3-platform-picker-title">Choose platform &amp; size</div>
+                          {PLATFORM_OPTIONS.map(p => (
+                            <button key={p.id} className={`mv3-platform-option${tbPlatform.id === p.id ? ' mv3-platform-option--active' : ''}`} onClick={() => changePlatform(p)}>
+                              <span className="mv3-platform-option-label">{p.label}</span>
+                              <span className="mv3-platform-option-ratio">{p.ratio}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
+                <div className="mv3-sel-sep" />
+                <button className="mv3-sel-btn" onClick={e => { e.stopPropagation(); setShowVersionHistory(true); setSelectedVersionId(null) }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 8 14"/>
+                  </svg>
+                  Version History
+                </button>
+                <div className="mv3-sel-sep" />
+                <button className="mv3-sel-btn mv3-sel-btn--mark" onClick={e => { e.stopPropagation(); setCommentMode(true) }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  Mark to edit
+                </button>
+                <div style={{ flex: 1 }} />
+                <button className="mv3-sel-icon-btn" title="Undo (⌘Z)" onClick={e => { e.stopPropagation(); undoGeneration() }} disabled={undoStack.length === 0}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
+                  </svg>
+                </button>
+                <button className="mv3-sel-icon-btn" title="Redo (⌘⇧Z)" onClick={e => { e.stopPropagation(); redoGeneration() }} disabled={redoStack.length === 0}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.5"/>
+                  </svg>
+                </button>
+                <div className="mv3-sel-sep" />
+                <button className="mv3-sel-icon-btn" title="Download">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                </button>
+                <div className="mv3-sel-sep" />
+                <button className="mv3-sel-icon-btn" title="Duplicate page" onClick={e => { e.stopPropagation(); duplicatePage() }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+            </>
+          </div>
+          )}
+
+          {/* ── Floating comment mode bar ── */}
+          {(commentMode || tweakOpen) && (
+            <div className="mv3-comment-float-bar" onClick={e => e.stopPropagation()}>
+              <span className="mv3-sel-mode-dot" />
+              <span className="mv3-sel-mode-label">
+                {tweakOpen
+                  ? `${pendingPins.length} pin${pendingPins.length !== 1 ? 's' : ''} placed — click canvas to add more`
+                  : 'Click on the canvas to place a comment pin'}
+              </span>
+              <div className="mv3-sel-sep" />
+              <button className="mv3-sel-btn mv3-sel-btn--exit" onClick={e => { e.stopPropagation(); closeTweakBar(); setCommentMode(false) }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Exit
+              </button>
+            </div>
+          )}
+
           {/* Canvas area */}
           <div className="mv3-canvas-area" onWheel={gridView ? undefined : handleWheel}>
 
@@ -817,99 +1020,6 @@ export function MatteV3Editor() {
               /* ── Single-page view ── */
               <>
                 {/* Selection / edit-mode toolbar — outside canvas-wrap so it never scrolls out of view */}
-                {(selected || commentMode || tweakOpen) && (
-                  <div className={`mv3-sel-toolbar-row`} onClick={e => e.stopPropagation()}>
-                    <div className={`mv3-sel-toolbar${(commentMode || tweakOpen) ? ' mv3-sel-toolbar--comment-mode' : ''}`}>
-                      {(commentMode || tweakOpen) ? (
-                        /* ── Comment edit mode ── */
-                        <>
-                          <span className="mv3-sel-mode-dot" />
-                          <span className="mv3-sel-mode-label">
-                            {tweakOpen
-                              ? `${pendingPins.length} pin${pendingPins.length !== 1 ? 's' : ''} placed — click canvas to add more`
-                              : 'Click on the canvas to place a comment pin'}
-                          </span>
-                          <div className="mv3-sel-sep" />
-                          <button className="mv3-sel-btn mv3-sel-btn--exit" onClick={e => { e.stopPropagation(); closeTweakBar(); setCommentMode(false) }}>
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                            Exit
-                          </button>
-                        </>
-                      ) : (
-                        /* ── Normal toolbar ── */
-                        <>
-                          {(() => {
-                            const tbPlatform = pageData[pages[activePage]] ?? PLATFORM_OPTIONS[0]
-                            return (
-                              <div className="mv3-platform-btn-wrap">
-                                <button
-                                  className="mv3-platform-btn"
-                                  onClick={e => { e.stopPropagation(); setShowPlatformPicker(p => !p) }}
-                                >
-                                  <span className="mv3-platform-btn-label">{tbPlatform.label}</span>
-                                  <span className="mv3-platform-btn-ratio">{tbPlatform.ratio}</span>
-                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="6 9 12 15 18 9"/>
-                                  </svg>
-                                </button>
-                                {showPlatformPicker && (
-                                  <div className="mv3-platform-picker" onClick={e => e.stopPropagation()}>
-                                    <div className="mv3-platform-picker-title">Choose platform &amp; size</div>
-                                    {PLATFORM_OPTIONS.map(p => (
-                                      <button
-                                        key={p.id}
-                                        className={`mv3-platform-option${tbPlatform.id === p.id ? ' mv3-platform-option--active' : ''}`}
-                                        onClick={() => changePlatform(p)}
-                                      >
-                                        <span className="mv3-platform-option-label">{p.label}</span>
-                                        <span className="mv3-platform-option-ratio">{p.ratio}</span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })()}
-                          <div className="mv3-sel-sep" />
-                          <button className="mv3-sel-btn" onClick={e => { e.stopPropagation(); setShowVersionHistory(true); setSelectedVersionId(null) }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 8 14"/>
-                            </svg>
-                            Version History
-                          </button>
-                          <div className="mv3-sel-sep" />
-                          <button
-                            className="mv3-sel-btn mv3-sel-btn--mark"
-                            onClick={e => { e.stopPropagation(); setCommentMode(true) }}
-                          >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                            </svg>
-                            Mark to edit
-                          </button>
-                          <div className="mv3-sel-sep" />
-                          <button className="mv3-sel-icon-btn" title="Download">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                          </button>
-                          <div className="mv3-sel-sep" />
-                          <button className="mv3-sel-icon-btn" title="Duplicate page" onClick={e => { e.stopPropagation(); duplicatePage() }}>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                          </button>
-                          <button className="mv3-sel-icon-btn" title="Delete page" onClick={e => { e.stopPropagation(); deletePage() }} disabled={pages.length === 1}>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                          </button>
-                          <button className="mv3-sel-icon-btn" title="Add page" onClick={e => { e.stopPropagation(); addPage() }}>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
 
               {(() => {
                 const canvasPlatform = pageData[pages[activePage]] ?? PLATFORM_OPTIONS[0]
@@ -2157,6 +2267,41 @@ export function MatteV3Editor() {
       )}
 
 
+      {/* Section right-click menu */}
+      {sectionMenuId !== null && sectionMenuPos && (
+        <>
+          <div className="mv3-thumb-menu-backdrop" onClick={() => { setSectionMenuId(null); setSectionMenuPos(null) }} />
+          <div className="mv3-thumb-menu" style={{ left: sectionMenuPos.x, top: sectionMenuPos.y }}>
+            <button className="mv3-thumb-menu-item mv3-thumb-menu-item--danger" onClick={() => { deleteSection(sectionMenuId); setSectionMenuId(null); setSectionMenuPos(null) }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Remove section
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Insert menu — rendered at fixed position to escape sidebar overflow clipping */}
+      {insertMenuIdx !== null && insertMenuPos && (
+        <>
+          <div className="mv3-insert-menu-backdrop" onClick={() => { setInsertMenuIdx(null); setInsertMenuPos(null) }} />
+          <div className="mv3-insert-menu" style={{ position: 'fixed', left: insertMenuPos.x, top: insertMenuPos.y, transform: 'translateY(-50%)' }}>
+            <button className="mv3-insert-menu-item" onClick={e => { e.stopPropagation(); setInsertMenuIdx(null); setInsertMenuPos(null); setActivePage(insertMenuIdx); addPage() }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              Add page
+            </button>
+            <button className="mv3-insert-menu-item" onClick={e => { e.stopPropagation(); setInsertMenuIdx(null); setInsertMenuPos(null); addSection(insertMenuIdx) }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+              Add section
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }

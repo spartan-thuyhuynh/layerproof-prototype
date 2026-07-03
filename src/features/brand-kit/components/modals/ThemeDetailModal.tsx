@@ -443,7 +443,7 @@ export function ThemeDetailModal({ theme, kit, kitId, onClose, onCreateWithTheme
           </div>
 
           {/* Right: info + prompt (read) */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'var(--card)', overflowY: 'auto' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'var(--panel)', overflowY: 'auto' }}>
             <div style={{ padding: '20px 22px 16px', borderBottom: '1px solid var(--line)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>

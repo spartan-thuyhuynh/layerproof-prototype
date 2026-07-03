@@ -174,6 +174,7 @@ export interface BrandTheme {
   rules: ThemeRule[]
   prompt?: string
   createdAt: string
+  updatedAt?: string
 }
 
 export interface BrandKit {

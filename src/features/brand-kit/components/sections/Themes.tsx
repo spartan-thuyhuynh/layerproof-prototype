@@ -171,68 +171,79 @@ interface ThemeCardProps {
   onDelete: () => void
 }
 
+function formatDate(iso?: string) {
+  if (!iso) return null
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 function ThemeCard({ theme, gradients, onClick, onDelete }: ThemeCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const dateStr = formatDate(theme.updatedAt ?? theme.createdAt)
 
   return (
     <div style={{ cursor: 'pointer', position: 'relative' }}>
-      {/* Thumbnail — fully rounded, no wrapper background */}
+      {/* Thumbnail */}
       <div
         onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => { setHovered(false) }}
         style={{ height: 160, position: 'relative', overflow: 'hidden', borderRadius: 12 }}
       >
         {theme.thumbnailSrc ? (
-          <img
-            src={theme.thumbnailSrc}
-            alt={theme.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
+          <img src={theme.thumbnailSrc} alt={theme.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         ) : (
           <div style={{ width: '100%', height: '100%', background: gradientForTheme(theme.id, gradients) }} />
         )}
+
+        {/* Hover overlay with kebab */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(0,0,0,0.28)',
+          opacity: hovered || menuOpen ? 1 : 0,
+          transition: 'opacity .15s',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end',
+          padding: 8,
+        }}>
+          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o) }}
+              style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(6px)', border: 'none', cursor: 'pointer', color: '#fff', width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 15, height: 15 }}>
+                <circle cx="10" cy="4.5" r="1.4" />
+                <circle cx="10" cy="10" r="1.4" />
+                <circle cx="10" cy="15.5" r="1.4" />
+              </svg>
+            </button>
+            {menuOpen && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setMenuOpen(false)} />
+                <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: 'var(--card-2)', border: '1px solid var(--line-2)', borderRadius: 10, minWidth: 130, zIndex: 100, padding: '4px 0', boxShadow: 'var(--shadow)' }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onClick() }}
+                    style={{ width: '100%', background: 'none', border: 'none', color: 'var(--t1)', cursor: 'pointer', padding: '9px 14px', textAlign: 'left', fontSize: 13 }}
+                  >
+                    View details
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete() }}
+                    style={{ width: '100%', background: 'none', border: 'none', color: 'var(--c-red)', cursor: 'pointer', padding: '9px 14px', textAlign: 'left', fontSize: 13 }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Footer — transparent, sits below the image */}
-      <div style={{ padding: '8px 4px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent' }}>
-        <div onClick={onClick} style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{theme.name}</div>
-        </div>
-
-        {/* Kebab menu */}
-        <div style={{ position: 'relative', flexShrink: 0 }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o) }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', padding: '4px 6px', borderRadius: 6 }}
-          >
-            <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 16, height: 16 }}>
-              <circle cx="10" cy="4.5" r="1.4" />
-              <circle cx="10" cy="10" r="1.4" />
-              <circle cx="10" cy="15.5" r="1.4" />
-            </svg>
-          </button>
-          {menuOpen && (
-            <>
-              <div
-                style={{ position: 'fixed', inset: 0, zIndex: 99 }}
-                onClick={() => setMenuOpen(false)}
-              />
-              <div style={{ position: 'absolute', right: 0, bottom: '100%', marginBottom: 4, background: 'var(--card-2)', border: '1px solid var(--line-2)', borderRadius: 10, minWidth: 130, zIndex: 100, padding: '4px 0', boxShadow: 'var(--shadow)' }}>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onClick() }}
-                  style={{ width: '100%', background: 'none', border: 'none', color: 'var(--t1)', cursor: 'pointer', padding: '9px 14px', textAlign: 'left', fontSize: 13 }}
-                >
-                  View details
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete() }}
-                  style={{ width: '100%', background: 'none', border: 'none', color: 'var(--c-red)', cursor: 'pointer', padding: '9px 14px', textAlign: 'left', fontSize: 13 }}
-                >
-                  Delete
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+      {/* Footer */}
+      <div onClick={onClick} style={{ padding: '8px 2px 0' }}>
+        <div style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--t1)' }}>{theme.name}</div>
+        {dateStr && <div style={{ fontSize: 11.5, color: 'var(--t3)', marginTop: 2 }}>Last edited on {dateStr}</div>}
       </div>
     </div>
   )

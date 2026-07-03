@@ -919,6 +919,10 @@ html.light .onb-product-desc { color: var(--t2); }
 .mv3-topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(12px, 2vw, 24px); height: 62px; background: var(--app); border-bottom: 1px solid var(--line); flex: none; gap: 16px; }
 .mv3-topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
 .mv3-topbar-right { display: flex; align-items: center; gap: 6px; flex: none; }
+/* Page toolbar — sits at the top of mv3-main, below the topbar, scoped to the editor zone */
+.mv3-page-toolbar { display: flex; align-items: center; gap: 4px; padding: 0 16px; height: 44px; flex: none; background: var(--app); border-bottom: 1px solid var(--line); }
+/* Floating comment mode bar — overlays the canvas, does not push layout */
+.mv3-comment-float-bar { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 6px; padding: 0 14px; height: 40px; background: color-mix(in srgb, var(--c-pink) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--c-pink) 40%, transparent); border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.35); white-space: nowrap; pointer-events: all; }
 .mv3-icon-btn { width: 28px; height: 28px; border-radius: var(--radius-sm); background: none; border: 1px solid var(--line); color: var(--t2); display: grid; place-items: center; cursor: pointer; flex: none; transition: background .12s, color .12s; }
 .mv3-icon-btn:hover { background: var(--card-2); color: var(--t1); }
 .mv3-divider-v { width: 1px; height: 20px; background: var(--line); flex: none; }
@@ -973,11 +977,29 @@ html.light .onb-product-desc { color: var(--t2); }
 .mv3-page-thumb-group--drop-target { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius); }
 
 /* Insert-between button */
-.mv3-insert-page-btn { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; height: 0; overflow: hidden; background: none; border: none; cursor: pointer; color: var(--t3); font-size: 11px; font-weight: 600; font-family: var(--font); opacity: 0; transition: height .15s, opacity .15s, margin .15s; position: relative; }
-.mv3-page-thumb-group:hover .mv3-insert-page-btn,
-.mv3-insert-page-btn:focus { height: 28px; opacity: 1; margin-bottom: 4px; }
-.mv3-insert-page-btn:hover { color: var(--t2); border: 1.5px dashed var(--line-2); border-radius: var(--radius-sm); background: var(--card-2); height: 28px; opacity: 1; margin-bottom: 4px; }
-.mv3-insert-page-btn svg { flex: none; }
+/* Between-pages insert zone */
+/* Between-pages insert zone — padding-left matches page-num (16px) + gap (6px) to align + with the thumb column center */
+.mv3-between-pages { display: flex; align-items: center; justify-content: center; padding-left: 22px; overflow: visible; height: 0; opacity: 0; transition: height .15s, opacity .15s, margin .15s; margin: 0; }
+.mv3-page-thumb-group:hover + .mv3-between-pages,
+.mv3-between-pages:hover { height: 24px; opacity: 1; margin: 2px 0; }
+.mv3-insert-plus-btn { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--panel); border: 1.5px dashed var(--line); border-radius: 50%; cursor: pointer; color: var(--t3); transition: border-color .12s, color .12s, background .12s; padding: 0; flex: none; }
+.mv3-insert-plus-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--card-2); }
+.mv3-insert-menu-backdrop { position: fixed; inset: 0; z-index: 199; }
+.mv3-insert-menu { z-index: 200; background: var(--panel-2, var(--panel)); border: 1px solid var(--line-2); border-radius: var(--radius-sm); box-shadow: 0 4px 16px rgba(0,0,0,.35); padding: 4px; min-width: 130px; display: flex; flex-direction: column; gap: 1px; }
+.mv3-insert-menu-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: none; border: none; cursor: pointer; color: var(--t2); font-size: 12px; font-weight: 500; font-family: var(--font); border-radius: calc(var(--radius-sm) - 2px); text-align: left; transition: background .1s, color .1s; white-space: nowrap; }
+.mv3-insert-menu-item:hover { background: var(--card-2); color: var(--t1); }
+.mv3-insert-menu-item svg { flex: none; color: var(--t3); }
+
+/* Section header */
+.mv3-section-header { display: flex; align-items: center; gap: 4px; padding: 6px 4px 4px; margin: 4px 0 2px; border-radius: var(--radius-sm); transition: background .1s; }
+.mv3-section-header--drop-target { background: color-mix(in srgb, var(--accent) 12%, transparent); outline: 1.5px dashed var(--accent); }
+.mv3-section-chevron { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex: none; background: none; border: none; cursor: pointer; color: var(--t3); border-radius: 4px; padding: 0; transition: background .12s, color .12s; }
+.mv3-section-chevron:hover { background: var(--card-2); color: var(--t2); }
+.mv3-section-title { flex: 1; font-size: 11px; font-weight: 700; color: var(--t2); letter-spacing: .02em; text-transform: uppercase; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mv3-section-title-input { flex: 1; font-size: 11px; font-weight: 700; color: var(--t1); background: var(--card-2); border: 1px solid var(--accent); border-radius: 4px; padding: 1px 5px; font-family: var(--font); outline: none; letter-spacing: .02em; text-transform: uppercase; min-width: 0; }
+.mv3-section-delete { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex: none; background: none; border: none; cursor: pointer; color: var(--t3); border-radius: 4px; padding: 0; opacity: 0; transition: background .12s, color .12s, opacity .12s; }
+.mv3-section-header:hover .mv3-section-delete { opacity: 1; }
+.mv3-section-delete:hover { background: color-mix(in srgb, var(--red, #ef4444) 12%, transparent); color: var(--red, #ef4444); }
 
 /* Add page at bottom of list */
 .mv3-sidebar-add-page-btn { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; height: 34px; background: none; border: 1.5px dashed var(--line); border-radius: var(--radius-sm); color: var(--t3); font-size: 12px; font-weight: 600; font-family: var(--font); cursor: pointer; transition: border-color .12s, color .12s, background .12s; margin-top: 4px; }
@@ -995,7 +1017,7 @@ html.light .onb-product-desc { color: var(--t2); }
 .mv3-add-page-center:hover { border-color: var(--accent); color: var(--t1); background: var(--accent-soft); }
 
 /* Main content */
-.mv3-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.mv3-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; position: relative; }
 
 /* Canvas area */
 .mv3-canvas-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--panel); }
@@ -1675,6 +1697,8 @@ html.light .onb-product-desc { color: var(--t2); }
 .mv3-thumb-menu-item:hover { background: rgba(255,255,255,.06); }
 .mv3-thumb-menu-item--danger { color: #f87171; }
 .mv3-thumb-menu-item--danger:hover { background: rgba(248,113,113,.08); }
+.mv3-thumb-menu-label { padding: 6px 12px 4px; font-size: 10.5px; font-weight: 700; color: var(--t3); letter-spacing: .04em; text-transform: uppercase; pointer-events: none; }
+.mv3-thumb-menu-divider { height: 1px; background: rgba(255,255,255,.08); margin: 3px 0; }
 
 /* ── Rating banner ── */
 /* ── Rating banner (inline, centered below last canvas) ── */
