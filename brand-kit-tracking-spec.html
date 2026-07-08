@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand Kit — Analytics Tracking Spec</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface-2: #202020;
+      --border: #2a2a2a;
+      --border-light: #333;
+      --text: #e8e8e8;
+      --text-muted: #888;
+      --text-dim: #555;
+      --accent: #FF589B;
+      --accent-dim: rgba(255, 88, 155, 0.12);
+      --accent-border: rgba(255, 88, 155, 0.3);
+      --accent-2: #FFDE42;
+      --accent-2-dim: rgba(255, 222, 66, 0.12);
+      --accent-2-border: rgba(255, 222, 66, 0.3);
+      --green: #4ade80;
+      --green-dim: rgba(74, 222, 128, 0.1);
+      --blue: #60a5fa;
+      --blue-dim: rgba(96, 165, 250, 0.1);
+      --orange: #fb923c;
+      --orange-dim: rgba(251, 146, 60, 0.1);
+      --yellow: #fbbf24;
+      --yellow-dim: rgba(251, 191, 36, 0.1);
+      --red: #f87171;
+      --red-dim: rgba(248, 113, 113, 0.1);
+      --radius: 8px;
+      --radius-sm: 5px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 220px;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 24px 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-logo h1 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 10px;
+    }
+
+    .sidebar-logo p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .sidebar nav a:hover {
+      color: var(--text);
+      background: var(--surface-2);
+      border-left-color: var(--border-light);
+    }
+
+    .sidebar nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .sidebar nav .nav-group {
+      margin-top: 20px;
+      padding: 0 20px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* Main */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      max-width: 900px;
+      padding: 48px 56px 80px;
+    }
+
+    /* Header */
+    .page-header {
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-header .meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .page-header .meta .chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+
+    .chip-purple { color: var(--accent); background: var(--accent-dim); border-color: var(--accent-border) !important; }
+    .chip-green  { color: var(--green);  background: var(--green-dim);  border-color: rgba(74,222,128,0.3) !important; }
+    .chip-blue   { color: var(--blue);   background: var(--blue-dim);   border-color: rgba(96,165,250,0.3) !important; }
+    .chip-orange { color: var(--orange); background: var(--orange-dim); border-color: rgba(251,146,60,0.3) !important; }
+    .chip-yellow { color: var(--yellow); background: var(--yellow-dim); border-color: rgba(251,191,36,0.3) !important; }
+
+    .page-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 560px;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .section-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    th {
+      text-align: left;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: var(--surface-2); }
+
+    td code, th code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    /* Event cards */
+    .event-group {
+      margin-bottom: 32px;
+    }
+
+    .event-group-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .event-group-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .event-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .event-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .event-name {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--accent-2);
+      flex: 1;
+    }
+
+    .event-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .event-card-body {
+      padding: 12px 16px;
+    }
+
+    .event-card-body table {
+      margin-bottom: 0;
+    }
+
+    .event-card-body th {
+      background: transparent;
+      padding: 6px 10px;
+    }
+
+    .event-card-body td {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .prop-name {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      color: var(--blue);
+      font-size: 12px;
+    }
+
+    .prop-type {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      color: var(--orange);
+      font-size: 11px;
+    }
+
+    .prop-example {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* Metric cards */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+
+    .metric-card .metric-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .metric-card .metric-def {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .metric-card .metric-event {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      margin-top: 8px;
+      display: block;
+    }
+
+    /* Q&H table */
+    .hypothesis-table td:first-child {
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+      width: 36px;
+    }
+
+    .hypothesis-table td:nth-child(2) {
+      color: var(--text);
+    }
+
+    .hypothesis-table td:nth-child(3) {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* Dashboard list */
+    .dashboard-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .dashboard-list li {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 13px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .dashboard-list .dash-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 18px;
+      padding-top: 1px;
+    }
+
+    .dashboard-list .dash-title {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .dashboard-list .dash-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Scope box */
+    .scope-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+    }
+
+    .scope-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .scope-box li {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .scope-box li::before {
+      content: '—';
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .metric-tag {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      border-radius: 4px;
+      padding: 2px 7px;
+      margin: 2px 2px 2px 0;
+      white-space: nowrap;
+    }
+
+    .hypothesis-table td:nth-child(4) {
+      min-width: 200px;
+    }
+
+    /* Events table */
+    .events-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .events-table thead th { background: var(--surface-2); color: var(--text-muted); font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    .events-table tbody tr { border-bottom: 1px solid var(--border); }
+    .events-table tbody tr:last-child { border-bottom: none; }
+    .events-table tbody tr:hover { background: var(--surface-2); }
+    .events-table tbody td { padding: 9px 12px; vertical-align: top; }
+    .event-name-inline { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 11px; color: var(--accent-2); background: none; padding: 0; }
+    .ev-group { color: var(--text-muted); font-size: 11px; white-space: nowrap; }
+    .ev-trigger { color: var(--text-dim); font-size: 11px; }
+    .ev-trigger code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 10.5px; color: var(--text); background: var(--surface-2); padding: 1px 4px; border-radius: 3px; }
+    .ev-props { color: var(--text-muted); font-size: 11px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
+
+    /* Funnels */
+    .funnel-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      counter-reset: funnel-counter;
+    }
+
+    .funnel-list li {
+      counter-increment: funnel-counter;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    .funnel-list li:first-child {
+      border-top: 1px solid var(--border);
+    }
+
+    .funnel-list li::before {
+      content: counter(funnel-counter);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 16px;
+      flex-shrink: 0;
+    }
+
+    .funnel-label {
+      font-size: 12px;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .funnel-event {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 10.5px;
+      color: var(--text-dim);
+    }
+
+    /* Measurement Framework */
+    .framework-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .framework-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .framework-card--control {
+      border-color: rgba(96, 165, 250, 0.3);
+      background: rgba(96, 165, 250, 0.05);
+    }
+
+    .framework-card--treatment {
+      border-color: rgba(255, 88, 155, 0.3);
+      background: rgba(255, 88, 155, 0.05);
+    }
+
+    .framework-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-dim);
+    }
+
+    .framework-card--control .framework-card-label { color: var(--blue); }
+    .framework-card--treatment .framework-card-label { color: var(--accent); }
+
+    .framework-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .framework-card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .framework-card-signal {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .framework-card-signal code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 10.5px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 4px;
+      color: var(--text-muted);
+    }
+
+    /* Timeline */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border-light);
+      margin-left: 8px;
+      padding-left: 0;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      padding: 0 0 28px 24px;
+      position: relative;
+    }
+
+    .timeline-item--last { padding-bottom: 4px; }
+
+    .timeline-dot {
+      position: absolute;
+      left: -5px;
+      top: 4px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg);
+      flex-shrink: 0;
+    }
+
+    .timeline-content { display: flex; flex-direction: column; gap: 5px; }
+
+    .timeline-period {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .timeline-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .timeline-desc strong { font-weight: 600; color: var(--text); }
+
+    .timeline-events {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 10.5px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .timeline-events code {
+      font-family: inherit;
+      font-size: 10.5px;
+      color: var(--accent-2);
+    }
+
+    /* Evaluation tags */
+    .eval-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 3px;
+      padding: 2px 6px;
+      white-space: nowrap;
+    }
+
+    .eval-tag--primary {
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+    }
+
+    .eval-tag--secondary {
+      color: var(--blue);
+      background: var(--blue-dim);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+    }
+
+    .eval-tag--guardrail {
+      color: var(--orange);
+      background: var(--orange-dim);
+      border: 1px solid rgba(251, 146, 60, 0.3);
+    }
+
+    /* Framework note */
+    .framework-note {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent-2);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-top: 16px;
+    }
+
+    .framework-note strong { font-weight: 600; color: var(--text); }
+
+    /* Trigger location */
+    .event-source {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .event-source .src-label {
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .event-source .src-file {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      color: var(--green);
+      font-size: 11px;
+    }
+
+    .event-source .src-where {
+      color: var(--text-dim);
+      font-size: 11px;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    /* No-props label */
+    .no-props {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-style: italic;
+      padding: 10px 16px;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 24px 20px 60px; }
+      .metric-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="badge">Analytics</div>
+      <h1>Brand Kit</h1>
+      <p>Tracking Spec v1</p>
+    </div>
+    <nav>
+      <div class="nav-group">Overview</div>
+      <a href="#overview">Feature Overview</a>
+      <a href="#how-it-works">How Tracking Works</a>
+      <a href="#hypotheses">Questions &amp; Hypotheses</a>
+      <a href="#framework">Measurement Framework</a>
+      <a href="#metrics">Metrics</a>
+      <a href="#funnels">Funnels</a>
+
+      <div class="nav-group">Events</div>
+      <a href="#event-groups">Event Groups</a>
+      <a href="#events">All Events</a>
+
+      <div class="nav-group">Reference</div>
+      <a href="#mapping">Event → Metric Map</a>
+      <a href="#dashboards">Dashboards</a>
+      <a href="#out-of-scope">Out of Scope</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Page header -->
+    <header class="page-header">
+      <div class="meta">
+        <span class="chip chip-purple">Spec</span>
+        <span class="chip chip-green">v1 · Draft</span>
+        <span class="chip chip-blue">PostHog</span>
+      </div>
+      <h1>Brand Kit — Analytics Tracking Spec</h1>
+      <p>Defines the questions we want to answer, the metrics that answer them, and the events that feed those metrics. Structured for developer implementation — one event card per event, with typed properties.</p>
+    </header>
+
+
+    <!-- 0. Feature Overview -->
+    <section class="section" id="overview">
+      <div class="section-header">
+        <div class="section-num">0</div>
+        <h2 class="section-title">Feature Overview</h2>
+      </div>
+      <p class="section-desc">Brand Kit is a net-new feature. Before it launched, users could only pick from system themes (8 pre-built) or standalone themes (user-created, no brand context). Brand Kit lets users define a brand identity once and generate consistent, on-brand themes from it. This document tracks whether that investment is paying off.</p>
+
+      <div class="event-group-label">What's in a Brand Kit</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">A kit has 7 fixed sections (+ Brand Themes) and can have unlimited custom sections. Each section is independently editable and contributes to the kit's completeness score.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:40px;">
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">Overview</div>
+          <div style="font-size:12px;color:var(--text);">Brand name, tagline, color swatch, logo text. The identity card — the first thing users fill in during onboarding.</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">Colors</div>
+          <div style="font-size:12px;color:var(--text);">Named color palettes with hex swatches. Users build a palette library that feeds into theme generation.</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">Typography</div>
+          <div style="font-size:12px;color:var(--text);">Display and body font family + weight. Sets the typographic personality used in generated content.</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">Logos</div>
+          <div style="font-size:12px;color:var(--text);">Logo variants (light, dark, icon). Includes clear-color rules and minimum size guidance.</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">Imagery</div>
+          <div style="font-size:12px;color:var(--text);">Visual style description, mood tags, dos &amp; don'ts. Can be rewritten by AI from the existing tags.</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">Brand Voice</div>
+          <div style="font-size:12px;color:var(--text);">Tone attributes, word lists, density setting, and a 4-axis voice spectrum (formality, humor, respect, enthusiasm).</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">Brand Themes</div>
+          <div style="font-size:12px;color:var(--text);">AI-generated prompt sets created from the kit. Each theme carries full brand context and is selectable in the content create flow.</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">Brand Guidelines</div>
+          <div style="font-size:12px;color:var(--text);">Structured brand documentation generated from the kit. Exportable as PDF or shareable link.</div>
+        </div>
+      </div>
+
+      <div class="event-group-label">Themes</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Themes are reusable prompt sets generated from the brand kit. They are the bridge between the brand definition and content creation — selecting a brand theme in the create flow is the primary conversion event.</p>
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:40px;display:flex;gap:32px;">
+        <div style="flex:1;border-right:1px solid var(--border);padding-right:32px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">System themes</div>
+          <div style="font-size:12px;color:var(--text);">8 pre-built themes. Available to everyone. No brand context. This was the only option before Brand Kit.</div>
+        </div>
+        <div style="flex:1;border-right:1px solid var(--border);padding-right:32px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">Standalone themes</div>
+          <div style="font-size:12px;color:var(--text);">User-created prompt sets, not tied to any kit. Custom but stateless — don't carry brand identity.</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Brand themes ← new</div>
+          <div style="font-size:12px;color:var(--text);">Generated from the kit via AI chat (NewThemeModal). Carry full brand context. This is the target outcome we're measuring.</div>
+        </div>
+      </div>
+
+      <div class="event-group-label">Main User Journeys to Track</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">The focus is adoption and behavior — how many users create and apply a kit, and whether that translates into using brand themes in content. Kit quality (section completeness, imagery accuracy, voice calibration) is out of scope for v1 tracking.</p>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:16px 20px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Journey 1 — Kit Creation via Onboarding</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">User reaches the brand kit step (Step 4) during onboarding → skips or completes setup → kit is auto-generated.</div>
+          <div style="font-size:11px;color:var(--text-dim);">Track: completion rate vs skip rate. Does completing onboarding setup lead to higher kit adoption downstream?</div>
+        </div>
+
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:16px 20px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Journey 2 — Kit Creation via Brand Kit Feature</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">User navigates to the Brand Kit feature post-onboarding → creates a new kit manually → edits sections → applies the kit.</div>
+          <div style="font-size:11px;color:var(--text-dim);">Track: how many users discover and create a kit outside of onboarding? What sections do they fill in?</div>
+        </div>
+
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:16px 20px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Journey 3 — AI Theme Generation</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">User enters the theme builder → submits a prompt → saves a generated theme.</div>
+          <div style="font-size:11px;color:var(--text-dim);">Track: adoption rate (how many kit owners generate a theme), and prompt behavior (first submit vs iterate).</div>
+        </div>
+
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:16px 20px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Journey 4 — Brand Theme in Content Creation</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">User selects a theme in the content creation flow. Theme source is <code style="font-size:10.5px;color:var(--accent-2);">"brand"</code>, <code style="font-size:10.5px;color:var(--accent-2);">"system"</code>, or <code style="font-size:10.5px;color:var(--accent-2);">"standalone"</code>. Kit adoption is measured here — if a user created a kit and selects a brand theme, the kit is considered in use.</div>
+          <div style="font-size:11px;color:var(--text-dim);">Track: share of brand theme selections vs system/standalone. This is the primary outcome — everything else is funnel leading here.</div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- How Tracking Works -->
+    <section class="section" id="how-it-works">
+      <div class="section-header">
+        <div class="section-num">→</div>
+        <h2 class="section-title">How Tracking Works</h2>
+      </div>
+      <p class="section-desc">Everything in this spec flows in one direction: from a product question down to raw data. Understanding this chain means anyone can trace why any given event exists — and know which events to ignore when answering a specific question.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:28px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <div style="padding:20px 18px;background:var(--surface-2);border-right:1px solid var(--border);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">① Questions</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">Start with what we actually want to know. Every question maps to a product hypothesis.</div>
+          <div style="font-size:11px;color:var(--text-dim);font-style:italic;">"Are users who apply a brand kit creating more content?"</div>
+        </div>
+        <div style="padding:20px 18px;background:var(--surface-2);border-right:1px solid var(--border);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">② Metrics</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">A metric is a number that answers the question. It has a clear formula and a threshold for "success".</div>
+          <div style="font-size:11px;color:var(--text-dim);font-style:italic;">Content Volume by Theme Source — compare brand vs system/standalone users</div>
+        </div>
+        <div style="padding:20px 18px;background:var(--surface-2);border-right:1px solid var(--border);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">③ Events</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">Events are the raw signals that feed the metric. Each has a name, a trigger (user action), and typed properties.</div>
+          <div style="font-size:11px;color:var(--text-dim);font-style:italic;"><code style="font-size:10px;color:var(--accent-2);">content_theme_selected</code> with <code style="font-size:10px;color:var(--accent-2);">theme_source: "brand"</code></div>
+        </div>
+        <div style="padding:20px 18px;background:var(--surface-2);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">④ Insight</div>
+          <div style="font-size:12px;color:var(--text);margin-bottom:8px;">PostHog aggregates events into the metric. The metric answers the question. We act on the answer.</div>
+          <div style="font-size:11px;color:var(--text-dim);font-style:italic;">Brand themes are selected 40% less often than system themes at day 30 → fix theme discovery in the create flow</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:18px 20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:10px;">Rules that follow from this chain</div>
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;">
+          <li style="font-size:12px;color:var(--text-muted);">If an event doesn't feed at least one metric, don't add it — it's noise.</li>
+          <li style="font-size:12px;color:var(--text-muted);">If a metric doesn't answer a question in section 1, don't track it — it has no decision attached to it.</li>
+          <li style="font-size:12px;color:var(--text-muted);">Properties on an event exist to allow segmentation of the metric, not for logging convenience.</li>
+          <li style="font-size:12px;color:var(--text-muted);"><code style="font-size:11px;color:var(--accent-2);">content_theme_selected</code> with <code style="font-size:11px;color:var(--accent-2);">theme_source</code> is the single most important event — it's where every funnel in this spec terminates.</li>
+        </ul>
+      </div>
+    </section>
+
+
+    <!-- 1. Questions & Hypotheses -->
+    <section class="section" id="hypotheses">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2 class="section-title">Questions &amp; Hypotheses</h2>
+      </div>
+      <p class="section-desc">Every event exists to answer one of these questions. If a proposed event doesn't map back here, don't add it.</p>
+      <table class="hypothesis-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Question</th>
+            <th>Hypothesis</th>
+            <th>Answered by</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Q1</td><td>Are users setting up their brand kit during onboarding?</td><td>Most users will skip Step 4 — high skip rate</td><td><span class="metric-tag">Brand Setup Completion Rate</span></td></tr>
+          <tr><td>Q2</td><td>Does completing onboarding brand setup lead to better engagement?</td><td>Users who finish Step 4 create more content than those who skip</td><td><span class="metric-tag">Onboarding-to-Applied Kit Rate</span> <span class="metric-tag">Content Volume by Theme Source</span></td></tr>
+          <tr><td>Q3</td><td>Which sections of the brand kit actually get used post-onboarding?</td><td>Colors and Logos have highest completion; Tone section has lowest adoption</td><td><span class="metric-tag">Section Engagement Rate</span> <span class="metric-tag">Kit Completion Rate</span></td></tr>
+          <tr><td>Q4</td><td>Do users prefer Brand Kit themes, System themes, or Standalone themes when creating content?</td><td>System themes dominate because brand kit setup is abandoned</td><td><span class="metric-tag">Theme Source Distribution</span></td></tr>
+          <tr><td>Q5</td><td>Do users who apply a brand kit create more content than those using system/standalone themes?</td><td>Applied-kit users create more content and return more often</td><td><span class="metric-tag">Content Volume by Theme Source</span> <span class="metric-tag">Kit Apply Rate</span></td></tr>
+          <tr><td>Q6</td><td>Are brand themes (prompt sets) discovered and used?</td><td>Theme feature has near-zero engagement — it's undiscovered</td><td><span class="metric-tag">Theme Generation Adoption Rate</span></td></tr>
+          <tr><td>Q7</td><td>Are users returning to edit their kit, or setting it once and leaving?</td><td>Most edits happen in the first session and users don't return</td><td><span class="metric-tag">Return Edit Rate</span></td></tr>
+          <tr><td>Q8</td><td>Are users engaging with AI generation features (theme builder, imagery rewrite)?</td><td>Most users never click "Rewrite with AI" or enter the theme chat</td><td><span class="metric-tag">Theme Generation Adoption Rate</span></td></tr>
+          <tr><td>Q9</td><td>Do users who use the AI theme builder iterate, or submit once and save?</td><td>Most users submit 1–2 prompts max; heavy iterators are a small power-user segment</td><td><span class="metric-tag">Theme Prompt Iteration Depth</span> <span class="metric-tag">Suggested vs Custom Prompt Rate</span></td></tr>
+          <tr><td>Q10</td><td>Are users creating brand guidelines from their kit?</td><td>Most kit owners will not discover the brand guidelines feature</td><td><span class="metric-tag">Brand Guidelines Creation Rate</span></td></tr>
+          <tr><td>Q11</td><td>How do users prefer to start a new brand kit — upload a file, provide a URL, or start from blank?</td><td>URL will be the most common source; blank will be second</td><td><span class="metric-tag">Kit Creation Source Distribution</span></td></tr>
+          <tr><td>Q12</td><td>Do users export or share their brand guidelines after creating them?</td><td>Export rate will be low — guidelines are created but not actively distributed</td><td><span class="metric-tag">Guidelines Export Rate</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- 2. Measurement Framework -->
+    <section class="section" id="framework">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2 class="section-title">Measurement Framework</h2>
+      </div>
+      <p class="section-desc">Brand Kit is a net-new feature. Before it launched, users had only two options: system themes (pre-built, no customisation) and standalone themes (user-created, not tied to a brand). This framework defines how we compare Brand Kit against that baseline.</p>
+
+      <div class="event-group-label">Cohort Definition</div>
+      <div class="framework-grid">
+        <div class="framework-card framework-card--control">
+          <div class="framework-card-label">Control — Baseline</div>
+          <div class="framework-card-name">System &amp; Standalone users</div>
+          <div class="framework-card-desc">Users who create content using only system themes or standalone themes. This was the only path before Brand Kit launched.</div>
+          <div class="framework-card-signal">Signal: <code>content_theme_selected</code> where <code>theme_source ≠ "brand"</code>, never</div>
+        </div>
+        <div class="framework-card framework-card--treatment">
+          <div class="framework-card-label">Treatment — Brand Kit</div>
+          <div class="framework-card-name">Brand Kit adopters</div>
+          <div class="framework-card-desc">Users who complete brand kit setup (onboarding or in-app) and use a brand theme at least once in content creation.</div>
+          <div class="framework-card-signal">Signal: <code>onboarding_brand_setup_completed</code> or <code>brand_kit_created</code> + <code>content_theme_selected (theme_source: "brand")</code></div>
+        </div>
+        <div class="framework-card">
+          <div class="framework-card-label">Partial Adopters</div>
+          <div class="framework-card-name">Kit created, not used</div>
+          <div class="framework-card-desc">Users who set up a kit but continue using system/standalone themes in content. Track separately — they signal setup friction or low theme discoverability.</div>
+          <div class="framework-card-signal">Signal: <code>brand_kit_created</code> but no <code>content_theme_selected (theme_source: "brand")</code></div>
+        </div>
+      </div>
+
+      <div class="event-group-label" style="margin-top: 32px;">Measurement Periods</div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Measured from each user's first Brand Kit exposure (onboarding Step 4 view, or first visit to the feature).</p>
+      <table>
+        <thead>
+          <tr><th>Window</th><th>Period</th><th>What we measure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Activation</strong></td><td>Day 0–7</td><td>Brand setup completion rate, kit apply rate</td></tr>
+          <tr><td><strong>Engagement</strong></td><td>Day 7–30</td><td>First brand theme used in content, section edit depth</td></tr>
+          <tr><td><strong>Stickiness</strong></td><td>Day 30+</td><td>Return edit rate, sustained brand theme usage vs switching back to system/standalone</td></tr>
+        </tbody>
+      </table>
+
+      <div class="event-group-label" style="margin-top: 32px;">Evaluation Criteria</div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Brand Kit is considered successful at 30 days post-launch if all primary criteria are met and no guardrails are breached. Thresholds are placeholders — calibrate against baseline data in the first two weeks.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th>Type</th>
+            <th>Target</th>
+            <th>Measured at</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Brand Kit adopters create more content than system/standalone-only users</td>
+            <td><span class="eval-tag eval-tag--primary">Primary</span></td>
+            <td>≥ 20% higher content volume vs control cohort</td>
+            <td>Day 30</td>
+          </tr>
+          <tr>
+            <td>Onboarding brand setup completion rate</td>
+            <td><span class="eval-tag eval-tag--primary">Primary</span></td>
+            <td>≥ 50% of users who reach Step 4 complete setup</td>
+            <td>Day 30</td>
+          </tr>
+          <tr>
+            <td>Brand theme share of all content created</td>
+            <td><span class="eval-tag eval-tag--primary">Primary</span></td>
+            <td>≥ 30% of <code>content_theme_selected</code> events use <code>theme_source: "brand"</code></td>
+            <td>Day 30</td>
+          </tr>
+          <tr>
+            <td>Kit completion rate (≥ 4 sections edited)</td>
+            <td><span class="eval-tag eval-tag--secondary">Secondary</span></td>
+            <td>≥ 40% of created kits</td>
+            <td>Day 30</td>
+          </tr>
+          <tr>
+            <td>AI theme builder adoption among kit owners</td>
+            <td><span class="eval-tag eval-tag--secondary">Secondary</span></td>
+            <td>≥ 25% of kits have at least one generated theme</td>
+            <td>Day 30</td>
+          </tr>
+          <tr>
+            <td>Total content creation does not decline</td>
+            <td><span class="eval-tag eval-tag--guardrail">Guardrail</span></td>
+            <td>Week-over-week content volume ≥ pre-launch baseline</td>
+            <td>Weekly</td>
+          </tr>
+          <tr>
+            <td>System theme usage does not collapse</td>
+            <td><span class="eval-tag eval-tag--guardrail">Guardrail</span></td>
+            <td><code>theme_source: "system"</code> share remains ≥ 20%</td>
+            <td>Day 14, Day 30</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="framework-note">
+        <strong>Re-evaluation trigger:</strong> If brand theme share stays below 15% at day 30, escalate immediately — this signals that users are not discovering the brand themes in the content creation flow, not that Brand Kit itself is failing.
+      </div>
+    </section>
+
+
+    <!-- 3. Metrics -->
+    <section class="section" id="metrics">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2 class="section-title">Metrics</h2>
+      </div>
+      <p class="section-desc">Derived from the questions above. These are the numbers the team will track over time.</p>
+
+      <div class="event-group-label">Onboarding</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-name">Brand Setup Completion Rate</div>
+          <div class="metric-def">% of onboarding users who complete Step 4 (vs skip)</div>
+          <code class="metric-event">onboarding_brand_setup_completed / onboarding_brand_step_viewed</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Onboarding-to-Applied Kit Rate</div>
+          <div class="metric-def">% of users with an applied kit at the end of onboarding</div>
+          <code class="metric-event">brand_kit_applied within onboarding session</code>
+        </div>
+      </div>
+
+      <div class="event-group-label">Activation &amp; Adoption</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-name">Kit Creation Rate</div>
+          <div class="metric-def">% of users who create at least one brand kit</div>
+          <code class="metric-event">brand_kit_created | onboarding_brand_setup_completed</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Kit Completion Rate</div>
+          <div class="metric-def">% of kits with ≥ 4 sections edited (colors, typography, logos, tone)</div>
+          <code class="metric-event">brand_kit_*_edited per kit</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Kit Apply Rate</div>
+          <div class="metric-def">% of total users who have an applied kit at any point</div>
+          <code class="metric-event">brand_kit_applied</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Return Edit Rate</div>
+          <div class="metric-def">% of kits edited in a session after the creation session</div>
+          <code class="metric-event">brand_kit_*_edited (cross-session)</code>
+        </div>
+      </div>
+
+      <div class="event-group-label">Brand Kit vs Theme Comparison</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-name">Theme Source Distribution</div>
+          <div class="metric-def">Per content creation: breakdown of brand vs system vs standalone theme used</div>
+          <code class="metric-event">content_theme_selected by theme_source</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Content Volume by Theme Source</div>
+          <div class="metric-def">Average content pieces per user, segmented by primary theme source</div>
+          <code class="metric-event">content_theme_selected joined to content events</code>
+        </div>
+      </div>
+
+      <div class="event-group-label">Section Engagement</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-name">Section Engagement Rate</div>
+          <div class="metric-def">Per section: % of kits where that section was edited at least once</div>
+          <code class="metric-event">brand_kit_*_edited per kit</code>
+        </div>
+      </div>
+
+      <div class="event-group-label">Brand Guidelines</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-name">Brand Guidelines Creation Rate</div>
+          <div class="metric-def">% of kits with at least one brand guidelines doc created</div>
+          <code class="metric-event">brand_kit_guidelines_created / unique kit count</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Kit Creation Source Distribution</div>
+          <div class="metric-def">Breakdown of how users start a kit: blank vs file upload vs URL</div>
+          <code class="metric-event">source on brand_kit_created</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Guidelines Edit Rate</div>
+          <div class="metric-def">% of created guidelines edited at least once after initial creation</div>
+          <code class="metric-event">brand_kit_guidelines_edited per kit</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Guidelines Export Rate</div>
+          <div class="metric-def">% of brand guidelines exported or shared at least once</div>
+          <code class="metric-event">brand_kit_guidelines_exported / brand_kit_guidelines_created</code>
+        </div>
+      </div>
+
+      <div class="event-group-label">AI Generation</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-name">Theme Generation Adoption Rate</div>
+          <div class="metric-def">% of kits with at least one theme created via the AI generator</div>
+          <code class="metric-event">brand_kit_theme_generation_started</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Theme Prompt Iteration Depth</div>
+          <div class="metric-def">Median number of turns (prompts submitted) before saving a theme</div>
+          <code class="metric-event">total_turns on brand_kit_theme_saved_from_generation</code>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Suggested vs Custom Prompt Rate</div>
+          <div class="metric-def">% of theme prompts using a suggested chip vs free-typing</div>
+          <code class="metric-event">input_type on brand_kit_theme_prompt_submitted</code>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Funnels -->
+    <section class="section" id="funnels">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2 class="section-title">Funnels</h2>
+      </div>
+      <p class="section-desc">Three funnels to build in PostHog. Each stage is one event; drop-off between stages is the signal.</p>
+
+      <div class="event-group-label">Brand Kit Adoption</div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Full user journey from onboarding through active brand kit usage in content creation.</p>
+      <ol class="funnel-list">
+        <li><span class="funnel-label">Onboarding — brand kit step reached</span><code class="funnel-event">onboarding_brand_step_viewed</code></li>
+        <li><span class="funnel-label">Started brand setup</span><code class="funnel-event">onboarding_brand_step_started</code></li>
+        <li><span class="funnel-label">Completed brand setup</span><code class="funnel-event">onboarding_brand_setup_completed</code></li>
+        <li><span class="funnel-label">Kit opened (post-onboarding)</span><code class="funnel-event">brand_kit_viewed</code></li>
+        <li><span class="funnel-label">Any section edited</span><code class="funnel-event">brand_kit_*_edited</code></li>
+        <li><span class="funnel-label">Kit applied</span><code class="funnel-event">brand_kit_applied</code></li>
+        <li><span class="funnel-label">Brand theme used in content</span><code class="funnel-event">content_theme_selected — theme_source: "brand"</code></li>
+      </ol>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 40px;">
+        <div>
+          <div class="event-group-label">AI Theme Builder</div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Measures how users move through the theme generation chat.</p>
+          <ol class="funnel-list">
+            <li><span class="funnel-label">Themes section visited</span><code class="funnel-event">brand_kit_section_viewed (themes)</code></li>
+            <li><span class="funnel-label">Generation started</span><code class="funnel-event">brand_kit_theme_generation_started</code></li>
+            <li><span class="funnel-label">First prompt submitted</span><code class="funnel-event">brand_kit_theme_prompt_submitted</code></li>
+            <li><span class="funnel-label">Theme saved</span><code class="funnel-event">brand_kit_theme_saved_from_generation</code></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+
+    <hr class="divider" />
+    <div style="margin-bottom: 32px;">
+      <p style="font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: -0.01em;">Section 4 — Events</p>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">One card per event. All properties are required unless marked optional.</p>
+    </div>
+
+
+    <!-- Event Groups -->
+    <section class="section" id="event-groups">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2 class="section-title">Event Groups</h2>
+      </div>
+      <p class="section-desc">Events are organised into 7 groups that map to distinct stages of the user journey. Each group has a single job — understanding that job tells you which events to query for any given question.</p>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;">Onboarding</div>
+          <div style="font-size:12px;color:var(--text-muted);">Fires during the Step 4 brand kit wizard. Captures whether the user enters the Brand Kit funnel at all, and whether they complete or skip setup.</div>
+          <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;">4 events</div>
+        </div>
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;">Lifecycle</div>
+          <div style="font-size:12px;color:var(--text-muted);">Fires when a kit is created, opened, applied, or deleted. The backbone of adoption tracking — kit apply rate lives here.</div>
+          <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;">4 events</div>
+        </div>
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;">Navigation</div>
+          <div style="font-size:12px;color:var(--text-muted);">Fires when the user moves between sections inside a kit, or adds a custom section. Shows which parts of the kit get attention.</div>
+          <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;">2 events</div>
+        </div>
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;">Section Edits</div>
+          <div style="font-size:12px;color:var(--text-muted);">One event per section type (Colors, Typography, Logos, Imagery, Tone). Fires when the user makes any change inside that section. Indicates "this section was touched" — not every individual field change.</div>
+          <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;">5 events</div>
+        </div>
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;">Brand Guidelines</div>
+          <div style="font-size:12px;color:var(--text-muted);">Fires when guidelines are created, edited, or exported. Measures whether users discover and use the guidelines authoring feature and whether they distribute the output.</div>
+          <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;">3 events</div>
+        </div>
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;">Themes</div>
+          <div style="font-size:12px;color:var(--text-muted);">Fires when brand themes (reusable prompt sets) are created, viewed, or deleted. Measures theme feature discoverability and usage independent of AI generation.</div>
+          <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;">3 events</div>
+        </div>
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;">AI Generation</div>
+          <div style="font-size:12px;color:var(--text-muted);">Fires throughout the theme builder chat and the imagery rewrite flow. Measures AI feature adoption, prompt behavior (suggested vs typed), and iteration depth before saving.</div>
+          <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;">7 events</div>
+        </div>
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.07em;">Content Creation</div>
+          <div style="font-size:12px;color:var(--text-muted);">A single event — <code style="font-size:11px;color:var(--accent-2);">content_theme_selected</code> — fired when the user picks a theme in the create flow. The <code style="font-size:11px;color:var(--accent-2);">theme_source</code> property (<code style="font-size:11px;color:var(--accent-2);">"brand" | "system" | "standalone"</code>) is the primary dimension for every Brand Kit vs baseline comparison. This is where the entire funnel terminates.</div>
+          <div style="font-size:11px;color:var(--text-dim);white-space:nowrap;">1 event</div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- All Events — single board -->
+    <section class="section" id="events">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2 class="section-title">Events</h2>
+      </div>
+      <p class="section-desc">All 26 events across every touch point. Trigger location tells devs exactly where to place the call.</p>
+
+      <table class="events-table">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Group</th>
+            <th>Trigger</th>
+            <th>Key properties</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Onboarding -->
+          <tr>
+            <td><code class="event-name-inline">onboarding_brand_step_viewed</code></td>
+            <td class="ev-group">Onboarding</td>
+            <td class="ev-trigger">User lands on the brand kit setup screen during onboarding</td>
+            <td class="ev-props">—</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">onboarding_brand_step_skipped</code></td>
+            <td class="ev-group">Onboarding</td>
+            <td class="ev-trigger">User clicks "I'll set it up later"</td>
+            <td class="ev-props">—</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">onboarding_brand_step_started</code></td>
+            <td class="ev-group">Onboarding</td>
+            <td class="ev-trigger">User clicks "Yes, set up my brand"</td>
+            <td class="ev-props">—</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">onboarding_brand_setup_completed</code></td>
+            <td class="ev-group">Onboarding</td>
+            <td class="ev-trigger">Brand kit generation finishes and the confirmation screen appears</td>
+            <td class="ev-props">kit_id, kit_name, has_logo, color_count, brand_voice</td>
+          </tr>
+          <!-- Kit Lifecycle -->
+          <tr>
+            <td><code class="event-name-inline">brand_kit_created</code></td>
+            <td class="ev-group">Lifecycle</td>
+            <td class="ev-trigger">User creates a new brand kit from the kit list (in-app, not onboarding)</td>
+            <td class="ev-props">kit_id, source ("blank" | "upload_file" | "url")</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_viewed</code></td>
+            <td class="ev-group">Lifecycle</td>
+            <td class="ev-trigger">User opens a brand kit to view its detail page</td>
+            <td class="ev-props">kit_id, is_applied_kit</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_applied</code></td>
+            <td class="ev-group">Lifecycle</td>
+            <td class="ev-trigger">User sets a kit as the active kit</td>
+            <td class="ev-props">kit_id, previous_kit_id</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_deleted</code></td>
+            <td class="ev-group">Lifecycle</td>
+            <td class="ev-trigger">User confirms deletion of a brand kit</td>
+            <td class="ev-props">kit_id, kit_name, sections_populated</td>
+          </tr>
+          <!-- Navigation -->
+          <tr>
+            <td><code class="event-name-inline">brand_kit_section_viewed</code></td>
+            <td class="ev-group">Navigation</td>
+            <td class="ev-trigger">User clicks a section tab in the kit sidebar (Colors, Logos, Tone, etc.)</td>
+            <td class="ev-props">kit_id, section, section_type</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_custom_category_added</code></td>
+            <td class="ev-group">Navigation</td>
+            <td class="ev-trigger">User adds a new custom section to the kit</td>
+            <td class="ev-props">kit_id, label</td>
+          </tr>
+          <!-- Section Edits -->
+          <tr>
+            <td><code class="event-name-inline">brand_kit_colors_edited</code></td>
+            <td class="ev-group">Section Edits</td>
+            <td class="ev-trigger">User adds, changes, or deletes a color or palette in the Colors section</td>
+            <td class="ev-props">kit_id, action, palette_color_count</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_typography_edited</code></td>
+            <td class="ev-group">Section Edits</td>
+            <td class="ev-trigger">User changes the display or body font family or weight</td>
+            <td class="ev-props">kit_id, font_role, family</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_logos_edited</code></td>
+            <td class="ev-group">Section Edits</td>
+            <td class="ev-trigger">User uploads a logo or adds a logo variant</td>
+            <td class="ev-props">kit_id, variant_count</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_imagery_edited</code></td>
+            <td class="ev-group">Section Edits</td>
+            <td class="ev-trigger">User adds a tag, uploads an asset, or saves imagery dos/don'ts or description</td>
+            <td class="ev-props">kit_id, action</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_tone_edited</code></td>
+            <td class="ev-group">Section Edits</td>
+            <td class="ev-trigger">User moves a tone slider, adds a word to use/avoid, or selects a density option</td>
+            <td class="ev-props">kit_id, field, density</td>
+          </tr>
+          <!-- Brand Guidelines -->
+          <tr>
+            <td><code class="event-name-inline">brand_kit_guidelines_created</code></td>
+            <td class="ev-group">Brand Guidelines</td>
+            <td class="ev-trigger">User generates the brand guidelines document from their kit content</td>
+            <td class="ev-props">kit_id</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_guidelines_edited</code></td>
+            <td class="ev-group">Brand Guidelines</td>
+            <td class="ev-trigger">User saves a change to any content in the Brand Guidelines section</td>
+            <td class="ev-props">kit_id, action ("content_edited" | "section_added" | "section_removed")</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_guidelines_exported</code></td>
+            <td class="ev-group">Brand Guidelines</td>
+            <td class="ev-trigger">User exports or shares the brand guidelines document</td>
+            <td class="ev-props">kit_id, format ("pdf" | "link")</td>
+          </tr>
+          <!-- Themes -->
+          <tr>
+            <td><code class="event-name-inline">brand_kit_theme_created</code></td>
+            <td class="ev-group">Themes</td>
+            <td class="ev-trigger">A new theme is successfully saved to the kit</td>
+            <td class="ev-props">kit_id, theme_id, rule_count</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_theme_viewed</code></td>
+            <td class="ev-group">Themes</td>
+            <td class="ev-trigger">User clicks a theme card to open the theme detail modal</td>
+            <td class="ev-props">kit_id, theme_id</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_theme_deleted</code></td>
+            <td class="ev-group">Themes</td>
+            <td class="ev-trigger">User confirms deletion of a theme</td>
+            <td class="ev-props">kit_id, theme_id</td>
+          </tr>
+          <!-- AI Generation -->
+          <tr>
+            <td><code class="event-name-inline">brand_kit_theme_generation_started</code></td>
+            <td class="ev-group">AI Generation</td>
+            <td class="ev-trigger">User passes the intro screen and reaches the prompt input in the theme builder</td>
+            <td class="ev-props">kit_id</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_theme_prompt_submitted</code></td>
+            <td class="ev-group">AI Generation</td>
+            <td class="ev-trigger">User sends their first prompt in the theme builder chat</td>
+            <td class="ev-props">kit_id, input_type, suggestion_label, turn_index</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_theme_prompt_refined</code></td>
+            <td class="ev-group">AI Generation</td>
+            <td class="ev-trigger">User sends a follow-up message to refine an already-generated theme</td>
+            <td class="ev-props">kit_id, input_type, suggestion_label, turn_index</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_theme_prompt_viewed</code></td>
+            <td class="ev-group">AI Generation</td>
+            <td class="ev-trigger">User clicks "View prompt" to reveal the underlying generated prompt text</td>
+            <td class="ev-props">kit_id, theme_id</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_theme_saved_from_generation</code></td>
+            <td class="ev-group">AI Generation</td>
+            <td class="ev-trigger">User clicks Save on a generated or refined theme in the theme builder</td>
+            <td class="ev-props">kit_id, theme_id, total_turns, has_custom_input, rule_count</td>
+          </tr>
+          <tr>
+            <td><code class="event-name-inline">brand_kit_imagery_ai_rewrite_triggered</code></td>
+            <td class="ev-group">AI Generation</td>
+            <td class="ev-trigger">User clicks "Rewrite with AI" in the Imagery section</td>
+            <td class="ev-props">kit_id, tag_count, has_dos, has_donts</td>
+          </tr>
+          <!-- Content Creation -->
+          <tr>
+            <td><code class="event-name-inline">content_theme_selected</code></td>
+            <td class="ev-group">Content Creation</td>
+            <td class="ev-trigger">User selects a theme card in the content creation flow before generating</td>
+            <td class="ev-props">theme_source, theme_id, theme_name, kit_id, product_type</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </section>
+
+
+
+
+    <hr class="divider" />
+
+
+    <!-- Event → Metric mapping -->
+    <section class="section" id="mapping">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2 class="section-title">Event → Metric Map</h2>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Powered by</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Brand Setup Completion Rate</td><td><code>onboarding_brand_step_viewed</code> vs <code>onboarding_brand_setup_completed</code></td></tr>
+          <tr><td>Onboarding Skip Rate</td><td><code>onboarding_brand_step_skipped</code> / <code>onboarding_brand_step_viewed</code></td></tr>
+          <tr><td>Kit Creation Rate</td><td><code>brand_kit_created</code> + <code>onboarding_brand_setup_completed</code></td></tr>
+          <tr><td>Kit Completion Rate</td><td><code>brand_kit_*_edited</code> — count distinct sections per kit</td></tr>
+          <tr><td>Kit Apply Rate</td><td><code>brand_kit_applied</code></td></tr>
+          <tr><td>Theme Source Distribution</td><td><code>content_theme_selected</code> grouped by <code>theme_source</code></td></tr>
+          <tr><td>Content Volume by Theme Source</td><td><code>content_theme_selected</code> joined to downstream content events</td></tr>
+          <tr><td>Section Engagement Rate</td><td><code>brand_kit_*_edited</code> per kit (distinct sections)</td></tr>
+          <tr><td>Return Edit Rate</td><td><code>brand_kit_*_edited</code> — session after creation session</td></tr>
+          <tr><td>Theme Creation Rate</td><td><code>brand_kit_theme_created</code></td></tr>
+          <tr><td>Theme Generation Adoption Rate</td><td><code>brand_kit_theme_generation_started</code> / unique kit count</td></tr>
+          <tr><td>Theme Prompt Iteration Depth</td><td><code>total_turns</code> on <code>brand_kit_theme_saved_from_generation</code> (median)</td></tr>
+          <tr><td>Suggested vs Custom Prompt Rate</td><td><code>input_type</code> on <code>brand_kit_theme_prompt_submitted</code></td></tr>
+          <tr><td>Brand Guidelines Creation Rate</td><td><code>brand_kit_guidelines_created</code> / unique kit count</td></tr>
+          <tr><td>Kit Creation Source Distribution</td><td><code>source</code> on <code>brand_kit_created</code></td></tr>
+          <tr><td>Guidelines Edit Rate</td><td><code>brand_kit_guidelines_edited</code> per kit</td></tr>
+          <tr><td>Guidelines Export Rate</td><td><code>brand_kit_guidelines_exported</code> / <code>brand_kit_guidelines_created</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- Dashboards -->
+    <section class="section" id="dashboards">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2 class="section-title">Suggested Dashboards</h2>
+      </div>
+      <ul class="dashboard-list">
+        <li>
+          <div class="dash-num">01</div>
+          <div>
+            <div class="dash-title">Onboarding Brand Kit Funnel</div>
+            <div class="dash-sub">Step Viewed → Started → Completed vs Skipped</div>
+          </div>
+        </li>
+        <li>
+          <div class="dash-num">02</div>
+          <div>
+            <div class="dash-title">Theme Source Breakdown</div>
+            <div class="dash-sub"><code>content_theme_selected</code> by <code>theme_source</code> over time — stacked bar: brand / system / standalone</div>
+          </div>
+        </li>
+        <li>
+          <div class="dash-num">03</div>
+          <div>
+            <div class="dash-title">Brand Kit vs No Brand Kit — Content Volume</div>
+            <div class="dash-sub">Compare content creation rates for users with an applied kit vs without</div>
+          </div>
+        </li>
+        <li>
+          <div class="dash-num">04</div>
+          <div>
+            <div class="dash-title">Section Engagement Heatmap</div>
+            <div class="dash-sub">% of kits with each section edited — bar chart ordered by engagement rate</div>
+          </div>
+        </li>
+        <li>
+          <div class="dash-num">05</div>
+          <div>
+            <div class="dash-title">Brand Kit Completion Distribution</div>
+            <div class="dash-sub">Histogram: how many sections were edited per kit (0 / 1–2 / 3–4 / 5+)</div>
+          </div>
+        </li>
+        <li>
+          <div class="dash-num">06</div>
+          <div>
+            <div class="dash-title">AI Generation Funnel</div>
+            <div class="dash-sub">Theme generation started → Prompt submitted → Saved · Imagery rewrite triggered → Accepted</div>
+          </div>
+        </li>
+        <li>
+          <div class="dash-num">07</div>
+          <div>
+            <div class="dash-title">Theme Prompt Iteration Depth</div>
+            <div class="dash-sub">Distribution of <code>total_turns</code> at save — 1 turn vs 2–3 vs 4+</div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+
+    <!-- Out of Scope -->
+    <section class="section" id="out-of-scope">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2 class="section-title">Out of Scope (v1)</h2>
+      </div>
+      <div class="scope-box">
+        <ul>
+          <li>Tracking individual color hex values (noise, no actionable insight)</li>
+          <li>Field-level keystroke tracking</li>
+          <li>Kit export / guideline generation (feature is deferred in the codebase)</li>
+          <li>Logo download tracking</li>
+          <li>Content created <em>with</em> a brand kit applied (cross-feature, tracked in a separate content creation spec)</li>
+          <li>Per-user identity linking (rely on PostHog's anonymous → identified flow)</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

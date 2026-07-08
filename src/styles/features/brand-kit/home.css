@@ -121,11 +121,16 @@
 .hp-feature-title { font-size: 15px; font-weight: 700; color: var(--t1); margin: 0 0 5px; }
 .hp-feature-desc { font-size: 13px; color: var(--t1); opacity: 0.65; margin: 0; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* Sub-product section */
+.hp-sub-section { margin-bottom: 40px; }
+.hp-sub-section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--t1); opacity: 0.4; margin: 0 0 10px; }
+
 /* Sub-product pills */
 .hp-sub-products {
-  display: flex; flex-wrap: wrap; gap: 10px;
-  margin-bottom: 40px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin-bottom: 16px;
 }
+.hp-sub-products:last-child { margin-bottom: 0; }
 .hp-sub-pill {
   display: inline-flex; align-items: center; gap: 14px;
   padding: 0 20px 0 16px; border-radius: 16px; height: 72px;
@@ -142,6 +147,7 @@
 .hp-sub-pill-label { font-size: 15px; font-weight: 700; color: var(--t1); }
 .hp-sub-pill-desc { font-size: 12px; color: var(--t1); opacity: 0; max-height: 0; overflow: hidden; font-weight: 400; transition: opacity .2s, max-height .2s; }
 .hp-sub-pill-chevron { flex: none; opacity: 0.4; transition: opacity .15s, transform .15s; }
+.hp-sub-pill-beta { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 99px; background: #a1840022; color: #d4a017; margin-left: 8px; vertical-align: middle; }
 .hp-sub-pill:hover .hp-sub-pill-chevron { opacity: 0.8; transform: translateX(2px); }
 
 /* Vellum banner */

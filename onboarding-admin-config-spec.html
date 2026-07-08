@@ -51,7 +51,7 @@
       min-height: 100vh;
     }
 
-    .layout { display: flex; min-height: 100vh; }
+    .layout { display: flex; min-height: 100vh; overflow-x: hidden; }
 
     /* Sidebar */
     .sidebar {
@@ -149,7 +149,11 @@
       margin-left: 240px;
       flex: 1;
       max-width: 960px;
+      min-width: 0;
+      width: calc(100vw - 240px);
       padding: 48px 48px 80px;
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
     /* Page header */
@@ -719,21 +723,23 @@
 
     /* Group image placeholder */
     .group-img-slot {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
+      width: 100%;
       min-height: 180px;
+      max-height: 320px;
       background: var(--surface-2);
       border-bottom: 1px solid var(--border);
       overflow: hidden;
       position: relative;
+      box-sizing: border-box;
     }
 
     .group-img-slot img {
+      display: block;
       width: 100%;
       height: 100%;
+      max-height: 320px;
       object-fit: cover;
-      display: block;
     }
 
     .group-img-placeholder {
@@ -772,25 +778,21 @@
       <div class="sidebar-meta">Onboarding Flow · 17 groups</div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section-label">Tổng quan</div>
-      <a class="nav-item" href="#patterns">UI Pattern Types</a>
-      <a class="nav-item" href="#media">Media Slot Types</a>
-      <div class="nav-section-label">Các bước Onboarding</div>
+      <div class="nav-section-label">P1</div>
       <a class="nav-item" href="#g1">Sub-Product Catalog <span class="nav-badge badge-p1">P1</span></a>
-      <a class="nav-item" href="#g2">Hero Carousel <span class="nav-badge badge-p3">P3</span></a>
+      <div class="nav-section-label">P2</div>
       <a class="nav-item" href="#g4">Role / Intent Options <span class="nav-badge badge-p2">P2</span></a>
       <a class="nav-item" href="#g5">Referral Source Options <span class="nav-badge badge-p2">P2</span></a>
-      <a class="nav-item" href="#g8">Brand Kit Gen Steps <span class="nav-badge badge-p5">P5</span></a>
-      <a class="nav-item" href="#g9">Per-Product Formats <span class="nav-badge badge-p3">P3</span></a>
-      <a class="nav-item" href="#g10">Left Panel Identity <span class="nav-badge badge-p4">P4</span></a>
-      <div class="nav-section-label">Nội dung từng bước</div>
-      <a class="nav-item" href="#g12">Product Selection Copy <span class="nav-badge badge-p3">P3</span></a>
-      <a class="nav-item" href="#g13">Brand Kit Setup Copy <span class="nav-badge badge-p4">P4</span></a>
-      <a class="nav-item" href="#g14">Mobile Gate Copy <span class="nav-badge badge-p5">P5</span></a>
-      <a class="nav-item" href="#g15">Completion Screen Copy <span class="nav-badge badge-p5">P5</span></a>
-      <div class="nav-section-label">Trong Editor</div>
       <a class="nav-item" href="#g16">Walkthrough Tour <span class="nav-badge badge-p2">P2</span></a>
+      <a class="nav-item" href="#g19">In-Editor Walkthrough <span class="nav-badge badge-p2">P2</span></a>
+      <a class="nav-item" href="#g18">Prompt Screen <span class="nav-badge badge-p2">P2</span></a>
+      <div class="nav-section-label">P3</div>
+      <a class="nav-item" href="#g2">Hero Carousel <span class="nav-badge badge-p3">P3</span></a>
+      <div class="nav-section-label">P4</div>
       <a class="nav-item" href="#g17">Progress Chip <span class="nav-badge badge-p4">P4</span></a>
+      <div class="nav-section-label">P5</div>
+      <a class="nav-item" href="#g8">Brand Kit Gen Steps <span class="nav-badge badge-p5">P5</span></a>
+      <a class="nav-item" href="#g14">Mobile Gate Copy <span class="nav-badge badge-p5">P5</span></a>
     </nav>
   </aside>
 
@@ -800,9 +802,9 @@
     <div class="page-header">
       <div class="page-eyebrow">Spec · Admin Dashboard</div>
       <h1 class="page-title">Onboarding — Configurable Items</h1>
-      <p class="page-subtitle">Tất cả các trường trong luồng onboarding và in-editor walkthrough có thể cập nhật qua admin dashboard mà không cần deploy code. Giao danh sách này cho dev để setup.</p>
+      <p class="page-subtitle">Tất cả các field trong onboarding flow và in-editor walkthrough có thể update qua admin dashboard mà không cần deploy code. Giao danh sách này cho dev để setup.</p>
       <div class="page-meta">
-        <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>17 nhóm cấu hình</div>
+        <div class="meta-item"><div class="meta-dot" style="background:var(--accent)"></div>17 config group</div>
         <div class="meta-item"><div class="meta-dot" style="background:var(--green)"></div>Onboarding + In-editor</div>
         <div class="meta-item"><div class="meta-dot" style="background:var(--text-dim)"></div>Cập nhật tháng 6/2026</div>
       </div>
@@ -815,350 +817,68 @@
       <div class="legend-item"><span class="badge badge-p2">P2</span> Giá trị cao</div>
       <div class="legend-item"><span class="badge badge-p3">P3</span> Trung bình</div>
       <div class="legend-item"><span class="badge badge-p4">P4</span> Ít thay đổi</div>
-      <div class="legend-item"><span class="badge badge-p5">P5</span> Hầu như không đổi</div>
+      <div class="legend-item"><span class="badge badge-p5">P5</span> Hầu như không thay đổi</div>
     </div>
 
-    <!-- Recommended impl -->
+    <!-- UI Pattern Types -->
     <div class="rec-box">
-      <div class="rec-title">Thứ tự triển khai đề xuất cho dev</div>
-      <ul class="rec-list">
-        <li><span class="rec-rank">1.</span> <strong>Group 1</strong> — Sub-product catalog + thumbnails (hay thay đổi nhất — sản phẩm mới, ảnh mới)</li>
-        <li><span class="rec-rank">2.</span> <strong>Groups 16 & 17</strong> — In-editor walkthrough tour + progress chip (trải nghiệm lần đầu dùng)</li>
-        <li><span class="rec-rank">3.</span> <strong>Groups 4 & 5</strong> — Role options và referral source chips (A/B testing, kênh mới)</li>
-        <li><span class="rec-rank">4.</span> <strong>Groups 2 & 12</strong> — Hero carousel và nội dung màn hình chọn sản phẩm (messaging marketing)</li>
-        <li><span class="rec-rank">5.</span> <strong>Groups 6 & 7</strong> — Danh sách tone và font</li>
-        <li><span class="rec-rank">6.</span> <strong>Group 9</strong> — Danh sách format/option theo từng sản phẩm</li>
-        <li><span class="rec-rank">7.</span> <strong>Remaining groups</strong> — Các trường nội dung ít thay đổi</li>
-      </ul>
-    </div>
-
-    <hr class="section-divider">
-
-    <!-- ── SECTION A: Onboarding UI Pattern Types ── -->
-    <h2 class="section-heading" id="patterns">Onboarding UI Pattern Types</h2>
-    <p class="section-sub">Đây là các loại container/shell mà admin có thể chọn cho từng slot trong onboarding. Dev cần build support cho tất cả các pattern — admin sau đó chọn cái nào kích hoạt cho mỗi bước và điền nội dung vào (text, image, gif, hoặc video).</p>
-
-    <div class="pattern-grid">
-
-      <!-- 1. Modal/Dialog -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview">
-          <div style="position:relative;width:160px;height:95px;background:rgba(0,0,0,0.55);border-radius:4px;display:flex;align-items:center;justify-content:center;">
-            <div class="mini-dialog">
-              <div class="mini-dialog-bar"></div>
-              <div class="mini-dialog-line w80"></div>
-              <div class="mini-dialog-line w55"></div>
-              <div class="mini-dialog-btn"></div>
-            </div>
-          </div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Modal / Dialog</div>
-          <div class="pattern-card-desc">Overlay căn giữa chặn background. Phù hợp cho thông báo quan trọng lần đầu dùng app, màn hình welcome, hoặc intro nhiều bước có media.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-blocking">Blocking</span>
-            <span class="ptag ptag-media">Image · GIF · Video</span>
-            <span class="ptag ptag-step">Multi-step</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Spotlight Tour -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview">
-          <div class="mini-overlay">
-            <div class="mini-spotlight-hole"></div>
-            <div class="mini-spotlight-tip">
-              <div class="mini-spotlight-tip-bar"></div>
-              <div class="mini-spotlight-tip-line"></div>
-              <div class="mini-spotlight-tip-line" style="width:50%"></div>
-            </div>
-          </div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Spotlight Tour <span class="ptag ptag-current" style="font-size:10px;padding:1px 6px;border-radius:10px;vertical-align:middle">Current</span></div>
-          <div class="pattern-card-desc">Làm tối background và highlight một phần tử UI cụ thể bằng vòng nhấp nháy. Tooltip hiện bên cạnh phần tử. Các bước tuần tự.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-blocking">Blocking</span>
-            <span class="ptag ptag-step">Multi-step</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Tooltip / Popover -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview" style="gap:16px;flex-direction:column;">
-          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
-            <div style="width:80px;height:18px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:3px;"></div>
-            <div class="mini-tooltip">
-              <div class="mini-tooltip-bar"></div>
-              <div class="mini-tooltip-line"></div>
-              <div class="mini-tooltip-line" style="width:50%"></div>
-            </div>
-          </div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Tooltip / Popover</div>
-          <div class="pattern-card-desc">Bong bóng gợi ý nhỏ gắn vào một phần tử UI. Không chặn — người dùng vẫn tương tác được với phần còn lại của app. Phù hợp cho gợi ý đơn lẻ.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-nonblocking">Non-blocking</span>
-            <span class="ptag ptag-media">Image</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. Hotspot / Pulsing Beacon -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview">
-          <div style="display:flex;align-items:center;gap:20px;">
-            <div style="width:70px;height:28px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:4px;"></div>
-            <div class="mini-hotspot">
-              <div class="mini-hotspot-ring"></div>
-              <div class="mini-hotspot-dot"></div>
-            </div>
-            <div style="width:50px;height:28px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:4px;"></div>
-          </div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Hotspot / Pulsing Beacon</div>
-          <div class="pattern-card-desc">Chấm nhấp nháy nhỏ đặt trên phần tử UI để thu hút chú ý mà không chặn. Người dùng click vào để xem tooltip. Rất ít cản trở.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-nonblocking">Non-blocking</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 5. Inline Banner -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview" style="flex-direction:column;gap:8px;padding:12px;">
-          <div style="width:100%;height:16px;background:var(--surface-2);border-radius:3px;border:1px solid var(--border);"></div>
-          <div class="mini-banner" style="width:100%;">
-            <div class="mini-banner-icon"></div>
-            <div class="mini-banner-text">
-              <div class="mini-banner-line"></div>
-              <div class="mini-banner-line sm"></div>
-            </div>
-          </div>
-          <div style="width:100%;height:30px;background:var(--surface-2);border-radius:3px;border:1px solid var(--border);"></div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Inline Banner / Announcement Bar</div>
-          <div class="pattern-card-desc">Thanh xuất hiện ở trên hoặc dưới trang. Có thể đóng. Phù hợp cho thông báo tính năng hoặc gợi ý theo ngữ cảnh mà không làm gián đoạn luồng.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-nonblocking">Non-blocking</span>
-            <span class="ptag ptag-media">Image · GIF</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 6. Progress Chip -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview" style="position:relative;">
-          <div style="width:150px;height:80px;background:var(--surface-2);border-radius:4px;border:1px solid var(--border);"></div>
-          <div style="position:absolute;bottom:12px;right:12px;">
-            <div class="mini-chip">
-              <div class="mini-chip-dot"></div>
-              <div style="display:flex;flex-direction:column;gap:2px;">
-                <div class="mini-chip-bar"></div>
-                <div style="width:30px;height:3px;background:var(--border-light);border-radius:2px;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Progress Chip <span class="ptag ptag-current" style="font-size:10px;padding:1px 6px;border-radius:10px;vertical-align:middle">Current</span></div>
-          <div class="pattern-card-desc">Badge góc cố định hiển thị tiến độ hoàn thành onboarding (vd: 1/5). Luôn hiển thị nhưng không bao giờ chặn. Có thể mở rộng thành checklist.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-nonblocking">Non-blocking</span>
-            <span class="ptag ptag-step">Multi-step</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 7. Checklist Panel -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview">
-          <div class="mini-checklist">
-            <div style="height:5px;border-radius:2px;background:var(--accent);width:70%;margin-bottom:3px;"></div>
-            <div class="mini-checklist-item"><div class="mini-checklist-box checked"></div><div class="mini-checklist-line"></div></div>
-            <div class="mini-checklist-item"><div class="mini-checklist-box checked"></div><div class="mini-checklist-line" style="width:70%"></div></div>
-            <div class="mini-checklist-item"><div class="mini-checklist-box"></div><div class="mini-checklist-line" style="width:85%"></div></div>
-            <div class="mini-checklist-item"><div class="mini-checklist-box"></div><div class="mini-checklist-line" style="width:60%"></div></div>
-          </div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Checklist Panel / Side Drawer</div>
-          <div class="pattern-card-desc">Panel bên cạnh cố định hoặc checklist có thể mở rộng cho các nhiệm vụ onboarding. Người dùng hoàn thành theo tốc độ riêng. Hiển thị tiến độ tổng thể.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-nonblocking">Non-blocking</span>
-            <span class="ptag ptag-step">Multi-step</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 8. Video Modal -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview" style="background:#111;">
-          <div class="mini-video-modal">
-            <div class="mini-play-btn"><div class="mini-play-icon"></div></div>
-          </div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Video / GIF Modal</div>
-          <div class="pattern-card-desc">Modal phát video hướng dẫn hoặc GIF lặp. Rất hiệu quả để giải thích "cách hoạt động" bằng hình ảnh. Có thể bỏ qua hoặc tự chuyển sau khi phát xong.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-blocking">Blocking</span>
-            <span class="ptag ptag-media">GIF · Video</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 9. Slideshow / Carousel -->
-      <div class="pattern-card">
-        <div class="pattern-card-preview">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-            <div style="width:140px;height:60px;background:var(--surface);border:1px solid var(--border-light);border-radius:5px;display:flex;align-items:center;justify-content:center;">
-              <div style="width:70%;height:8px;border-radius:2px;background:var(--accent-dim);border:1px solid var(--accent-border);"></div>
-            </div>
-            <div style="display:flex;gap:5px;">
-              <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);"></div>
-              <div style="width:8px;height:8px;border-radius:50%;background:var(--border-light);"></div>
-              <div style="width:8px;height:8px;border-radius:50%;background:var(--border-light);"></div>
-            </div>
-          </div>
-        </div>
-        <div class="pattern-card-body">
-          <div class="pattern-card-name">Slideshow / Carousel Intro</div>
-          <div class="pattern-card-desc">Chuỗi welcome toàn màn hình nhiều slide trước khi app load. Mỗi slide có thể dùng image, gif, hoặc video khác nhau. Phân trang bằng chấm tròn.</div>
-          <div class="pattern-card-tags">
-            <span class="ptag ptag-blocking">Blocking</span>
-            <span class="ptag ptag-media">Image · GIF · Video</span>
-            <span class="ptag ptag-step">Multi-step</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Pattern → Config mapping -->
-    <h3 style="font-size:14px;font-weight:700;color:var(--text);margin:32px 0 8px">Cách loại pattern áp dụng cho từng config slot</h3>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;max-width:620px;line-height:1.6">Mỗi slot onboarding bên dưới có một <strong style="color:var(--text)">pattern hiện tại</strong> và một tập hợp <strong style="color:var(--text)">các lựa chọn thay thế</strong> admin có thể chuyển sang. Các trường nội dung (text, image, gif, video) giữ nguyên — chỉ thay đổi shell bên ngoài. Dev cần thêm dropdown "Pattern type" cho từng slot trong admin dashboard.</p>
-
-    <table class="field-table" style="margin-bottom:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-      <thead>
-        <tr>
-          <th style="width:22%">Config slot</th>
-          <th style="width:22%">Pattern hiện tại</th>
-          <th style="width:34%">Lựa chọn thay thế</th>
-          <th style="width:22%">Hỗ trợ media</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="field-name">Brand Kit intro hook<br><span style="font-weight:400;font-size:11px;color:var(--text-dim)">Group 13 — Phase 1</span></td>
-          <td><span class="field-type type-text" style="background:var(--surface-2);color:var(--text-muted)">Màn hình toàn phần</span></td>
-          <td class="field-example">Modal / Dialog · Slideshow / Carousel</td>
-          <td class="field-example">Image · GIF · Video</td>
-        </tr>
-        <tr>
-          <td class="field-name">In-editor walkthrough<br><span style="font-weight:400;font-size:11px;color:var(--text-dim)">Group 16 — Tour steps</span></td>
-          <td><span class="field-type" style="background:var(--accent-2-dim);color:var(--accent-2);border:1px solid var(--accent-2-border)">Spotlight Tour ★</span></td>
-          <td class="field-example">Tooltip / Popover · Hotspot / Pulsing Beacon · Modal / Dialog</td>
-          <td class="field-example">Image (tooltip only)</td>
-        </tr>
-        <tr>
-          <td class="field-name">In-editor progress<br><span style="font-weight:400;font-size:11px;color:var(--text-dim)">Group 17 — Chip</span></td>
-          <td><span class="field-type" style="background:var(--accent-2-dim);color:var(--accent-2);border:1px solid var(--accent-2-border)">Progress Chip ★</span></td>
-          <td class="field-example">Checklist Panel / Side Drawer</td>
-          <td class="field-example">None</td>
-        </tr>
-        <tr>
-          <td class="field-name">Product selection<br><span style="font-weight:400;font-size:11px;color:var(--text-dim)">Group 12 — Step 5</span></td>
-          <td><span class="field-type type-text" style="background:var(--surface-2);color:var(--text-muted)">Màn hình toàn phần</span></td>
-          <td class="field-example">Modal / Dialog · Slideshow / Carousel</td>
-          <td class="field-example">Image · GIF · Video</td>
-        </tr>
-        <tr>
-          <td class="field-name">Hero carousel<br><span style="font-weight:400;font-size:11px;color:var(--text-dim)">Group 02 — Left panel</span></td>
-          <td><span class="field-type type-text" style="background:var(--surface-2);color:var(--text-muted)">Carousel tùy chỉnh</span></td>
-          <td class="field-example">Slideshow / Carousel · Video / GIF Modal</td>
-          <td class="field-example">Image · GIF · Video</td>
-        </tr>
-        <tr>
-          <td class="field-name">Thông báo tính năng<br><span style="font-weight:400;font-size:11px;color:var(--text-dim)">Tương lai — bất kỳ bước nào</span></td>
-          <td><span class="field-type type-text" style="background:var(--surface-2);color:var(--text-muted)">Chưa có</span></td>
-          <td class="field-example">Inline Banner · Hotspot / Pulsing Beacon · Tooltip / Popover</td>
-          <td class="field-example">Image · GIF</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div style="margin-top:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text-muted);">
-      <strong style="color:var(--text)">★ Hiện tại</strong> — pattern đã được implement trong code. Các pattern khác cần dev build thêm. Admin dashboard nên có dropdown <strong style="color:var(--text)">"Pattern type"</strong> cho từng slot; chuyển đổi sẽ hot-swap shell mà không ảnh hưởng đến các trường nội dung.
-    </div>
-
-    <hr class="section-divider">
-
-    <!-- ── SECTION B: Media Slot Types ── -->
-    <h2 class="section-heading" id="media">Media Slot Types</h2>
-    <p class="section-sub">Với mỗi slot onboarding (bước, pattern, hoặc tooltip), admin có thể upload hoặc dán link một trong các loại media này. Dev cần support cả 3 loại cho mỗi slot — admin chọn cái nào đang hoạt động.</p>
-
-    <div class="media-types-grid">
-      <div class="media-type-card">
-        <div class="media-type-icon">🖼</div>
-        <div class="media-type-name">Static Image</div>
-        <div class="media-type-desc">PNG, JPG, hoặc SVG. Load ngay lập tức, không chuyển động, băng thông thấp nhất. Phù hợp cho illustrations, screenshot sản phẩm và sơ đồ.</div>
-        <div class="media-type-specs">Định dạng: PNG · JPG · SVG · WebP<br>Kích thước tối đa: 2 MB<br>Khuyến nghị: 1200 × 800px</div>
-      </div>
-      <div class="media-type-card">
-        <div class="media-type-icon">🎞</div>
-        <div class="media-type-name">Animated GIF / WebP</div>
-        <div class="media-type-desc">Animation lặp vòng. Rất tốt để hiển thị micro-interactions, UI walkthrough, hoặc demo sản phẩm ngắn không có âm thanh.</div>
-        <div class="media-type-specs">Định dạng: GIF · Animated WebP<br>Kích thước tối đa: 5 MB<br>Thời lượng tối đa: ~10 giây lặp<br>Khuyến nghị: 800 × 500px</div>
-      </div>
-      <div class="media-type-card">
-        <div class="media-type-icon">▶️</div>
-        <div class="media-type-name">Video</div>
-        <div class="media-type-desc">MP4 hoặc URL video nhúng (YouTube, Loom, Vimeo). Phù hợp nhất cho hướng dẫn dài có lời thuyết minh. Có thể autoplay muted hoặc yêu cầu người dùng bấm play.</div>
-        <div class="media-type-specs">Định dạng: MP4 (H.264) · Embed URL<br>Kích thước tối đa: 50 MB (hosted)<br>Autoplay: chỉ muted<br>Tỷ lệ: khuyến nghị 16:9</div>
-      </div>
-    </div>
-
-    <!-- Media slots per onboarding step -->
-    <div class="group">
-      <div class="group-header">
-        <div class="group-number">★</div>
-        <div class="group-title-block">
-          <div class="group-title">Media Slots — Per Onboarding Step</div>
-          <div class="group-subtitle">Mỗi bước và pattern cần hiển thị các trường media này trong admin dashboard. Admin upload hoặc dán URL; UI render cái nào được set (ưu tiên: Video → GIF → Image → không có).</div>
-          <div class="group-source">Áp dụng cho: tất cả các group bên dưới + Group 16 & 17 (in-editor)</div>
-        </div>
-        <div class="group-badges"><span class="badge badge-p1">P1</span></div>
-      </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Media Slots preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
-      </div>
-      <table class="field-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Ghi chú</th></tr></thead>
+      <div class="rec-title">UI Pattern Types — Media &amp; Toggle trong Admin Dashboard</div>
+      <p style="color:var(--text-muted);font-size:13px;margin:0 0 16px">Mục tiêu: tất cả image, GIF, video liên quan đến onboarding đều được quản lý qua admin dashboard — bật/tắt, thay link, không cần deploy code.</p>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:6px 12px 8px 0;color:var(--text-muted);font-weight:500;width:160px">Pattern</th>
+            <th style="text-align:left;padding:6px 12px 8px 0;color:var(--text-muted);font-weight:500;width:200px">Dùng ở đâu</th>
+            <th style="text-align:left;padding:6px 0 8px 0;color:var(--text-muted);font-weight:500">Media slot / Toggle</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td class="field-name">Static image</td><td><span class="field-type type-media-img">Image upload</span></td><td class="field-example">PNG / JPG / SVG / WebP — hiển thị nếu không có GIF hoặc video</td></tr>
-          <tr><td class="field-name">Animated GIF / WebP</td><td><span class="field-type type-media-gif">GIF upload</span></td><td class="field-example">Tự động lặp; ghi đè ảnh tĩnh nếu được set</td></tr>
-          <tr><td class="field-name">Video URL or file</td><td><span class="field-type type-media-video">Video</span></td><td class="field-example">MP4 hoặc embed URL; ưu tiên hơn GIF và ảnh</td></tr>
-          <tr><td class="field-name">Alt text</td><td><span class="field-type type-text">Text</span></td><td class="field-example">Cho accessibility; hiển thị nếu media load thất bại</td></tr>
-          <tr><td class="field-name">Media position</td><td><span class="field-type type-list">List</span></td><td class="field-example">top / left / right / background / none</td></tr>
-          <tr><td class="field-name">Video autoplay</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">Autoplay muted bật / tắt</td></tr>
-          <tr><td class="field-name">Video loop</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">Loop bật / tắt</td></tr>
-          <tr><td class="field-name">Show media on mobile</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">Ẩn media lớn trên màn hình nhỏ</td></tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:8px 12px 8px 0;color:var(--text-primary);font-weight:600">Modal / Dialog</td>
+            <td style="padding:8px 12px 8px 0;color:var(--text-muted)">Brand Kit hook screen (Step 4), Completion screen (Step 9)</td>
+            <td style="padding:8px 0;color:var(--text-muted)">Illustration image hoặc animation GIF — toggle hiển thị/ẩn, thay link</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:8px 12px 8px 0;color:var(--text-primary);font-weight:600">Slideshow / Carousel</td>
+            <td style="padding:8px 12px 8px 0;color:var(--text-muted)">Hero feature carousel (left panel wizard, Group 2)</td>
+            <td style="padding:8px 0;color:var(--text-muted)">Static image hoặc animated WebP per tab — reorder, bật/tắt từng tab</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:8px 12px 8px 0;color:var(--text-primary);font-weight:600">Product Card</td>
+            <td style="padding:8px 12px 8px 0;color:var(--text-muted)">Product selection step (Group 1)</td>
+            <td style="padding:8px 0;color:var(--text-muted)">Thumbnail image per product — swap image URL, toggle "Coming Soon", reorder card</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:8px 12px 8px 0;color:var(--text-primary);font-weight:600">Spotlight Tour</td>
+            <td style="padding:8px 12px 8px 0;color:var(--text-muted)">In-editor walkthrough (Group 16)</td>
+            <td style="padding:8px 0;color:var(--text-muted)">GIF hoặc short video per step — toggle toàn bộ tour on/off, bật/tắt từng step</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:8px 12px 8px 0;color:var(--text-primary);font-weight:600">Progress Chip</td>
+            <td style="padding:8px 12px 8px 0;color:var(--text-muted)">In-editor bottom-right chip (Group 17)</td>
+            <td style="padding:8px 0;color:var(--text-muted)">Toggle hiển thị/ẩn chip, đổi label và màu progress bar</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:8px 12px 8px 0;color:var(--text-primary);font-weight:600">Tooltip / Nudge</td>
+            <td style="padding:8px 12px 8px 0;color:var(--text-muted)">Product selection nudge (Group 1 page copy)</td>
+            <td style="padding:8px 0;color:var(--text-muted)">Toggle bật/tắt, đổi delay (ms) và nội dung text</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:8px 12px 8px 0;color:var(--text-primary);font-weight:600">Animated Banner</td>
+            <td style="padding:8px 12px 8px 0;color:var(--text-muted)">Left panel gradient identity (Group 10)</td>
+            <td style="padding:8px 0;color:var(--text-muted)">Gradient color per product — có thể mở rộng để nhận GIF/video background</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px 8px 0;color:var(--text-primary);font-weight:600">Video Modal</td>
+            <td style="padding:8px 12px 8px 0;color:var(--text-muted)">Có thể thêm vào bất kỳ step nào (future)</td>
+            <td style="padding:8px 0;color:var(--text-muted)">Embed URL (YouTube/Loom) — toggle hiển thị, autoplay on/off</td>
+          </tr>
         </tbody>
       </table>
     </div>
 
-    <hr class="section-divider">
-
-    <!-- Section label for the groups below -->
     <h2 class="section-heading" style="margin-bottom:6px">Configurable Field Groups</h2>
-    <p class="section-sub">Tất cả các trường hardcode trong 17 onboarding group cần được đưa vào admin dashboard.</p>
+    <p class="section-sub">Tất cả các hardcoded field trong 17 onboarding group cần được đưa vào admin dashboard.</p>
 
     <!-- ── GROUP 1 ── -->
     <div class="group" id="g1">
@@ -1166,17 +886,14 @@
         <div class="group-number">01</div>
         <div class="group-title-block">
           <div class="group-title">Sub-Product Catalog</div>
-          <div class="group-subtitle">Các thẻ sản phẩm hiển thị trên màn hình chọn sản phẩm (Step 5). Thay đổi mỗi khi thêm sản phẩm mới, đổi tên, hoặc sắp xếp lại.</div>
+          <div class="group-subtitle">Các product card hiển thị trên screen chọn product (Step 5). Thay đổi mỗi khi thêm product mới, đổi tên, hoặc reorder.</div>
           <div class="group-source">src/features/onboarding/components/steps/Step3_Product.tsx → PRODUCTS[]<br>public/home/card-*.png</div>
         </div>
         <div class="group-badges">
           <span class="badge badge-p1">P1</span>
         </div>
       </div>
-      <div class="group-img-slot">
-        <!-- Replace src below with your screenshot URL for this section -->
-        <!-- <img src="YOUR_IMAGE_URL" alt="Sub-Product Catalog preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
+      <div class="group-img-slot"></div>
       </div>
       <table class="field-table">
         <thead>
@@ -1195,7 +912,19 @@
           <tr><td class="field-name">Icon type</td><td><span class="field-type type-list">List</span></td><td class="field-example">Social, Present, Layers, Docs, Globe, Sparkle</td></tr>
         </tbody>
       </table>
-      <div class="note">Mỗi sản phẩm là một record riêng. Admin có thể thêm sản phẩm mới, bật/tắt hiển thị, sắp xếp lại thẻ, và đổi ảnh thumbnail mà không cần release code.</div>
+      <div class="subgroup-label">Page Copy</div>
+      <table class="field-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">Eyebrow label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Welcome to LayerProof"</td></tr>
+          <tr><td class="field-name">Page headline</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"How would you like to get started?"</td></tr>
+          <tr><td class="field-name">Page subtitle</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Pick a product to dive into — you can explore everything else from your dashboard."</td></tr>
+          <tr><td class="field-name">Nudge tooltip text</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Not sure? Start here!"</td></tr>
+          <tr><td class="field-name">Nudge delay (ms)</td><td><span class="field-type type-number">Number</span></td><td class="field-example">7000</td></tr>
+          <tr><td class="field-name">"Coming Soon" badge text</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Coming Soon"</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Mỗi product là một record riêng. Admin có thể thêm product mới, bật/tắt hiển thị, sắp xếp lại card, và đổi image thumbnail mà không cần release code.</div>
     </div>
 
     <!-- ── GROUP 2 ── -->
@@ -1204,14 +933,12 @@
         <div class="group-number">02</div>
         <div class="group-title-block">
           <div class="group-title">Hero Feature Carousel</div>
-          <div class="group-subtitle">Các tab preview sản phẩm xoay vòng ở panel trái của onboarding wizard. Tự động chuyển mỗi 7 giây.</div>
+          <div class="group-subtitle">Các tab preview product rotating ở left panel của onboarding wizard. Tự động chuyển mỗi 7 seconds.</div>
           <div class="group-source">src/features/onboarding/components/OnboardingWizard.tsx → HERO_TABS[]<br>public/home/feature-*.png</div>
         </div>
         <div class="group-badges"><span class="badge badge-p3">P3</span></div>
       </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Hero Feature Carousel preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
+      <div class="group-img-slot"></div>
       </div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
@@ -1232,14 +959,12 @@
         <div class="group-number">04</div>
         <div class="group-title-block">
           <div class="group-title">Role / Intent Options</div>
-          <div class="group-subtitle">Các chip lựa chọn hiển thị ở Step 2 — "What best describes your job?" Dùng để cá nhân hóa onboarding và phân khúc analytics.</div>
+          <div class="group-subtitle">Các chip option hiển thị ở Step 2 — "What best describes your job?" Dùng để personalize onboarding và segment analytics.</div>
           <div class="group-source">src/features/onboarding/components/steps/Step2_Intent.tsx → ROLES[]</div>
         </div>
         <div class="group-badges"><span class="badge badge-p2">P2</span></div>
       </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Role / Intent Options preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
+      <div class="group-img-slot"></div>
       </div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
@@ -1262,14 +987,12 @@
         <div class="group-number">05</div>
         <div class="group-title-block">
           <div class="group-title">Referral Source Options</div>
-          <div class="group-subtitle">Các chip lựa chọn ở Step 2 bước phụ 2 — "How did you hear about us?" Thêm/bỏ kênh (vd: mạng xã hội mới) mà không cần thay đổi code.</div>
+          <div class="group-subtitle">Các chip option ở Step 2 sub-step 2 — "How did you hear about us?" Thêm/bỏ channel (vd: new social platform) mà không cần thay đổi code.</div>
           <div class="group-source">src/features/onboarding/components/steps/Step2_Intent.tsx → REFERRALS[]</div>
         </div>
         <div class="group-badges"><span class="badge badge-p2">P2</span></div>
       </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Referral Source Options preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
+      <div class="group-img-slot"></div>
       </div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
@@ -1289,16 +1012,15 @@
       <div class="group-header">
         <div class="group-number">08</div>
         <div class="group-title-block">
-          <div class="group-title">Brand Kit Generation Steps (Loading Animation)</div>
-          <div class="group-subtitle">Nội dung tiến trình từng bước hiển thị trong khi brand kit đang được tạo. Mỗi bước hiển thị khoảng ~900ms.</div>
-          <div class="group-source">src/features/onboarding/components/steps/Step4_BrandName.tsx → GENERATING_STEPS[]</div>
+          <div class="group-title">Brand Kit Setup (Step 4)</div>
+          <div class="group-subtitle">Toàn bộ config cho Step 4 — gồm page copy (hook screen, setup form, done screen), loading animation steps, và toggle hiển thị/skip bước này.</div>
+          <div class="group-source">src/features/onboarding/components/steps/Step4_BrandName.tsx → GENERATING_STEPS[], Step4_BrandName.tsx</div>
         </div>
         <div class="group-badges"><span class="badge badge-p5">P5</span></div>
       </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Brand Kit Generation Steps preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
+      <div class="group-img-slot"></div>
       </div>
+      <div class="subgroup-label">Loading Animation Steps</div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
         <tbody>
@@ -1307,132 +1029,10 @@
           <tr><td class="field-name">Display interval (ms)</td><td><span class="field-type type-number">Number</span></td><td class="field-example">900</td></tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- ── GROUP 9 ── -->
-    <div class="group" id="g9">
-      <div class="group-header">
-        <div class="group-number">09</div>
-        <div class="group-title-block">
-          <div class="group-title">Per-Product Format Options (Project Creation)</div>
-          <div class="group-subtitle">Mỗi sản phẩm hiển thị các selector format/option khác nhau khi đặt tên project mới ở Step 8. Đây là những lựa chọn người dùng thấy trước khi generate.</div>
-          <div class="group-source">src/features/onboarding/components/steps/Step8_Project.tsx → PRODUCT_CONFIG</div>
-        </div>
-        <div class="group-badges"><span class="badge badge-p3">P3</span></div>
-      </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Per-Product Format Options preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
-      </div>
-      <div class="subgroup-label">Matte (Social Post) — Tùy chọn format</div>
-      <table class="field-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Current options</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">Format option labels</td><td><span class="field-type type-list">List</span></td><td class="field-example">"Instagram Square", "LinkedIn Banner", "Story (9:16)", "X Post"</td></tr>
-          <tr><td class="field-name">Default selection</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Instagram Square"</td></tr>
-        </tbody>
-      </table>
-      <div class="subgroup-label">Chromo (Presentation) — Số slide + chủ đề</div>
-      <table class="field-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Current options</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">Slide count option labels</td><td><span class="field-type type-list">List</span></td><td class="field-example">"5", "10", "15", "20+"</td></tr>
-          <tr><td class="field-name">Topic placeholder text</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"e.g. Q3 product launch, investor pitch…"</td></tr>
-        </tbody>
-      </table>
-      <div class="subgroup-label">Vellum (Image Generator) — Tỷ lệ khung hình</div>
-      <table class="field-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Current options</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">Aspect ratio option labels</td><td><span class="field-type type-list">List</span></td><td class="field-example">"1:1", "16:9", "4:5", "9:16"</td></tr>
-          <tr><td class="field-name">Image prompt placeholder</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"e.g. A hero banner with a dark gradient…"</td></tr>
-        </tbody>
-      </table>
-      <div class="subgroup-label">Kraft (Long Form) — Loại nội dung</div>
-      <table class="field-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Current options</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">Content type option labels</td><td><span class="field-type type-list">List</span></td><td class="field-example">"Blog Post", "Brand Brief", "Report", "Newsletter"</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- ── GROUP 10 ── -->
-    <div class="group" id="g10">
-      <div class="group-header">
-        <div class="group-number">10</div>
-        <div class="group-title-block">
-          <div class="group-title">Left Panel Brand Identity Panel</div>
-          <div class="group-subtitle">Panel gradient động ở bên trái wizard. Chuyển đổi để hiển thị sản phẩm người dùng đã chọn, với màu gradient theo từng sản phẩm.</div>
-          <div class="group-source">src/features/onboarding/components/OnboardingWizard.tsx → PRODUCT_GRADIENTS, PRODUCT_NAMES</div>
-        </div>
-        <div class="group-badges"><span class="badge badge-p4">P4</span></div>
-      </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Left Panel Brand Identity preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
-      </div>
-      <table class="field-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">Panel tagline</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Your brand, consistent across every output."</td></tr>
-          <tr><td class="field-name">Feature pill labels (×4)</td><td><span class="field-type type-list">List</span></td><td class="field-example">"Colors & Typography", "Logo & Imagery", "Tone of Voice", "AI-Powered Outputs"</td></tr>
-          <tr><td class="field-name">Per-product gradient (start)</td><td><span class="field-type type-color">Color</span></td><td class="field-example">Matte: #ec4899, Chromo: #8b5cf6</td></tr>
-          <tr><td class="field-name">Per-product gradient (end)</td><td><span class="field-type type-color">Color</span></td><td class="field-example">Matte: #ff6b6b, Chromo: #3b82f6</td></tr>
-          <tr><td class="field-name">Per-product display name</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Matte", "Chromo", "Vellum", "Kraft"</td></tr>
-          <tr><td class="field-name">"You're building with" label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"You're building with"</td></tr>
-          <tr><td class="field-name">App logo image</td><td><span class="field-type type-image">Image</span></td><td class="field-example">logos/symbol.png</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-        <!-- ── GROUP 12 ── -->
-    <div class="group" id="g12">
-      <div class="group-header">
-        <div class="group-number">12</div>
-        <div class="group-title-block">
-          <div class="group-title">Product Selection Step Copy</div>
-          <div class="group-subtitle">Headline, subtitle và nudge tooltip ở Step 5 — màn hình chọn sản phẩm.</div>
-          <div class="group-source">src/features/onboarding/components/steps/Step3_Product.tsx</div>
-        </div>
-        <div class="group-badges"><span class="badge badge-p3">P3</span></div>
-      </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Product Selection Step Copy preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
-      </div>
-      <table class="field-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">Eyebrow label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Welcome to LayerProof"</td></tr>
-          <tr><td class="field-name">Page headline</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"How would you like to get started?"</td></tr>
-          <tr><td class="field-name">Page subtitle</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Pick a product to dive into — you can explore everything else from your dashboard."</td></tr>
-          <tr><td class="field-name">Nudge tooltip text</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Not sure? Start here!"</td></tr>
-          <tr><td class="field-name">Nudge delay (ms)</td><td><span class="field-type type-number">Number</span></td><td class="field-example">7000</td></tr>
-          <tr><td class="field-name">"Coming Soon" badge text</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Coming Soon"</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- ── GROUP 13 ── -->
-    <div class="group" id="g13">
-      <div class="group-header">
-        <div class="group-number">13</div>
-        <div class="group-title-block">
-          <div class="group-title">Brand Kit Setup Copy (Step 4 — all 3 phases)</div>
-          <div class="group-subtitle">Step 4 có ba giai đoạn: màn hình hook → form setup → màn hình hoàn thành. Mỗi giai đoạn có nội dung riêng.</div>
-          <div class="group-source">src/features/onboarding/components/steps/Step4_BrandName.tsx</div>
-        </div>
-        <div class="group-badges"><span class="badge badge-p4">P4</span></div>
-      </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Brand Kit Setup Copy preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
-      </div>
       <table class="field-table"><thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead><tbody>
-          <tr><td class="field-name">Show Brand Kit step</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">true = hiển thị step 4, false = bỏ qua hoàn toàn</td></tr>
+          <tr><td class="field-name">Show Brand Kit step</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">true = hiển thị Step 4, false = skip hoàn toàn</td></tr>
         </tbody></table>
-            <div class="subgroup-label">Phase 1 — Màn hình hook</div>
+      <div class="subgroup-label">Phase 1 — Hook screen</div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
         <tbody>
@@ -1445,7 +1045,7 @@
           <tr><td class="field-name">Illustration image</td><td><span class="field-type type-image">Image</span></td><td class="field-example">onboarding/illustration.png</td></tr>
         </tbody>
       </table>
-      <div class="subgroup-label">Phase 2 — Form setup</div>
+      <div class="subgroup-label">Phase 2 — Setup form</div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
         <tbody>
@@ -1454,7 +1054,7 @@
           <tr><td class="field-name">Primary CTA</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Generate my brand kit"</td></tr>
         </tbody>
       </table>
-      <div class="subgroup-label">Phase 3 — Màn hình hoàn thành</div>
+      <div class="subgroup-label">Phase 3 — Done screen</div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
         <tbody>
@@ -1466,20 +1066,19 @@
       </table>
     </div>
 
+
     <!-- ── GROUP 14 ── -->
     <div class="group" id="g14">
       <div class="group-header">
         <div class="group-number">14</div>
         <div class="group-title-block">
           <div class="group-title">Mobile Gate Copy</div>
-          <div class="group-subtitle">Màn hình hiển thị cho người dùng mobile yêu cầu chuyển sang desktop. URL hiển thị và mobile breakpoint cũng cần có thể cấu hình được.</div>
+          <div class="group-subtitle">Screen hiển thị cho user mobile yêu cầu chuyển sang desktop. URL hiển thị và mobile breakpoint cũng cần configurable.</div>
           <div class="group-source">src/features/onboarding/components/steps/Step3_DeviceGate.tsx</div>
         </div>
         <div class="group-badges"><span class="badge badge-p5">P5</span></div>
       </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Mobile Gate Copy preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
+      <div class="group-img-slot"></div>
       </div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
@@ -1494,34 +1093,6 @@
       </table>
     </div>
 
-    <!-- ── GROUP 15 ── -->
-    <div class="group" id="g15">
-      <div class="group-header">
-        <div class="group-number">15</div>
-        <div class="group-title-block">
-          <div class="group-title">Completion Screen Copy</div>
-          <div class="group-subtitle">Màn hình thành công hiển thị ở cuối onboarding (Step 9). Bao gồm các mục checklist, CTA và text badge.</div>
-          <div class="group-source">src/features/onboarding/components/steps/Step9_Complete.tsx</div>
-        </div>
-        <div class="group-badges"><span class="badge badge-p5">P5</span></div>
-      </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="Completion Screen Copy preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
-      </div>
-      <table class="field-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
-        <tbody>
-          <tr><td class="field-name">Success headline template</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Your {product label} is ready!"</td></tr>
-          <tr><td class="field-name">Subtitle</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Your brand kit has been applied — everything you generate will stay on-brand."</td></tr>
-          <tr><td class="field-name">Checklist items</td><td><span class="field-type type-list">List</span></td><td class="field-example">"Brand colors applied", "Typography matched", "Tone of voice set"</td></tr>
-          <tr><td class="field-name">Primary CTA</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Open in editor →"</td></tr>
-          <tr><td class="field-name">Secondary CTA</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Explore your brand kit first"</td></tr>
-          <tr><td class="field-name">"Ready" badge text</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Ready"</td></tr>
-          <tr><td class="field-name">"Powered by" label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Powered by {brand name}"</td></tr>
-        </tbody>
-      </table>
-    </div>
 
     <!-- ── GROUP 16 ── -->
     <div class="group" id="g16">
@@ -1529,16 +1100,14 @@
         <div class="group-number">16</div>
         <div class="group-title-block">
           <div class="group-title">In-Editor Walkthrough Tour</div>
-          <div class="group-subtitle">Tour spotlight 5 bước kích hoạt khi người dùng vào editor lần đầu (PromptScreen). Mỗi bước highlight một phần tử UI bằng spotlight nhấp nháy và tooltip. Cũng bao gồm chuỗi InputTip 2 bước cho attach file và model switcher.</div>
+          <div class="group-subtitle">Tour spotlight 5 step kích hoạt khi user vào editor lần đầu (PromptScreen). Mỗi step highlight một UI element bằng pulsing spotlight và tooltip. Cũng bao gồm InputTip sequence 2 step cho attach file và model switcher.</div>
           <div class="group-source">src/features/create/components/PromptScreen.tsx → TOUR_STEPS[]</div>
         </div>
         <div class="group-badges"><span class="badge badge-p2">P2</span></div>
       </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="In-Editor Walkthrough Tour preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
+      <div class="group-img-slot"></div>
       </div>
-      <div class="subgroup-label">Tour spotlight 5 bước</div>
+      <div class="subgroup-label">Tour spotlight 5 step</div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
         <tbody>
@@ -1552,7 +1121,7 @@
           <tr><td class="field-name">Tour enabled (global toggle)</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">true / false — turn off for existing users</td></tr>
         </tbody>
       </table>
-      <div class="subgroup-label">Chuỗi InputTip 2 bước (attach file + model switcher)</div>
+      <div class="subgroup-label">Chuỗi InputTip 2 step (attach file + model switcher)</div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
         <tbody>
@@ -1564,7 +1133,7 @@
           <tr><td class="field-name">Step 2 button label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Got it"</td></tr>
         </tbody>
       </table>
-      <div class="note">Toggle toàn cục rất quan trọng — cho phép chạy A/B test trên tour, hoặc tắt cho người dùng quay lại trong chiến dịch re-onboarding.</div>
+      <div class="note">Global toggle rất quan trọng — cho phép chạy A/B test trên tour, hoặc disable cho returning user trong campaign re-onboarding.</div>
     </div>
 
     <!-- ── GROUP 17 ── -->
@@ -1573,14 +1142,12 @@
         <div class="group-number">17</div>
         <div class="group-title-block">
           <div class="group-title">In-Editor Progress Chip</div>
-          <div class="group-subtitle">Chip cố định góc dưới phải hiển thị "Get started · 1/5" trong khi người dùng hoàn thành các bước onboarding đầu tiên trong editor.</div>
+          <div class="group-subtitle">Chip cố định góc dưới phải hiển thị "Get started · 1/5" trong khi user hoàn thành các onboarding step đầu tiên trong editor.</div>
           <div class="group-source">src/features/create/components/MatteV3Editor.tsx → onboarding chip</div>
         </div>
         <div class="group-badges"><span class="badge badge-p4">P4</span></div>
       </div>
-      <div class="group-img-slot">
-        <!-- <img src="YOUR_IMAGE_URL" alt="In-Editor Progress Chip preview"> -->
-        <div class="group-img-placeholder"><div class="group-img-placeholder-icon">🖼</div><span>Dán URL ảnh vào đây</span></div>
+      <div class="group-img-slot"></div>
       </div>
       <table class="field-table">
         <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
@@ -1590,6 +1157,74 @@
           <tr><td class="field-name">Progress bar color</td><td><span class="field-type type-color">Color</span></td><td class="field-example">#fbbf24 (yellow)</td></tr>
           <tr><td class="field-name">Help button tooltip text</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"?"</td></tr>
           <tr><td class="field-name">Chip visible / hidden</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">true / false</td></tr>
+        </tbody>
+      </table>
+
+
+    <!-- ── GROUP 19 ── -->
+    <div class="group" id="g19">
+      <div class="group-header">
+        <div class="group-number">19</div>
+        <div class="group-title-block">
+          <div class="group-title">In-Editor Walkthrough (per sub-product)</div>
+          <div class="group-subtitle">Mỗi sub-product editor có thể có walkthrough riêng khi user lần đầu mở. Có 2 pattern: Spotlight tooltips (highlight từng element) hoặc Intro carousel modal (dialog giữa màn hình). Admin bật/tắt và config content từng loại per product.</div>
+          <div class="group-source">src/features/create/components/MatteV3Editor.tsx, SpaceEditor.tsx, … (per product)</div>
+        </div>
+        <div class="group-badges"><span class="badge badge-p2">P2</span></div>
+      </div>
+      <div class="group-img-slot"></div>
+      </div>
+
+      <div class="subgroup-label">Pattern A — Spotlight Tour (tooltips targeting UI elements)</div>
+      <table class="field-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">Enable spotlight tour</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">true / false per sub-product</td></tr>
+          <tr><td class="field-name">Step title</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Not sure where to start?"</td></tr>
+          <tr><td class="field-name">Step body</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Pick a suggestion to fill your prompt instantly."</td></tr>
+          <tr><td class="field-name">Target element key</td><td><span class="field-type type-text">Text</span></td><td class="field-example">suggestions, toolbar, generate, theme-picker</td></tr>
+          <tr><td class="field-name">Step order</td><td><span class="field-type type-number">Number</span></td><td class="field-example">1, 2, 3…</td></tr>
+          <tr><td class="field-name">"Skip tour" button label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Skip tour"</td></tr>
+          <tr><td class="field-name">"Next" button label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Next →"</td></tr>
+          <tr><td class="field-name">Trigger condition</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">first-visit only / always</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subgroup-label">Pattern B — Intro Carousel Modal (center dialog, multi-slide)</div>
+      <table class="field-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Ví dụ</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">Enable intro modal</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">true / false per sub-product</td></tr>
+          <tr><td class="field-name">Slide title</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Introducing Space"</td></tr>
+          <tr><td class="field-name">Slide subtitle</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"One canvas for every image asset you need"</td></tr>
+          <tr><td class="field-name">Slide media</td><td><span class="field-type type-image">Image</span></td><td class="field-example">GIF hoặc static image minh hoạ feature</td></tr>
+          <tr><td class="field-name">Slide order / total count</td><td><span class="field-type type-number">Number</span></td><td class="field-example">1 of 4, 2 of 4…</td></tr>
+          <tr><td class="field-name">"Skip" button label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Skip"</td></tr>
+          <tr><td class="field-name">"Next" button label</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Next →"</td></tr>
+          <tr><td class="field-name">"Done" button label (last slide)</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Get started"</td></tr>
+          <tr><td class="field-name">Trigger condition</td><td><span class="field-type type-toggle">Toggle</span></td><td class="field-example">first-visit only / always</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── GROUP 18 ── -->
+    <div class="group" id="g18">
+      <div class="group-header">
+        <div class="group-number">18</div>
+        <div class="group-title-block">
+          <div class="group-title">Prompt Screen</div>
+          <div class="group-subtitle">Screen đầu tiên user thấy sau khi chọn sub-product. Headline và subtitle thay đổi theo từng product.</div>
+          <div class="group-source">src/features/create/config.ts → ProductConfig (promptTitle, promptSub)</div>
+        </div>
+        <div class="group-badges"><span class="badge badge-p2">P2</span></div>
+      </div>
+      <div class="group-img-slot"></div>
+      </div>
+      <table class="field-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Ví dụ (per sub-product)</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">Page headline</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"What do you want to {create}?" — hỗ trợ inline highlight qua {word}</td></tr>
+          <tr><td class="field-name">Page subtitle</td><td><span class="field-type type-text">Text</span></td><td class="field-example">"Describe your social post — tone, format, and context."</td></tr>
         </tbody>
       </table>
     </div>

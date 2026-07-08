@@ -1,4 +1,5 @@
 import * as I from '@/shared/icons'
+import { DeviceMobile, MonitorPlay, FileText, Stack, Palette, Globe, Lightning, Star, ClockCounterClockwise, Users } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar } from '@/shared/components/layout/Sidebar'
 import { RECENT_PROJECTS } from '@/data/recent-projects'
@@ -84,25 +85,34 @@ export function HomePage() {
               })}
             </div>
 
-            <div className="hp-sub-products">
-              {[
-                { icon: 'Present', label: 'Presentation', slug: 'presentation', desc: 'Slides & decks for any audience',   chevron: false },
-                { icon: 'Sparkle', label: 'Design',        slug: 'design',       desc: 'Graphics, visuals & brand assets',  chevron: false },
-                { icon: 'Globe',   label: 'App',           slug: 'app',          desc: 'Interactive web experiences',        chevron: false },
-                { icon: 'Zap',     label: 'AI Tools',      slug: null,           desc: 'Generate content with AI',           chevron: true  },
-              ].map((item) => {
-                const Icon = I.Icons[item.icon]
-                return (
+            <div className="hp-sub-section">
+              <h2 className="hp-section-title" style={{ marginBottom: 16 }}>
+                <Star weight="fill" style={{ width: 14, height: 14, marginRight: 7, opacity: .7 }} />
+                Featured
+              </h2>
+              <div className="hp-sub-products">
+                {([
+                  { Icon: DeviceMobile,  label: 'Social Post 3.0', slug: 'social-post-3', desc: 'Next-gen social content',          chevron: false, beta: true },
+                  { Icon: MonitorPlay,   label: 'Presentation',    slug: 'presentation',  desc: 'Slides & decks for any audience',  chevron: false },
+                  { Icon: FileText,      label: 'Docs',            slug: 'docs',          desc: 'Generate Blogs & Articles',        chevron: false },
+                  { Icon: Stack,         label: 'Space',           slug: 'space',         desc: 'Combine Images & Ideas',           chevron: false },
+                  { Icon: Palette,       label: 'Design',          slug: 'design',        desc: 'Graphics, visuals & brand assets', chevron: false },
+                  { Icon: Globe,         label: 'Motion',          slug: 'motion',        desc: 'Animated visuals & video content', chevron: false },
+                  { Icon: Lightning,     label: 'AI Tools',        slug: null,            desc: 'Generate content with AI',         chevron: true  },
+                ] as const).map((item) => (
                   <button key={item.label} className="hp-sub-pill" onClick={() => item.slug && navigate(`/create/${item.slug}`)}>
-                    <span className="hp-sub-pill-icon">{Icon && <Icon />}</span>
+                    <span className="hp-sub-pill-icon"><item.Icon size={20} /></span>
                     <span className="hp-sub-pill-text">
-                      <span className="hp-sub-pill-label">{item.label}</span>
+                      <span className="hp-sub-pill-label">
+                        {item.label}
+                        {'beta' in item && item.beta && <span className="hp-sub-pill-beta">BETA</span>}
+                      </span>
                       <span className="hp-sub-pill-desc">{item.desc}</span>
                     </span>
                     {item.chevron && <I.ArrowRight className="hp-sub-pill-chevron" style={{ width: 16, height: 16 }} />}
                   </button>
-                )
-              })}
+                ))}
+              </div>
             </div>
 
             <div className="hp-vellum-wrap">
@@ -126,7 +136,7 @@ export function HomePage() {
             {/* Recent — 1 row only */}
             <div className="hp-section-head">
               <h2 className="hp-section-title">
-                <I.Clock style={{ width: 14, height: 14, marginRight: 7, opacity: .7 }} />
+                <ClockCounterClockwise weight="fill" style={{ width: 14, height: 14, marginRight: 7, opacity: .7 }} />
                 Pick up where you left off
               </h2>
               <button className="hp-view-all">View All <I.ArrowRight /></button>
@@ -142,7 +152,7 @@ export function HomePage() {
               <div className="hp-community-head">
                 <div>
                   <h2 className="hp-community-title">
-                    <I.Globe style={{ width: 16, height: 16 }} />
+                    <Users weight="fill" style={{ width: 16, height: 16 }} />
                     Presentations from the community
                   </h2>
                   <p className="hp-community-sub">See what others are creating with this workspace.</p>

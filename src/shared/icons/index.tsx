@@ -7,6 +7,17 @@ interface IconProps extends SVGProps<SVGSVGElement> {
   style?: CSSProperties
 }
 
+const SF = (paths: Array<string | { t: string; p: Record<string, unknown> }>) =>
+  ({ className, style, ...rest }: IconProps) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className} style={style} {...rest}>
+      {paths.map((d, i) =>
+        typeof d === 'string'
+          ? <path key={i} d={d} />
+          : createElement(d.t, { key: i, ...d.p })
+      )}
+    </svg>
+  )
+
 const S = (paths: Array<string | { t: string; p: Record<string, unknown> }>, extra: Partial<IconProps> = {}) =>
   ({ className, style, ...rest }: IconProps) => (
     <svg
@@ -77,8 +88,19 @@ export const RotateCcw = S(['M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8',
 export const RotateCw = S(['M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8', 'M21 3v5h-5'])
 export const FileText = S(['M14 3v4a1 1 0 0 0 1 1h4', 'M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z', 'M9 9h1', 'M9 13h6', 'M9 17h6'])
 
+// Fill variants
+export const SocialFill   = SF(['M7 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H7zm4 17h2a1 1 0 1 1 0 2h-2a1 1 0 1 1 0-2z'])
+export const PresentFill  = SF(['M3 4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7v2H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-2v-2h7a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H3z'])
+export const DocsFill     = SF(['M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-6zm-1 1.5L17.5 8H13V3.5zM9 13h6a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2zm0 4h4a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2z'])
+export const LayersFill   = SF(['M12 2 2.5 7.5 12 13l9.5-5.5L12 2zM2.5 12 12 17.5 21.5 12l-1.8-1L12 15.3 4.3 11 2.5 12zM2.5 16.5 12 22l9.5-5.5-1.8-1L12 19.8l-7.7-4.3-1.8 1z'])
+export const DesignFill   = SF(['M12 2a10 10 0 1 0 0 20c.9 0 1.5-.7 1.5-1.5 0-.4-.1-.7-.4-1-.2-.3-.4-.6-.4-1 0-.8.7-1.5 1.5-1.5H16c3.3 0 6-2.7 6-6C22 6.5 17.5 2 12 2zm-5.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z'])
+export const MotionFill   = SF(['M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 2c.55 0 1.3.8 1.94 2.5H10.06C10.7 4.8 11.45 4 12 4zm-2.3.4A11.6 11.6 0 0 0 8.1 8H5.1A8.05 8.05 0 0 1 9.7 4.4zm4.6 0A8.05 8.05 0 0 1 18.9 8h-3A11.6 11.6 0 0 0 14.3 4.4zM4.5 10h3.1c-.1.65-.1 1.32-.1 2s0 1.35.1 2H4.5a7.94 7.94 0 0 1 0-4zm5.1 0h4.8c.1.64.1 1.31.1 2s0 1.36-.1 2H9.6A14.4 14.4 0 0 1 9.5 12c0-.69 0-1.36.1-2zm6.9 0h3.1a7.94 7.94 0 0 1 0 4h-3.1c.1-.65.1-1.32.1-2s0-1.35-.1-2zM5.1 16h3a11.6 11.6 0 0 0 1.6 3.6A8.05 8.05 0 0 1 5.1 16zm4.96 0h3.88C13.3 17.8 12.55 20 12 20c-.55 0-1.3-2.2-1.94-4zm5.04 0h3a8.05 8.05 0 0 1-4.6 3.6A11.6 11.6 0 0 0 15.1 16z'])
+export const ZapFill      = SF(['M13 2 3 14h9l-1 8 10-12h-9z'])
+export const StarFill     = SF(['m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3 1.2-6.8L2 9.3l6.9-1z'])
+
 export const Icons: Record<string, (props: IconProps) => React.ReactElement> = {
   Home, Folder, Present, Social, Docs, Sparkle, Calendar, Library, Settings,
+  SocialFill, PresentFill, DocsFill, LayersFill, DesignFill, MotionFill, ZapFill, StarFill,
   Palette, Layers, Type, Image, Mic, Grid, Lock, Unlock, Shield, Check, CheckCircle,
   X, Plus, ArrowLeft, ArrowRight, Chevron, ChevronUp, ChevronDown, Clock, Bell, Download, File,
   Eye, EyeOff, Trash, Zap, Ruler, Copy, Info, Wand, Globe, Dot, Star, Pencil, MessageSquare,

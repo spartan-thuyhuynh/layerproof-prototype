@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Portal } from '@/shared/lib/Portal'
 import { Tip } from '@/shared/components/ui/Tip'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
@@ -192,7 +193,9 @@ interface NewThemeModalProps {
 
 export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   const addTheme = useBrandStore((s) => s.addTheme)
+  const setAppliedId = useBrandStore((s) => s.setAppliedId)
   const setModal = useUIStore((s) => s.setModal)
+  const navigate = useNavigate()
 
   const [themeName, setThemeName] = useState('')
   const [themePrompt, setThemePrompt] = useState('')
@@ -302,9 +305,8 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
     }, 1300)
   }
 
-  function handleCreate() {
-    if (!themeName.trim()) return
-    const theme: BrandTheme = {
+  function buildTheme(): BrandTheme {
+    return {
       id: 'theme-' + Math.random().toString(36).slice(2, 10),
       name: themeName.trim(),
       description: '',
@@ -313,9 +315,22 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
       prompt: themePrompt || undefined,
       createdAt: new Date().toISOString().slice(0, 10),
     }
-    addTheme(kit.id, theme)
+  }
+
+  function handleCreate() {
+    if (!themeName.trim()) return
+    addTheme(kit.id, buildTheme())
     setModal(null)
     onClose()
+  }
+
+  function handleCreateAndStart() {
+    if (!themeName.trim()) return
+    addTheme(kit.id, buildTheme())
+    setAppliedId(kit.id)
+    setModal(null)
+    onClose()
+    navigate('/create/presentation')
   }
 
   const canCreate = themeName.trim().length > 0
@@ -340,12 +355,20 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
-              className="btn primary"
+              className="btn outline"
               onClick={handleCreate}
               style={{ opacity: canCreate ? 1 : 0.4 }}
               disabled={!canCreate}
             >
               Save theme
+            </button>
+            <button
+              className="btn primary"
+              onClick={handleCreateAndStart}
+              style={{ opacity: canCreate ? 1 : 0.4 }}
+              disabled={!canCreate}
+            >
+              Create project with this theme
             </button>
           </div>
         </div>
