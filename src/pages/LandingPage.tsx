@@ -4,6 +4,17 @@ const base = import.meta.env.BASE_URL
 
 const PROTOS = [
   {
+    title: 'Motion Editor',
+    status: 'live' as const,
+    thumbnail: undefined,
+    to: '/motion-editor',
+    flows: [
+      'Timeline with scenes & narration track',
+      'AI chat sidebar with tool call history',
+      'Export & version history',
+    ],
+  },
+  {
     title: 'Matte V3 Editor',
     status: 'live' as const,
     thumbnail: undefined,

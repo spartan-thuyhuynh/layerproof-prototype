@@ -45,6 +45,9 @@
 @import "./features/create/agent-chat.css";
 @import "./features/create/editor.css";
 
+/* Motion Editor */
+@import "./features/motion-editor/motion-editor.css";
+
 /* Responsive overrides — must be last */
 @import "./responsive/breakpoints.css";
 

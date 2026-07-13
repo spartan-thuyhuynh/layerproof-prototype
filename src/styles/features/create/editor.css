@@ -932,7 +932,7 @@ html.light .onb-product-desc { color: var(--t2); }
 .mv3-undo-btn { display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--line-2); color: var(--t2); font-size: 12px; font-weight: 600; font-family: var(--font); cursor: pointer; white-space: nowrap; transition: background .12s, color .12s; animation: mv3-undo-in .15s ease; }
 .mv3-undo-btn:hover { background: var(--card-2); color: var(--t1); }
 @keyframes mv3-undo-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-.mv3-ghost-btn { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: var(--radius-sm); background: none; border: 1px solid var(--line); color: var(--t2); font-size: 12px; font-family: var(--font); cursor: pointer; white-space: nowrap; transition: background .12s, color .12s; }
+.mv3-ghost-btn { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: var(--radius-sm); background: none; border: 1px solid var(--line); color: var(--t2); font-size: 12px; font-weight: 600; font-family: var(--font); cursor: pointer; white-space: nowrap; transition: background .12s, color .12s; }
 .mv3-ghost-btn:hover { background: var(--card-2); color: var(--t1); }
 .mv3-plan-pill { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: var(--radius-lg); background: var(--accent-soft); color: var(--accent); font-size: 11.5px; font-weight: 600; border: 1px solid var(--accent-line); white-space: nowrap; }
 .mv3-plan-pill strong { font-weight: 700; color: var(--accent); }

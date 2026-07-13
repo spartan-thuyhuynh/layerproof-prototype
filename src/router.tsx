@@ -6,12 +6,14 @@ import { HomePage } from '@/pages/HomePage'
 import { CreatePage } from '@/pages/CreatePage'
 import { EditorPage } from '@/pages/EditorPage'
 import { MatteV3Page } from '@/pages/MatteV3Page'
+import { MotionEditorPage } from '@/pages/MotionEditorPage'
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/matte-v3" element={<MatteV3Page />} />
+      <Route path="/motion-editor" element={<MotionEditorPage />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/brand-kit" element={<BrandKitPage />} />
       <Route path="/onboarding" element={<OnboardingPage />} />

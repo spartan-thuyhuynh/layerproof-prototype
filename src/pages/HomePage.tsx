@@ -1,5 +1,5 @@
 import * as I from '@/shared/icons'
-import { DeviceMobile, MonitorPlay, FileText, Stack, Palette, Globe, Lightning, Star, ClockCounterClockwise, Users } from '@phosphor-icons/react'
+import { DeviceMobile, MonitorPlay, FileText, Stack, Palette, Globe, Lightning, Star, ClockCounterClockwise, Users, FilmStrip } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar } from '@/shared/components/layout/Sidebar'
 import { RECENT_PROJECTS } from '@/data/recent-projects'
@@ -12,6 +12,12 @@ const FEATURE_CARDS = [
   { product: 'Docs',        slug: 'docs',           title: 'Generate Blogs & Articles',          desc: 'Write in-depth content faster with AI-powered drafting, editing, and content expansion.',   icon: 'Docs',    color: '#14b8a6', img: `${base}home/card-docs.png`,       thumbPos: 'center top' },
   { product: 'Space',       slug: 'space',          title: 'Combine Images & Ideas',             desc: 'Use multiple references and prompts to create exactly what you envision.', icon: 'Layers',  color: '#22c55e', img: `${base}home/card-space.png`,      thumbPos: 'center top' },
 ]
+
+const MOTION_CARD = {
+  title: 'Create Motion Videos',
+  desc: 'Animate your content into scroll-stopping videos with AI-driven scenes, narration, and timeline editing.',
+  color: '#f5c518',
+}
 
 const COMMUNITY = [
   { id: 'c1', title: 'Mastering Modern Kotlin: From Basics to Coroutines',         type: 'Presentation', thumbBg: 'var(--card-2)', thumbIcon: 'Present', thumbIconColor: 'var(--t3)', date: 'May 7, 2026',  likes: 4 },
@@ -84,6 +90,22 @@ export function HomePage() {
                 )
               })}
             </div>
+
+            {/* Motion Editor card */}
+            <button
+              className="hp-feature-card"
+              style={{ width: '100%', marginTop: 4, textAlign: 'left', display: 'flex', alignItems: 'center', gap: 16, padding: '14px 16px' }}
+              onClick={() => navigate('/motion-editor')}
+            >
+              <div style={{ width: 48, height: 48, borderRadius: 10, background: `${MOTION_CARD.color}18`, display: 'grid', placeItems: 'center', flex: 'none' }}>
+                <FilmStrip size={24} style={{ color: MOTION_CARD.color }} />
+              </div>
+              <div>
+                <span className="hp-feature-chip" style={{ background: `${MOTION_CARD.color}22`, color: MOTION_CARD.color, borderColor: `${MOTION_CARD.color}44` }}>Motion Video</span>
+                <p className="hp-feature-title" style={{ marginTop: 4 }}>{MOTION_CARD.title}</p>
+                <p className="hp-feature-desc">{MOTION_CARD.desc}</p>
+              </div>
+            </button>
 
             <div className="hp-sub-section">
               <h2 className="hp-section-title" style={{ marginBottom: 16 }}>
