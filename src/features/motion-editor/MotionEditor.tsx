@@ -187,6 +187,10 @@ export function MotionEditor() {
   const [expandedMsgs, setExpandedMsgs]   = useState<Record<number, boolean>>({})
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null)
+  const [audioVolume, setAudioVolume]         = useState(80)
+  const [audioFadeIn, setAudioFadeIn]         = useState(0.0)
+  const [audioFadeOut, setAudioFadeOut]       = useState(0.0)
+  const [audioSpeed, setAudioSpeed]           = useState(1.0)
   const [zoom, setZoom]                   = useState(100)
   const [isLooping, setIsLooping]         = useState(false)
   const [isMuted, setIsMuted]             = useState(false)
@@ -211,6 +215,7 @@ export function MotionEditor() {
   const [tlHeight, setTlHeight]           = useState(380)
   const [leftPanelW, setLeftPanelW]       = useState(200)
   const [rightPanelW, setRightPanelW]     = useState(290)
+  const [chatW, setChatW]                 = useState(340)
   const msgEndRef      = useRef<HTMLDivElement>(null)
   const playRef        = useRef<ReturnType<typeof setInterval> | null>(null)
   const nextMsgId      = useRef(100)
@@ -220,10 +225,32 @@ export function MotionEditor() {
   const scrubbingRef   = useRef(false)
   const tlInnerRef     = useRef<HTMLDivElement>(null)
   const panelResizeRef = useRef<{ startX: number; startW: number; side: 'left' | 'right' } | null>(null)
+  const chatResizeRef  = useRef<{ startX: number; startW: number } | null>(null)
   const footerRef      = useRef<HTMLDivElement>(null)
   const zoomMenuRef    = useRef<HTMLDivElement>(null)
   const [footerWidth, setFooterWidth] = useState(9999)
   const [zoomMenuOpen, setZoomMenuOpen] = useState(false)
+
+  function handleChatResizeDown(e: React.MouseEvent) {
+    e.preventDefault()
+    chatResizeRef.current = { startX: e.clientX, startW: chatW }
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    function onMove(ev: MouseEvent) {
+      if (!chatResizeRef.current) return
+      const delta = ev.clientX - chatResizeRef.current.startX
+      setChatW(Math.max(260, Math.min(520, chatResizeRef.current.startW + delta)))
+    }
+    function onUp() {
+      chatResizeRef.current = null
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
 
   function handlePanelResizeDown(e: React.MouseEvent, side: 'left' | 'right') {
     e.preventDefault()
@@ -417,6 +444,7 @@ export function MotionEditor() {
   }
   function selectLayer(id: string) {
     setSelectedLayerId(id)
+    setSelectedAudioId(null)
     setLayersExpanded(prev => {
       const next: Record<string, boolean> = {}
       Object.keys(prev).forEach(k => { next[k] = false })
@@ -449,20 +477,28 @@ export function MotionEditor() {
   }
 
   function getKfValue(prop: string, defaultVal: number): number {
-    const arr = (keyframes[selectedLayerId] ?? {})[prop] ?? []
+    return getKfValueFor(selectedLayerId, prop, defaultVal)
+  }
+
+  function getKfValueFor(layerId: string, prop: string, defaultVal: number): number {
+    const arr = (keyframes[layerId] ?? {})[prop] ?? []
     if (arr.length === 0) return defaultVal
-    // Exact match within tolerance
     const exact = arr.find(k => Math.abs(k.timeMs - timeMs) <= KF_TOLERANCE)
     if (exact) return exact.value
-    // Before first keyframe
     if (timeMs <= arr[0].timeMs) return arr[0].value
-    // After last keyframe
     if (timeMs >= arr[arr.length - 1].timeMs) return arr[arr.length - 1].value
-    // Interpolate between surrounding keyframes
     const next = arr.find(k => k.timeMs > timeMs)!
     const prev = arr[arr.findIndex(k => k.timeMs > timeMs) - 1]
     const t = (timeMs - prev.timeMs) / (next.timeMs - prev.timeMs)
     return Math.round(prev.value + t * (next.value - prev.value))
+  }
+
+  function fmtKfVal(layerId: string, prop: string, defaultVal: number): string {
+    const v = getKfValueFor(layerId, prop, defaultVal)
+    if (prop === 'scale') return `${v}%`
+    if (prop === 'rotation') return `${v}°`
+    if (prop === 'opacity') return `${v}%`
+    return `${v}`
   }
 
   const selectedLayerKfs = keyframes[selectedLayerId] ?? {}
@@ -505,12 +541,14 @@ export function MotionEditor() {
               <path d="M9 21V12h6v9"/>
             </svg>
           </button>
-          <button className="mv3-icon-btn" onClick={() => setChatOpen(o => !o)} title="Toggle Agent">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <line x1="9" y1="3" x2="9" y2="21"/>
-            </svg>
-          </button>
+          {!chatOpen && (
+            <button className="mv3-icon-btn" onClick={() => setChatOpen(true)} title="Show Agent">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <line x1="9" y1="3" x2="9" y2="21"/>
+              </svg>
+            </button>
+          )}
           <div className="mv3-divider-v" />
           <div className="mv3-breadcrumb">
             <span className="mv3-campaign-title">Social Campaign – Present intellectual property</span>
@@ -546,7 +584,8 @@ export function MotionEditor() {
       <div className="me-body">
 
         {/* ── Chat Sidebar ── */}
-        <aside className="me-chat" style={chatOpen ? undefined : { display: 'none' }}>
+        <aside className="me-chat" style={chatOpen ? { width: chatW } : { display: 'none' }}>
+          <div className="me-chat-resize-handle" onMouseDown={handleChatResizeDown} />
           <div className="me-chat-card">
           {/* Header */}
           <div className="me-chat-panel-header">
@@ -953,6 +992,103 @@ export function MotionEditor() {
 
             {/* Inspector */}
             <aside className="me-inspector" style={{ width: rightPanelW }}>
+              {selectedAudioId ? (
+                <div className="me-anim-panel me-audio-panel">
+                  {/* Audio header */}
+                  <div className="me-anim-layer-row">
+                    <span className="me-anim-layer-type-pill">Audio</span>
+                    <span className="me-anim-layer-name" style={{ flex: 1 }}>
+                      {selectedAudioId.replace(/-(\d+)$/, ' $1').replace(/^\w/, c => c.toUpperCase())}
+                    </span>
+                    <button
+                      style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}
+                      onClick={() => setSelectedAudioId(null)}
+                    >×</button>
+                  </div>
+
+                  {/* Volume */}
+                  <div className="me-audio-section">
+                    <span className="me-anim-section-title">Volume</span>
+                    <div className="me-anim-scale-row">
+                      <input
+                        type="range"
+                        className="me-anim-slider"
+                        min={0} max={100}
+                        value={audioVolume}
+                        onChange={e => setAudioVolume(Number(e.target.value))}
+                      />
+                      <div className="me-anim-field me-anim-field--narrow">
+                        <input
+                          className="me-anim-field-input"
+                          type="number"
+                          min={0} max={100}
+                          value={audioVolume}
+                          onChange={e => setAudioVolume(Number(e.target.value))}
+                        />
+                        <span className="me-anim-field-unit">%</span>
+                      </div>
+                      <div className="me-anim-duration-stepper">
+                        <button onClick={() => setAudioVolume(v => Math.min(100, v + 1))}>▲</button>
+                        <button onClick={() => setAudioVolume(v => Math.max(0, v - 1))}>▼</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fade */}
+                  <div className="me-audio-section">
+                    <span className="me-anim-section-title">Fade</span>
+                    <div className="me-anim-duration-bar me-audio-bar">
+                      <span className="me-anim-duration-label">Fade In</span>
+                      <div className="me-anim-duration-field">
+                        <span>{audioFadeIn.toFixed(1)}s</span>
+                        <div className="me-anim-duration-stepper">
+                          <button onClick={() => setAudioFadeIn(v => Math.min(5, +(v + 0.1).toFixed(1)))}>▲</button>
+                          <button onClick={() => setAudioFadeIn(v => Math.max(0, +(v - 0.1).toFixed(1)))}>▼</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="me-anim-duration-bar me-audio-bar">
+                      <span className="me-anim-duration-label">Fade Out</span>
+                      <div className="me-anim-duration-field">
+                        <span>{audioFadeOut.toFixed(1)}s</span>
+                        <div className="me-anim-duration-stepper">
+                          <button onClick={() => setAudioFadeOut(v => Math.min(5, +(v + 0.1).toFixed(1)))}>▲</button>
+                          <button onClick={() => setAudioFadeOut(v => Math.max(0, +(v - 0.1).toFixed(1)))}>▼</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Speed */}
+                  <div className="me-audio-section">
+                    <span className="me-anim-section-title">Speed</span>
+                    <div className="me-anim-scale-row">
+                      <input
+                        type="range"
+                        className="me-anim-slider"
+                        min={25} max={200}
+                        value={Math.round(audioSpeed * 100)}
+                        onChange={e => setAudioSpeed(+(Number(e.target.value) / 100).toFixed(2))}
+                      />
+                      <div className="me-anim-field me-anim-field--narrow">
+                        <input
+                          className="me-anim-field-input"
+                          type="number"
+                          min={0.25} max={2} step={0.05}
+                          value={audioSpeed.toFixed(2)}
+                          onChange={e => setAudioSpeed(Math.min(2, Math.max(0.25, Number(e.target.value))))}
+                        />
+                        <span className="me-anim-field-unit">x</span>
+                      </div>
+                      <div className="me-anim-duration-stepper">
+                        <button onClick={() => setAudioSpeed(v => Math.min(2, +(v + 0.05).toFixed(2)))}>▲</button>
+                        <button onClick={() => setAudioSpeed(v => Math.max(0.25, +(v - 0.05).toFixed(2)))}>▼</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+              <>
               {/* Mode toggle */}
               <div className="me-inspector-mode-toggle">
                 <div className="me-inspector-mode-pill">
@@ -1244,6 +1380,8 @@ export function MotionEditor() {
                   </div>
                 </div>
               )}
+              </>
+              )}
             </aside>
 
           </div>{/* end me-body-content */}
@@ -1417,10 +1555,10 @@ export function MotionEditor() {
                         {/* Property tracks — grouped with tree hierarchy */}
                         {layersExpanded['rect-yfer4o'] && (() => {
                           const groups = [
-                            { label: 'Position', rows: [{ prop: 'x' as const, axis: 'X', defaultVal: 0, display: '0' }, { prop: 'y' as const, axis: 'Y', defaultVal: 0, display: '0' }] },
-                            { label: 'Scale',    rows: [{ prop: 'scale' as const, axis: '', defaultVal: 100, display: '100%' }] },
-                            { label: 'Rotation', rows: [{ prop: 'rotation' as const, axis: '', defaultVal: 0, display: '0°' }] },
-                            { label: 'Opacity',  rows: [{ prop: 'opacity' as const, axis: '', defaultVal: 100, display: '100%' }] },
+                            { label: 'Position', rows: [{ prop: 'x' as const, axis: 'X', defaultVal: 0 }, { prop: 'y' as const, axis: 'Y', defaultVal: 0 }] },
+                            { label: 'Scale',    rows: [{ prop: 'scale' as const, axis: '', defaultVal: 100 }] },
+                            { label: 'Rotation', rows: [{ prop: 'rotation' as const, axis: '', defaultVal: 0 }] },
+                            { label: 'Opacity',  rows: [{ prop: 'opacity' as const, axis: '', defaultVal: 100 }] },
                           ]
                           const flat = groups.flatMap(g => g.rows.filter(r => (rectKfs[r.prop] ?? []).length > 0).map((r, ri) => ({ ...r, label: g.label, ri })))
                           return flat.map((row, fi) => {
@@ -1433,7 +1571,7 @@ export function MotionEditor() {
                                   <span className={`me-tl-tree-gutter${isLast ? ' me-tl-tree-gutter--last' : ''}`} />
                                   <span className="me-prop-group-name">{row.ri === 0 ? row.label : ''}</span>
                                   {row.axis && <span className="me-prop-axis">{row.axis}</span>}
-                                  <span className="me-prop-track-val">{row.display}</span>
+                                  <span className="me-prop-track-val">{fmtKfVal('rect-yfer4o', row.prop, row.defaultVal)}</span>
                                   <button
                                     className={`me-prop-kf-btn${active ? ' me-prop-kf-btn--active' : ''}`}
                                     onClick={e => { e.stopPropagation(); toggleKf(row.prop, row.defaultVal) }}
@@ -1499,10 +1637,10 @@ export function MotionEditor() {
                       </div>
                       {layersExpanded[layer.id] && (() => {
                         const lGroups = [
-                          { label: 'Position', rows: [{ prop: 'x', axis: 'X', display: '0' }, { prop: 'y', axis: 'Y', display: '0' }] },
-                          { label: 'Scale',    rows: [{ prop: 'scale', axis: '', display: '100%' }] },
-                          { label: 'Rotation', rows: [{ prop: 'rotation', axis: '', display: '0°' }] },
-                          { label: 'Opacity',  rows: [{ prop: 'opacity', axis: '', display: '100%' }] },
+                          { label: 'Position', rows: [{ prop: 'x', axis: 'X', defaultVal: 0 }, { prop: 'y', axis: 'Y', defaultVal: 0 }] },
+                          { label: 'Scale',    rows: [{ prop: 'scale', axis: '', defaultVal: 100 }] },
+                          { label: 'Rotation', rows: [{ prop: 'rotation', axis: '', defaultVal: 0 }] },
+                          { label: 'Opacity',  rows: [{ prop: 'opacity', axis: '', defaultVal: 100 }] },
                         ]
                         const lFlat = lGroups.flatMap(g => g.rows.filter(r => (layerKfs[r.prop] ?? []).length > 0).map((r, ri) => ({ ...r, label: g.label, ri })))
                         return lFlat.map((row, fi) => {
@@ -1514,7 +1652,7 @@ export function MotionEditor() {
                                 <span className={`me-tl-tree-gutter${isLast ? ' me-tl-tree-gutter--last' : ''}`} />
                                 <span className="me-prop-group-name">{row.ri === 0 ? row.label : ''}</span>
                                 {row.axis && <span className="me-prop-axis">{row.axis}</span>}
-                                <span className="me-prop-track-val">{row.display}</span>
+                                <span className="me-prop-track-val">{fmtKfVal(layer.id, row.prop, row.defaultVal)}</span>
                                 <span className="me-prop-kf-btn" style={{ color: 'rgba(255,255,255,0.2)' }}>◇</span>
                               </div>
                               <div className="me-track-content">

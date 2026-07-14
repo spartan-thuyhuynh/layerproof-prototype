@@ -308,8 +308,8 @@
 
 /* ── Chat Sidebar ── */
 .me-chat {
-  width: 320px;
   flex: none;
+  position: relative;
   display: flex;
   flex-direction: column;
   background: #0d0d0f;
@@ -968,7 +968,7 @@
 /* ── Right side (everything except chat) ── */
 .me-body-right {
   flex: 1;
-  min-width: 0;
+  min-width: 700px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -986,7 +986,7 @@
 /* ── Center column (legacy, unused — kept for compat) ── */
 .me-center {
   flex: 1;
-  min-width: 0;
+  min-width: 420px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1367,6 +1367,19 @@
   gap: 0;
   overflow-y: auto;
   flex: 1;
+}
+
+.me-audio-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.me-audio-bar {
+  margin-top: 0 !important;
+  padding: 6px 0 !important;
+  border-top: none !important;
 }
 
 /* Sub-tabs */
@@ -2043,6 +2056,21 @@
 }
 .me-panel-resize-handle:hover,
 .me-panel-resize-handle:active { border-color: #f5c518; background: rgba(245,197,24,0.08); }
+
+.me-chat-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  transition: border-color .15s, background .15s;
+  z-index: 10;
+}
+.me-chat-resize-handle:hover,
+.me-chat-resize-handle:active { border-color: #f5c518; background: rgba(245,197,24,0.08); }
 
 /* ── Timeline resize handle ── */
 .me-timeline-resize-handle {
