@@ -185,6 +185,8 @@ export function MotionEditor() {
   const [messages, setMessages]         = useState<ChatMessage[]>(INITIAL_MESSAGES)
   const [expandedChips, setExpandedChips] = useState<Record<number, boolean>>({})
   const [expandedMsgs, setExpandedMsgs]   = useState<Record<number, boolean>>({})
+  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
+  const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null)
   const [zoom, setZoom]                   = useState(100)
   const [isLooping, setIsLooping]         = useState(false)
   const [isMuted, setIsMuted]             = useState(false)
@@ -215,7 +217,13 @@ export function MotionEditor() {
   const canvasBgRef    = useRef<HTMLDivElement>(null)
   const timelineRef    = useRef<HTMLDivElement>(null)
   const tlResizeRef    = useRef<{ startY: number; startH: number } | null>(null)
+  const scrubbingRef   = useRef(false)
+  const tlInnerRef     = useRef<HTMLDivElement>(null)
   const panelResizeRef = useRef<{ startX: number; startW: number; side: 'left' | 'right' } | null>(null)
+  const footerRef      = useRef<HTMLDivElement>(null)
+  const zoomMenuRef    = useRef<HTMLDivElement>(null)
+  const [footerWidth, setFooterWidth] = useState(9999)
+  const [zoomMenuOpen, setZoomMenuOpen] = useState(false)
 
   function handlePanelResizeDown(e: React.MouseEvent, side: 'left' | 'right') {
     e.preventDefault()
@@ -323,6 +331,25 @@ export function MotionEditor() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  useEffect(() => {
+    const el = footerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setFooterWidth(e.contentRect.width))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!zoomMenuOpen) return
+    function onClickOutside(e: MouseEvent) {
+      if (zoomMenuRef.current && !zoomMenuRef.current.contains(e.target as Node)) {
+        setZoomMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [zoomMenuOpen])
+
   function handleTimelineWheel(e: React.WheelEvent) {
     if (!e.ctrlKey && !e.metaKey) return
     e.preventDefault()
@@ -339,6 +366,35 @@ export function MotionEditor() {
     const trackWidth = rect.width - labelWidth
     const fraction = (clickX - labelWidth) / trackWidth
     setTimeMs(Math.round(Math.max(0, Math.min(1, fraction)) * totalMs))
+  }
+
+  function handlePlayheadMouseDown(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    scrubbingRef.current = true
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+
+    function onMove(ev: MouseEvent) {
+      if (!scrubbingRef.current || !tlInnerRef.current) return
+      const rect = tlInnerRef.current.getBoundingClientRect()
+      const labelWidth = 220
+      const trackWidth = rect.width - labelWidth
+      const x = ev.clientX - rect.left - labelWidth
+      const fraction = Math.max(0, Math.min(1, x / trackWidth))
+      setTimeMs(Math.round(fraction * totalMs))
+    }
+
+    function onUp() {
+      scrubbingRef.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
   }
 
   function formatTime(ms: number) {
@@ -359,6 +415,15 @@ export function MotionEditor() {
   function anyKfAt(layerKfs: LayerKeyframes, t: number): boolean {
     return Object.keys(layerKfs).some(p => hasKfAt(layerKfs, p, t))
   }
+  function selectLayer(id: string) {
+    setSelectedLayerId(id)
+    setLayersExpanded(prev => {
+      const next: Record<string, boolean> = {}
+      Object.keys(prev).forEach(k => { next[k] = false })
+      next[id] = true
+      return next
+    })
+  }
   function toggleKf(prop: string, value: number) {
     setKeyframes(prev => {
       const layerKfs = prev[selectedLayerId] ?? {}
@@ -369,6 +434,35 @@ export function MotionEditor() {
         : [...arr, { timeMs, value }].sort((a, b) => a.timeMs - b.timeMs)
       return { ...prev, [selectedLayerId]: { ...layerKfs, [prop]: next } }
     })
+  }
+
+  function setKfValue(prop: string, value: number) {
+    setKeyframes(prev => {
+      const layerKfs = prev[selectedLayerId] ?? {}
+      const arr = layerKfs[prop] ?? []
+      const idx = arr.findIndex(k => Math.abs(k.timeMs - timeMs) <= KF_TOLERANCE)
+      const next = idx >= 0
+        ? arr.map((k, i) => i === idx ? { ...k, value } : k)
+        : [...arr, { timeMs, value }].sort((a, b) => a.timeMs - b.timeMs)
+      return { ...prev, [selectedLayerId]: { ...layerKfs, [prop]: next } }
+    })
+  }
+
+  function getKfValue(prop: string, defaultVal: number): number {
+    const arr = (keyframes[selectedLayerId] ?? {})[prop] ?? []
+    if (arr.length === 0) return defaultVal
+    // Exact match within tolerance
+    const exact = arr.find(k => Math.abs(k.timeMs - timeMs) <= KF_TOLERANCE)
+    if (exact) return exact.value
+    // Before first keyframe
+    if (timeMs <= arr[0].timeMs) return arr[0].value
+    // After last keyframe
+    if (timeMs >= arr[arr.length - 1].timeMs) return arr[arr.length - 1].value
+    // Interpolate between surrounding keyframes
+    const next = arr.find(k => k.timeMs > timeMs)!
+    const prev = arr[arr.findIndex(k => k.timeMs > timeMs) - 1]
+    const t = (timeMs - prev.timeMs) / (next.timeMs - prev.timeMs)
+    return Math.round(prev.value + t * (next.value - prev.value))
   }
 
   const selectedLayerKfs = keyframes[selectedLayerId] ?? {}
@@ -606,7 +700,7 @@ export function MotionEditor() {
                       <button
                         key={layer.id}
                         className={`me-layer-item${selectedLayerId === layer.id ? ' me-layer-item--selected' : ''}`}
-                        onClick={() => setSelectedLayerId(layer.id)}
+                        onClick={() => selectLayer(layer.id)}
                       >
                         <CaretRight size={10} style={{ opacity: 0.4, flexShrink: 0 }} />
                         <span className="me-layer-item-icon">{layer.icon}</span>
@@ -670,18 +764,28 @@ export function MotionEditor() {
 
                   <div className="me-assets-grid-2">
                     {[
-                      { emoji: '🖼', name: 'hero-image.png' },
-                      { emoji: '🎬', name: 'intro-clip.mp4' },
-                      { emoji: '🎨', name: 'brand-kit.ai' },
-                      { emoji: '📸', name: 'product-shot.jpg' },
-                      { emoji: '🎞', name: 'b-roll.mov' },
-                      { emoji: '🖌', name: 'overlay.svg' },
-                    ].map((a, i) => (
-                      <div key={i} className="me-asset-card">
-                        <div className="me-asset-preview">{a.emoji}</div>
-                        <span className="me-asset-name">{a.name}</span>
-                      </div>
-                    ))}
+                      { name: 'hero-image.png',   bg: '#2a3a2a', accent: '#4caf50' },
+                      { name: 'intro-clip.mp4',   bg: '#2a2a3a', accent: '#7c6af5' },
+                      { name: 'brand-kit.ai',     bg: '#3a2a2a', accent: '#f57c4c' },
+                      { name: 'product-shot.jpg', bg: '#2a3035', accent: '#4caacc' },
+                      { name: 'b-roll.mov',       bg: '#2a2a3a', accent: '#9c7cf5' },
+                      { name: 'overlay.svg',      bg: '#2a3530', accent: '#4ccf9f' },
+                    ].map((a, i) => {
+                      const ext = a.name.split('.').pop()?.toUpperCase() ?? ''
+                      return (
+                        <div key={i} className="me-asset-card">
+                          <div className="me-asset-preview me-asset-placeholder" style={{ background: a.bg }}>
+                            <div className="me-asset-ph-lines">
+                              <div className="me-asset-ph-line" style={{ width: '60%', background: a.accent, opacity: 0.3 }} />
+                              <div className="me-asset-ph-line" style={{ width: '80%', background: a.accent, opacity: 0.15 }} />
+                              <div className="me-asset-ph-line" style={{ width: '45%', background: a.accent, opacity: 0.2 }} />
+                            </div>
+                            <span className="me-asset-ph-ext" style={{ color: a.accent }}>{ext}</span>
+                          </div>
+                          <span className="me-asset-name">{a.name}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -778,7 +882,7 @@ export function MotionEditor() {
               </div>
 
               {/* Canvas footer toolbar */}
-              <div className="me-canvas-footer">
+              <div className="me-canvas-footer" ref={footerRef}>
                 {/* Left: play + loop */}
                 <div className="me-canvas-footer-left">
                   <button
@@ -804,9 +908,37 @@ export function MotionEditor() {
                 </div>
                 {/* Right: zoom + mute + fullscreen */}
                 <div className="me-canvas-footer-right">
-                  <button className="me-zoom-btn" onClick={() => setZoom(z => Math.max(10, z - 10))}>−</button>
-                  <button className="me-zoom-btn me-zoom-pct" onClick={() => setZoom(100)}>{zoom}%</button>
-                  <button className="me-zoom-btn" onClick={() => setZoom(z => Math.min(400, z + 10))}>+</button>
+                  {footerWidth >= 480 ? (
+                    <>
+                      <button className="me-zoom-btn" onClick={() => setZoom(z => Math.max(10, z - 10))}>−</button>
+                      <button className="me-zoom-btn me-zoom-pct" onClick={() => setZoom(100)}>{zoom}%</button>
+                      <button className="me-zoom-btn" onClick={() => setZoom(z => Math.min(400, z + 10))}>+</button>
+                    </>
+                  ) : (
+                    <div className="me-zoom-compact" ref={zoomMenuRef}>
+                      <button
+                        className="me-footer-icon me-zoom-icon-btn"
+                        onClick={() => setZoomMenuOpen(o => !o)}
+                        aria-label="Zoom"
+                        title={`Zoom: ${zoom}%`}
+                      >
+                        <MagnifyingGlass size={17} />
+                      </button>
+                      {zoomMenuOpen && (
+                        <div className="me-zoom-menu">
+                          <div className="me-zoom-menu-row">
+                            <span className="me-zoom-menu-label" onClick={() => setZoom(100)} title="Reset to 100%">{zoom}%</span>
+                            <input
+                              type="range" min={10} max={400} step={5}
+                              value={zoom}
+                              onChange={e => setZoom(Number(e.target.value))}
+                              className="me-zoom-slider"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="me-canvas-footer-divider" />
                   {isMuted
                     ? <SpeakerSimpleSlash size={17} className="me-footer-icon" style={{ color: '#f5c518' }} onClick={() => setIsMuted(false)} />
@@ -823,13 +955,15 @@ export function MotionEditor() {
             <aside className="me-inspector" style={{ width: rightPanelW }}>
               {/* Mode toggle */}
               <div className="me-inspector-mode-toggle">
-                {(['Design', 'Animate'] as const).map(m => (
-                  <button
-                    key={m}
-                    className={`me-mode-btn${mode === m ? ' active' : ''}`}
-                    onClick={() => setMode(m)}
-                  >{m}</button>
-                ))}
+                <div className="me-inspector-mode-pill">
+                  {(['Design', 'Animate'] as const).map(m => (
+                    <button
+                      key={m}
+                      className={`me-mode-btn${mode === m ? ' active' : ''}`}
+                      onClick={() => setMode(m)}
+                    >{m}</button>
+                  ))}
+                </div>
               </div>
               {mode === 'Animate' ? (
                 <div className="me-anim-panel">
@@ -842,7 +976,7 @@ export function MotionEditor() {
                   {/* Layer identity row */}
                   <div className="me-anim-layer-row">
                     <span className="me-anim-layer-type-pill">Object</span>
-                    <span className="me-anim-layer-name">rect-yfer4o</span>
+                    <span className="me-anim-layer-name">{selectedLayerId}</span>
                   </div>
 
                   {animTab === 'animation' ? (
@@ -899,62 +1033,223 @@ export function MotionEditor() {
                         <div className="me-anim-section-head" style={{ cursor: 'pointer' }} onClick={() => setTransformOpen(o => !o)}>
                           <span className="me-anim-section-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             Transform
-                            <button className={`me-anim-kf-diamond${atKf ? ' me-anim-kf-diamond--active' : ''}`} title="Add keyframe" onClick={e => e.stopPropagation()} style={{ fontSize: 18, lineHeight: 1 }}>◇</button>
+                            <button className={`me-anim-kf-diamond${atKf ? ' me-anim-kf-diamond--active' : ''}`} title="Add keyframe" onClick={e => e.stopPropagation()} style={{ fontSize: 18, lineHeight: 1 }}>{atKf ? '◆' : '◇'}</button>
                           </span>
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ opacity: 0.5, transition: 'transform .15s', transform: transformOpen ? 'rotate(90deg)' : 'rotate(0deg)', flex: 'none' }}>
                             <path d="M3 2L7 5L3 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
                           </svg>
                         </div>
-                        {transformOpen && <>
+                        {transformOpen && (<>
                           <div className="me-anim-row">
                             <span className="me-anim-row-label">Position</span>
                             <div className="me-anim-row-fields">
-                              <div className="me-anim-field"><span className="me-anim-field-axis">X</span><span className="me-anim-field-val">0</span></div>
-                              <button className={`me-anim-diamond${xAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('x', 0)}>◇</button>
-                              <div className="me-anim-field"><span className="me-anim-field-axis">Y</span><span className="me-anim-field-val">0</span></div>
-                              <button className={`me-anim-diamond${yAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('y', 0)}>◇</button>
+                              <div className="me-anim-field">
+                                <span className="me-anim-field-axis">X</span>
+                                <input className="me-anim-field-input" type="number" value={getKfValue('x', 0)} onChange={e => setKfValue('x', Number(e.target.value))} />
+                              </div>
+                              <button className={`me-anim-diamond${xAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('x', 0)}>{xAtKf ? '◆' : '◇'}</button>
+                              <div className="me-anim-field">
+                                <span className="me-anim-field-axis">Y</span>
+                                <input className="me-anim-field-input" type="number" value={getKfValue('y', 0)} onChange={e => setKfValue('y', Number(e.target.value))} />
+                              </div>
+                              <button className={`me-anim-diamond${yAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('y', 0)}>{yAtKf ? '◆' : '◇'}</button>
                             </div>
                           </div>
                           <div className="me-anim-row me-anim-row--col">
                             <span className="me-anim-row-label">Scale</span>
                             <div className="me-anim-scale-row">
-                              <input type="range" className="me-anim-slider" min={0} max={400} defaultValue={100} />
-                              <div className="me-anim-field me-anim-field--narrow"><span className="me-anim-field-val">100%</span></div>
-                              <div className="me-anim-duration-stepper"><button>▲</button><button>▼</button></div>
-                              <button className={`me-anim-diamond${scaleAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('scale', 100)}>◇</button>
+                              <input type="range" className="me-anim-slider" min={0} max={400} value={getKfValue('scale', 100)} onChange={e => setKfValue('scale', Number(e.target.value))} />
+                              <div className="me-anim-field me-anim-field--narrow">
+                                <input className="me-anim-field-input" type="number" value={getKfValue('scale', 100)} onChange={e => setKfValue('scale', Number(e.target.value))} />
+                                <span className="me-anim-field-unit">%</span>
+                              </div>
+                              <div className="me-anim-duration-stepper">
+                                <button onClick={() => setKfValue('scale', getKfValue('scale', 100) + 1)}>▲</button>
+                                <button onClick={() => setKfValue('scale', getKfValue('scale', 100) - 1)}>▼</button>
+                              </div>
+                              <button className={`me-anim-diamond${scaleAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('scale', 100)}>{scaleAtKf ? '◆' : '◇'}</button>
                             </div>
                           </div>
                           <div className="me-anim-row">
                             <span className="me-anim-row-label">Rotation</span>
                             <div className="me-anim-row-fields">
-                              <div className="me-anim-field me-anim-field--wide"><span className="me-anim-field-val">0°</span></div>
-                              <button className={`me-anim-diamond${rotAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('rotation', 0)}>◇</button>
+                              <div className="me-anim-field me-anim-field--wide">
+                                <input className="me-anim-field-input" type="number" value={getKfValue('rotation', 0)} onChange={e => setKfValue('rotation', Number(e.target.value))} />
+                                <span className="me-anim-field-unit">°</span>
+                              </div>
+                              <button className={`me-anim-diamond${rotAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('rotation', 0)}>{rotAtKf ? '◆' : '◇'}</button>
                             </div>
                           </div>
-                          <div className="me-anim-row me-anim-row--col">
+                          <div className="me-anim-row me-anim-row--last">
                             <span className="me-anim-row-label">Opacity</span>
                             <div className="me-anim-scale-row">
-                              <input type="range" className="me-anim-slider" min={0} max={100} defaultValue={100} />
-                              <div className="me-anim-field me-anim-field--narrow"><span className="me-anim-field-val">100%</span></div>
-                              <div className="me-anim-duration-stepper"><button>▲</button><button>▼</button></div>
-                              <button className={`me-anim-diamond${opacAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('opacity', 100)}>◇</button>
+                              <input type="range" className="me-anim-slider" min={0} max={100} value={getKfValue('opacity', 100)} onChange={e => setKfValue('opacity', Number(e.target.value))} />
+                              <div className="me-anim-field me-anim-field--narrow">
+                                <input className="me-anim-field-input" type="number" value={getKfValue('opacity', 100)} onChange={e => setKfValue('opacity', Number(e.target.value))} />
+                                <span className="me-anim-field-unit">%</span>
+                              </div>
+                              <div className="me-anim-duration-stepper">
+                                <button onClick={() => setKfValue('opacity', getKfValue('opacity', 100) + 1)}>▲</button>
+                                <button onClick={() => setKfValue('opacity', getKfValue('opacity', 100) - 1)}>▼</button>
+                              </div>
+                              <button className={`me-anim-diamond${opacAtKf ? ' me-anim-diamond--active' : ''}`} onClick={() => toggleKf('opacity', 100)}>{opacAtKf ? '◆' : '◇'}</button>
                             </div>
                           </div>
-                        </>}
+                        </>)}
                       </div>
                     </>
                   )}
                 </div>
               ) : (
-                <div className="me-inspector-empty">Select a layer to inspect.</div>
+                <div className="me-design-panel">
+                  {/* Layout */}
+                  <div className="me-design-section">
+                    <div className="me-design-section-title">Layout</div>
+                    <div className="me-design-row">
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">X</span>
+                        <input className="me-design-input" type="number" defaultValue={0} />
+                      </div>
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">Y</span>
+                        <input className="me-design-input" type="number" defaultValue={0} />
+                      </div>
+                    </div>
+                    <div className="me-design-row">
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">W</span>
+                        <input className="me-design-input" type="number" defaultValue={480} />
+                      </div>
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">H</span>
+                        <input className="me-design-input" type="number" defaultValue={270} />
+                      </div>
+                    </div>
+                    <div className="me-design-row">
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">R</span>
+                        <input className="me-design-input" type="number" defaultValue={0} />
+                      </div>
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">⌀</span>
+                        <input className="me-design-input" type="number" defaultValue={0} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fill */}
+                  <div className="me-design-section">
+                    <div className="me-design-section-header">
+                      <span className="me-design-section-title">Fill</span>
+                      <button className="me-design-add-btn">+</button>
+                    </div>
+                    <div className="me-design-fill-row">
+                      <div className="me-design-color-swatch" style={{ background: '#1a1a2e' }} />
+                      <input className="me-design-input me-design-input--hex" type="text" defaultValue="1A1A2E" />
+                      <input className="me-design-input me-design-input--pct" type="number" defaultValue={100} />
+                      <span className="me-design-unit">%</span>
+                    </div>
+                  </div>
+
+                  {/* Stroke */}
+                  <div className="me-design-section">
+                    <div className="me-design-section-header">
+                      <span className="me-design-section-title">Stroke</span>
+                      <button className="me-design-add-btn">+</button>
+                    </div>
+                    <div className="me-design-fill-row">
+                      <div className="me-design-color-swatch me-design-color-swatch--empty" />
+                      <span className="me-design-empty-label">None</span>
+                    </div>
+                  </div>
+
+                  {/* Typography */}
+                  <div className="me-design-section">
+                    <div className="me-design-section-title">Typography</div>
+                    <div className="me-design-select-row">
+                      <select className="me-design-select">
+                        <option>Inter</option>
+                        <option>Roboto</option>
+                        <option>SF Pro</option>
+                        <option>Helvetica</option>
+                      </select>
+                    </div>
+                    <div className="me-design-row">
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">Size</span>
+                        <input className="me-design-input" type="number" defaultValue={16} />
+                      </div>
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">Weight</span>
+                        <select className="me-design-input me-design-input--sel">
+                          <option>Regular</option>
+                          <option>Medium</option>
+                          <option>SemiBold</option>
+                          <option>Bold</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="me-design-row">
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">Line</span>
+                        <input className="me-design-input" type="number" defaultValue={1.5} step={0.1} />
+                      </div>
+                      <div className="me-design-field">
+                        <span className="me-design-field-label">Letter</span>
+                        <input className="me-design-input" type="number" defaultValue={0} step={0.1} />
+                      </div>
+                    </div>
+                    <div className="me-design-align-row">
+                      {['←', '↔', '→', '↑', '↕', '↓'].map((icon, i) => (
+                        <button key={i} className={`me-design-align-btn${i === 0 ? ' active' : ''}`}>{icon}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Opacity */}
+                  <div className="me-design-section">
+                    <div className="me-design-section-title">Appearance</div>
+                    <div className="me-design-row">
+                      <div className="me-design-field me-design-field--full">
+                        <span className="me-design-field-label">Opacity</span>
+                        <input className="me-design-input" type="number" defaultValue={100} min={0} max={100} />
+                        <span className="me-design-unit">%</span>
+                      </div>
+                    </div>
+                    <div className="me-design-row">
+                      <div className="me-design-field me-design-field--full">
+                        <span className="me-design-field-label">Blend</span>
+                        <select className="me-design-input me-design-input--sel">
+                          <option>Normal</option>
+                          <option>Multiply</option>
+                          <option>Screen</option>
+                          <option>Overlay</option>
+                          <option>Darken</option>
+                          <option>Lighten</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shadow */}
+                  <div className="me-design-section">
+                    <div className="me-design-section-header">
+                      <span className="me-design-section-title">Shadow</span>
+                      <button className="me-design-add-btn">+</button>
+                    </div>
+                    <div className="me-design-fill-row">
+                      <div className="me-design-color-swatch me-design-color-swatch--empty" />
+                      <span className="me-design-empty-label">None</span>
+                    </div>
+                  </div>
+                </div>
               )}
             </aside>
 
           </div>{/* end me-body-content */}
 
           {/* ── Timeline — spans full width of right area ── */}
-          {mode === 'Animate' && (
-          <div className="me-timeline" style={{ height: tlHeight }}>
+          <div className="me-timeline" style={{ height: tlHeight, display: mode === 'Design' ? 'none' : undefined }}>
 
             {/* ── Resize handle ── */}
             <div className="me-timeline-resize-handle" onMouseDown={handleTlResizeDown} />
@@ -1011,7 +1306,7 @@ export function MotionEditor() {
 
             {/* Tracks */}
             <div className="me-timeline-tracks" ref={timelineRef} onWheel={handleTimelineWheel}>
-              <div className="me-timeline-inner" style={{ width: `${Math.max(100, tlZoom)}%` }} onClick={handleTimelineClick}>
+              <div className="me-timeline-inner" ref={tlInnerRef} style={{ width: `${Math.max(100, tlZoom)}%` }} onClick={handleTimelineClick}>
 
                 {/* Ruler */}
                 <div className="me-ruler">
@@ -1029,19 +1324,31 @@ export function MotionEditor() {
                 <div
                   className="me-playhead"
                   style={{ left: `calc(220px + ${(timeMs / totalMs) * 100}% - ${(timeMs / totalMs) * 220}px)` }}
+                  onMouseDown={handlePlayheadMouseDown}
                 />
 
                 {/* Narration row */}
-                <div className="me-track-row me-track-row--tall">
-                  <div className="me-track-label"><MusicNote size={11} /> Narration</div>
+                <div
+                  className={`me-track-row me-track-row--tall${selectedTrackId === 'narration' ? ' me-track-row--track-selected' : ''}`}
+                  onClick={() => setSelectedTrackId(t => t === 'narration' ? null : 'narration')}
+                >
+                  <div className="me-track-label"><MusicNote size={16} /> Narration</div>
                   <div className="me-track-content">
-                    <div className="me-waveform-seg" style={{ flex: 3920 }}>
+                    <div
+                      className={`me-waveform-seg${selectedAudioId === 'narration-1' ? ' me-waveform-seg--selected' : ''}`}
+                      style={{ flex: 3920 }}
+                      onClick={e => { e.stopPropagation(); setSelectedAudioId(id => id === 'narration-1' ? null : 'narration-1') }}
+                    >
                       {WAVEFORM_HEIGHTS.slice(0, 38).map((h, i) => (
                         <div key={i} className="me-waveform-bar"
                           style={{ height: `${h}px`, opacity: i / 38 < timeMs / 3920 ? 1 : 0.45 }} />
                       ))}
                     </div>
-                    <div className="me-waveform-seg" style={{ flex: 4720 }}>
+                    <div
+                      className={`me-waveform-seg${selectedAudioId === 'narration-2' ? ' me-waveform-seg--selected' : ''}`}
+                      style={{ flex: 4720 }}
+                      onClick={e => { e.stopPropagation(); setSelectedAudioId(id => id === 'narration-2' ? null : 'narration-2') }}
+                    >
                       {WAVEFORM_HEIGHTS.slice(38).map((h, i) => (
                         <div key={i} className="me-waveform-bar"
                           style={{ height: `${h}px`, opacity: timeMs > 3920 ? (i / 35 < (timeMs - 3920) / 4720 ? 1 : 0.45) : 0.45 }} />
@@ -1053,7 +1360,7 @@ export function MotionEditor() {
 
                 {/* Scenes row */}
                 <div className="me-track-row me-track-row--tall">
-                  <div className="me-track-label"><FilmStrip size={12} weight="fill" style={{ color: '#f5c518', flexShrink: 0 }} /> Scenes</div>
+                  <div className="me-track-label"><FilmStrip size={16} style={{ color: '#f5c518', flexShrink: 0 }} /> Scenes</div>
                   <div className="me-track-content">
                     <div
                       className={`me-scene-strip me-scene-strip--1${activeScene === 1 ? ' active' : ''}`}
@@ -1079,124 +1386,166 @@ export function MotionEditor() {
                 {activeScene === 1 && (() => {
                   const layerStart = 0
                   const layerEnd   = 3920
-                  const stripLeft = `${(layerStart / totalMs) * 100}%`
-                  const stripWidth = `${((layerEnd - layerStart) / totalMs) * 100}%`
+                  const layerDur   = layerEnd - layerStart
+                  const rectKfs    = keyframes['rect-yfer4o'] ?? {}
                   return (
                     <>
-                      <div className="me-track-row">
-                        <div className="me-track-label">
-                          <button
-                            className="me-tl-tool-btn"
-                            style={{ width: 20, height: 20, flexShrink: 0 }}
-                            onClick={e => { e.stopPropagation(); setLayersExpanded(p => ({ ...p, 'rect-yfer4o': !p['rect-yfer4o'] })) }}
-                            title={layersExpanded['rect-yfer4o'] ? 'Collapse' : 'Expand'}
-                          >
-                            <CaretRight size={10} style={{ transform: layersExpanded['rect-yfer4o'] ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
-                          </button>
-                          <span>rect-yfer4o</span>
-                        </div>
-                        <div className="me-track-content" style={{ position: 'relative' }}>
-                          <div className="me-layer-strip" style={{ left: stripLeft, width: stripWidth }} />
-                          {[...new Set(Object.values(selectedLayerKfs).flat().map(k => k.timeMs))].map(t => (
-                            <div key={t} className="me-kf-dot" style={{ left: `${(t / totalMs) * 100}%` }} />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Property tracks — grouped */}
-                      {layersExpanded['rect-yfer4o'] && ([
-                        { label: 'Position', rows: [{ prop: 'x' as const, axis: 'X', defaultVal: 0, display: '0' }, { prop: 'y' as const, axis: 'Y', defaultVal: 0, display: '0' }] },
-                        { label: 'Scale',    rows: [{ prop: 'scale' as const, axis: '', defaultVal: 100, display: '100%' }] },
-                        { label: 'Rotation', rows: [{ prop: 'rotation' as const, axis: '', defaultVal: 0, display: '0°' }] },
-                        { label: 'Opacity',  rows: [{ prop: 'opacity' as const, axis: '', defaultVal: 100, display: '100%' }] },
-                      ]).flatMap(group =>
-                        group.rows.map((row, ri) => {
-                          const kfs = selectedLayerKfs[row.prop] ?? []
-                          const active = hasKfAt(selectedLayerKfs, row.prop, timeMs)
-                          return (
-                            <div key={row.prop} className="me-track-row me-prop-track-row">
-                              <div className="me-track-label me-prop-track-label">
-                                <span className="me-prop-group-name">{ri === 0 ? group.label : ''}</span>
-                                {row.axis && <span className="me-prop-axis">{row.axis}</span>}
-                                <span className="me-prop-track-val">{row.display}</span>
-                                <button
-                                  className={`me-prop-kf-btn${active ? ' me-prop-kf-btn--active' : ''}`}
-                                  onClick={e => { e.stopPropagation(); toggleKf(row.prop, row.defaultVal) }}
-                                  title="Toggle keyframe"
-                                >◇</button>
-                              </div>
-                              <div className="me-track-content" style={{ position: 'relative' }}>
-                                <div className="me-layer-strip me-layer-strip--prop" style={{ left: stripLeft, width: stripWidth }} />
-                                {kfs.length >= 2 && (
-                                  <div className="me-kf-line" style={{
-                                    left: `${(kfs[0].timeMs / totalMs) * 100}%`,
-                                    width: `${((kfs[kfs.length - 1].timeMs - kfs[0].timeMs) / totalMs) * 100}%`,
-                                  }} />
-                                )}
-                                {kfs.map(kf => (
-                                  <div key={kf.timeMs} className="me-kf-dot"
-                                    style={{ left: `${(kf.timeMs / totalMs) * 100}%` }}
-                                    onClick={e => { e.stopPropagation(); setTimeMs(kf.timeMs) }}
-                                  />
-                                ))}
-                              </div>
+                      <div className={`me-layer-group${selectedLayerId === 'rect-yfer4o' ? ' me-layer-group--selected' : ''}`}
+                        onClick={() => selectLayer('rect-yfer4o')}>
+                        <div className="me-track-row">
+                          <div className="me-track-label">
+                            <button
+                              className="me-tl-tool-btn"
+                              style={{ width: 20, height: 20, flexShrink: 0 }}
+                              onClick={e => { e.stopPropagation(); setLayersExpanded(p => ({ ...p, 'rect-yfer4o': !p['rect-yfer4o'] })) }}
+                              title={layersExpanded['rect-yfer4o'] ? 'Collapse' : 'Expand'}
+                            >
+                              <CaretRight size={10} style={{ transform: layersExpanded['rect-yfer4o'] ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
+                            </button>
+                            <span>rect-yfer4o</span>
+                          </div>
+                          <div className="me-track-content">
+                            <div className="me-layer-strip" style={{ flex: layerDur, position: 'relative' }}>
+                              {[...new Set(Object.values(rectKfs).flat().map(k => k.timeMs))].map(t => (
+                                <div key={t} className="me-kf-dot" style={{ left: `${((t - layerStart) / layerDur) * 100}%` }} />
+                              ))}
                             </div>
-                          )
-                        })
-                      )}
+                            <div style={{ flex: totalMs - layerEnd }} />
+                          </div>
+                        </div>
+
+                        {/* Property tracks — grouped with tree hierarchy */}
+                        {layersExpanded['rect-yfer4o'] && (() => {
+                          const groups = [
+                            { label: 'Position', rows: [{ prop: 'x' as const, axis: 'X', defaultVal: 0, display: '0' }, { prop: 'y' as const, axis: 'Y', defaultVal: 0, display: '0' }] },
+                            { label: 'Scale',    rows: [{ prop: 'scale' as const, axis: '', defaultVal: 100, display: '100%' }] },
+                            { label: 'Rotation', rows: [{ prop: 'rotation' as const, axis: '', defaultVal: 0, display: '0°' }] },
+                            { label: 'Opacity',  rows: [{ prop: 'opacity' as const, axis: '', defaultVal: 100, display: '100%' }] },
+                          ]
+                          const flat = groups.flatMap(g => g.rows.filter(r => (rectKfs[r.prop] ?? []).length > 0).map((r, ri) => ({ ...r, label: g.label, ri })))
+                          return flat.map((row, fi) => {
+                            const kfs = rectKfs[row.prop] ?? []
+                            const active = hasKfAt(rectKfs, row.prop, timeMs)
+                            const isLast = fi === flat.length - 1
+                            return (
+                              <div key={row.prop} className="me-track-row me-prop-track-row">
+                                <div className="me-track-label me-prop-track-label">
+                                  <span className={`me-tl-tree-gutter${isLast ? ' me-tl-tree-gutter--last' : ''}`} />
+                                  <span className="me-prop-group-name">{row.ri === 0 ? row.label : ''}</span>
+                                  {row.axis && <span className="me-prop-axis">{row.axis}</span>}
+                                  <span className="me-prop-track-val">{row.display}</span>
+                                  <button
+                                    className={`me-prop-kf-btn${active ? ' me-prop-kf-btn--active' : ''}`}
+                                    onClick={e => { e.stopPropagation(); toggleKf(row.prop, row.defaultVal) }}
+                                    title="Toggle keyframe"
+                                  >{active ? '◆' : '◇'}</button>
+                                </div>
+                                <div className="me-track-content">
+                                  <div className="me-layer-strip me-layer-strip--prop" style={{ flex: layerDur, position: 'relative' }}>
+                                    {kfs.length >= 2 && (
+                                      <div className="me-kf-line" style={{
+                                        left: `${((kfs[0].timeMs - layerStart) / layerDur) * 100}%`,
+                                        width: `${((kfs[kfs.length - 1].timeMs - kfs[0].timeMs) / layerDur) * 100}%`,
+                                      }} />
+                                    )}
+                                    {kfs.map(kf => (
+                                      <div key={kf.timeMs} className="me-kf-dot"
+                                        style={{ left: `${((kf.timeMs - layerStart) / layerDur) * 100}%` }}
+                                        onClick={e => { e.stopPropagation(); setTimeMs(kf.timeMs) }}
+                                      />
+                                    ))}
+                                  </div>
+                                  <div style={{ flex: totalMs - layerEnd }} />
+                                </div>
+                              </div>
+                            )
+                          })
+                        })()}
+                      </div>
                     </>
                   )
                 })()}
 
                 {/* Extra shapes — each toggleable */}
                 {([
-                  activeScene === 1 && { id: 'circle-m4n8x', left: '0%',                              width: `${(3920 / totalMs) * 100}%` },
-                  activeScene === 2 && { id: 'text-b2r5w',   left: `${(3920 / totalMs) * 100}%`,      width: `${(4720 / totalMs) * 100}%` },
-                ].filter(Boolean) as { id: string; left: string; width: string }[]).map(layer => (
-                  <Fragment key={layer.id}>
-                    <div className="me-track-row">
-                      <div className="me-track-label">
-                        <button
-                          className="me-tl-tool-btn"
-                          style={{ width: 20, height: 20, flexShrink: 0 }}
-                          onClick={e => { e.stopPropagation(); setLayersExpanded(p => ({ ...p, [layer.id]: !p[layer.id] })) }}
-                          title={layersExpanded[layer.id] ? 'Collapse' : 'Expand'}
-                        >
-                          <CaretRight size={10} style={{ transform: layersExpanded[layer.id] ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
-                        </button>
-                        <span>{layer.id}</span>
-                      </div>
-                      <div className="me-track-content" style={{ position: 'relative' }}>
-                        <div className="me-layer-strip" style={{ left: layer.left, width: layer.width }} />
-                      </div>
-                    </div>
-                    {layersExpanded[layer.id] && ([
-                      { label: 'Position', rows: [{ prop: 'x', axis: 'X', display: '0' }, { prop: 'y', axis: 'Y', display: '0' }] },
-                      { label: 'Scale',    rows: [{ prop: 'scale', axis: '', display: '100%' }] },
-                      { label: 'Rotation', rows: [{ prop: 'rotation', axis: '', display: '0°' }] },
-                      { label: 'Opacity',  rows: [{ prop: 'opacity', axis: '', display: '100%' }] },
-                    ]).flatMap(group =>
-                      group.rows.map((row, ri) => (
-                        <div key={`${layer.id}-${row.prop}`} className="me-track-row me-prop-track-row">
-                          <div className="me-track-label me-prop-track-label">
-                            <span className="me-prop-group-name">{ri === 0 ? group.label : ''}</span>
-                            {row.axis && <span className="me-prop-axis">{row.axis}</span>}
-                            <span className="me-prop-track-val">{row.display}</span>
-                            <span className="me-prop-kf-btn" style={{ color: 'rgba(255,255,255,0.2)' }}>◇</span>
-                          </div>
-                          <div className="me-track-content" style={{ position: 'relative' }}>
-                            <div className="me-layer-strip me-layer-strip--prop" style={{ left: layer.left, width: layer.width }} />
-                          </div>
+                  activeScene === 1 && { id: 'circle-m4n8x', flexPre: 0,    flexStrip: 3920, flexPost: totalMs - 3920 },
+                  activeScene === 2 && { id: 'text-b2r5w',   flexPre: 3920, flexStrip: 4720, flexPost: totalMs - 3920 - 4720 },
+                ].filter(Boolean) as { id: string; flexPre: number; flexStrip: number; flexPost: number }[]).map(layer => {
+                  const layerKfs = keyframes[layer.id] ?? {}
+                  return (
+                    <div key={layer.id} className={`me-layer-group${selectedLayerId === layer.id ? ' me-layer-group--selected' : ''}`}
+                      onClick={() => selectLayer(layer.id)}>
+                      <div className="me-track-row">
+                        <div className="me-track-label">
+                          <button
+                            className="me-tl-tool-btn"
+                            style={{ width: 20, height: 20, flexShrink: 0 }}
+                            onClick={e => { e.stopPropagation(); setLayersExpanded(p => ({ ...p, [layer.id]: !p[layer.id] })) }}
+                            title={layersExpanded[layer.id] ? 'Collapse' : 'Expand'}
+                          >
+                            <CaretRight size={10} style={{ transform: layersExpanded[layer.id] ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
+                          </button>
+                          <span>{layer.id}</span>
                         </div>
-                      ))
-                    )}
-                  </Fragment>
-                ))}
+                        <div className="me-track-content">
+                          {layer.flexPre > 0 && <div style={{ flex: layer.flexPre }} />}
+                          <div className="me-layer-strip" style={{ flex: layer.flexStrip, position: 'relative' }}>
+                            {[...new Set(Object.values(layerKfs).flat().map(k => k.timeMs))].map(t => (
+                              <div key={t} className="me-kf-dot" style={{ left: `${((t - layer.flexPre) / layer.flexStrip) * 100}%` }} />
+                            ))}
+                          </div>
+                          {layer.flexPost > 0 && <div style={{ flex: layer.flexPost }} />}
+                        </div>
+                      </div>
+                      {layersExpanded[layer.id] && (() => {
+                        const lGroups = [
+                          { label: 'Position', rows: [{ prop: 'x', axis: 'X', display: '0' }, { prop: 'y', axis: 'Y', display: '0' }] },
+                          { label: 'Scale',    rows: [{ prop: 'scale', axis: '', display: '100%' }] },
+                          { label: 'Rotation', rows: [{ prop: 'rotation', axis: '', display: '0°' }] },
+                          { label: 'Opacity',  rows: [{ prop: 'opacity', axis: '', display: '100%' }] },
+                        ]
+                        const lFlat = lGroups.flatMap(g => g.rows.filter(r => (layerKfs[r.prop] ?? []).length > 0).map((r, ri) => ({ ...r, label: g.label, ri })))
+                        return lFlat.map((row, fi) => {
+                          const kfs = layerKfs[row.prop] ?? []
+                          const isLast = fi === lFlat.length - 1
+                          return (
+                            <div key={`${layer.id}-${row.prop}`} className="me-track-row me-prop-track-row">
+                              <div className="me-track-label me-prop-track-label">
+                                <span className={`me-tl-tree-gutter${isLast ? ' me-tl-tree-gutter--last' : ''}`} />
+                                <span className="me-prop-group-name">{row.ri === 0 ? row.label : ''}</span>
+                                {row.axis && <span className="me-prop-axis">{row.axis}</span>}
+                                <span className="me-prop-track-val">{row.display}</span>
+                                <span className="me-prop-kf-btn" style={{ color: 'rgba(255,255,255,0.2)' }}>◇</span>
+                              </div>
+                              <div className="me-track-content">
+                                {layer.flexPre > 0 && <div style={{ flex: layer.flexPre }} />}
+                                <div className="me-layer-strip me-layer-strip--prop" style={{ flex: layer.flexStrip, position: 'relative' }}>
+                                  {kfs.length >= 2 && (
+                                    <div className="me-kf-line" style={{
+                                      left: `${((kfs[0].timeMs - layer.flexPre) / layer.flexStrip) * 100}%`,
+                                      width: `${((kfs[kfs.length - 1].timeMs - kfs[0].timeMs) / layer.flexStrip) * 100}%`,
+                                    }} />
+                                  )}
+                                  {kfs.map(kf => (
+                                    <div key={kf.timeMs} className="me-kf-dot"
+                                      style={{ left: `${((kf.timeMs - layer.flexPre) / layer.flexStrip) * 100}%` }}
+                                      onClick={e => { e.stopPropagation(); setTimeMs(kf.timeMs) }}
+                                    />
+                                  ))}
+                                </div>
+                                {layer.flexPost > 0 && <div style={{ flex: layer.flexPost }} />}
+                              </div>
+                            </div>
+                          )
+                        })
+                      })()}
+                    </div>
+                  )
+                })}
 
               </div>{/* end me-timeline-inner */}
             </div>
           </div>
-          )}
 
         </div>{/* end me-body-right */}
       </div>{/* end me-body */}
