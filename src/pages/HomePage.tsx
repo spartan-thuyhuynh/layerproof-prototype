@@ -91,21 +91,6 @@ export function HomePage() {
               })}
             </div>
 
-            {/* Motion Editor card */}
-            <button
-              className="hp-feature-card"
-              style={{ width: '100%', marginTop: 4, textAlign: 'left', display: 'flex', alignItems: 'center', gap: 16, padding: '14px 16px' }}
-              onClick={() => navigate('/motion-editor')}
-            >
-              <div style={{ width: 48, height: 48, borderRadius: 10, background: `${MOTION_CARD.color}18`, display: 'grid', placeItems: 'center', flex: 'none' }}>
-                <FilmStrip size={24} style={{ color: MOTION_CARD.color }} />
-              </div>
-              <div>
-                <span className="hp-feature-chip" style={{ background: `${MOTION_CARD.color}22`, color: MOTION_CARD.color, borderColor: `${MOTION_CARD.color}44` }}>Motion Video</span>
-                <p className="hp-feature-title" style={{ marginTop: 4 }}>{MOTION_CARD.title}</p>
-                <p className="hp-feature-desc">{MOTION_CARD.desc}</p>
-              </div>
-            </button>
 
             <div className="hp-sub-section">
               <h2 className="hp-section-title" style={{ marginBottom: 16 }}>
@@ -138,20 +123,22 @@ export function HomePage() {
             </div>
 
             <div className="hp-vellum-wrap">
-              <img src={`${base}home/vellum-banner.png`} alt="" className="hp-vellum-banner-img" />
-              <div className="hp-vellum-overlay" />
-              <div className="hp-vellum-deco" aria-hidden="true">
-                <span className="hp-vellum-orb hp-vellum-orb-1" />
-                <span className="hp-vellum-orb hp-vellum-orb-2" />
-              </div>
               <div className="hp-vellum-left">
-                <span className="hp-vellum-chip">Space</span>
-                <span className="hp-vellum-title">Create with<br />LayerProof <span className="hp-vellum-accent">Vellum</span></span>
-                <span className="hp-vellum-desc">AI-powered image generation for your brand</span>
+                <div className="hp-vellum-deco" aria-hidden="true">
+                  <span className="hp-vellum-orb hp-vellum-orb-1" />
+                  <span className="hp-vellum-orb hp-vellum-orb-2" />
+                </div>
+                <span className="hp-vellum-chip">Motion Video</span>
+                <span className="hp-vellum-title">Create with<br />LayerProof <span className="hp-vellum-accent">Motion</span></span>
+                <span className="hp-vellum-desc">Animate your content into scroll-stopping videos with AI-driven scenes, narration, and timeline editing.</span>
               </div>
               <div className="hp-vellum-actions">
                 <button className="hp-vellum-btn hp-vellum-btn--primary">Try it</button>
                 <button className="hp-vellum-btn hp-vellum-btn--secondary">Read release note</button>
+              </div>
+              <div className="hp-vellum-right">
+                <img src={`${base}home/vellum-banner.png`} alt="" className="hp-vellum-banner-img" />
+                <div className="hp-vellum-overlay" />
               </div>
             </div>
 
