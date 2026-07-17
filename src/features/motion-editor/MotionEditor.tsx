@@ -138,7 +138,7 @@ const GEN_STEPS = [
 
 const GEN_TIPS = [
   'Edit text, shapes, and images directly on the canvas in real time',
-  'Sync narration tracks to scenes automatically — no manual trimming needed',
+  'Adjust narration volume, speed, and fade directly in the timeline',
   'Keyframe any layer property: position, opacity, scale, and more',
 ]
 
@@ -456,9 +456,9 @@ export function MotionEditor() {
         ...prev,
         { id: Date.now(), role: 'agent', text: 'Your motion video is ready. You can now edit scenes, adjust keyframes, and export when done.', time: now() },
       ])
-    }, 10_000)
+    }, 15_000)
 
-    const progress = setInterval(() => setGenProgress(p => Math.min(100, p + 1)), 100)
+    const progress = setInterval(() => setGenProgress(p => Math.min(100, p + 1)), 150)
     const steps = setInterval(() => setGenStep(s => Math.min(GEN_STEPS.length - 1, s + 1)), 1_500)
     const tips = setInterval(() => setTipIndex(i => (i + 1) % GEN_TIPS.length), 5_000)
 
