@@ -46,6 +46,7 @@ interface ChatMessage {
   text?: string
   time?: string
   toolCalls?: ToolCall[]
+  genChecklist?: boolean
 }
 
 interface ToolCall {
@@ -56,36 +57,7 @@ interface ToolCall {
 }
 
 /* ── Initial chat state ── */
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: 1,
-    role: 'agent',
-    text: 'Your motion-graphics video of the app scrolling through the phone mockup is now complete with narration.',
-    time: '1:44 PM',
-  },
-  {
-    id: 2,
-    role: 'user',
-    text: 'change the background to solid green',
-    time: '01:46 PM',
-  },
-  {
-    id: 3,
-    role: 'agent',
-    toolCalls: [
-      { id: 1, name: 'narrate',           status: 'success', detail: 'Generated narration audio for Scene 1 and Scene 2.' },
-      { id: 2, name: 'regenerate_scene',  status: 'error',   detail: 'Scene storyboard moments are missing — cannot regenerate without source data.' },
-      { id: 3, name: 'regenerate_scene',  status: 'error',   detail: 'Retried with fallback config. Still missing storyboard moments.' },
-      { id: 4, name: 'regenerate_scene',  status: 'error',   detail: 'Third attempt failed. Storyboard data unavailable for this scene.' },
-    ],
-  },
-  {
-    id: 4,
-    role: 'agent',
-    text: "I've attempted to change the background to solid green for your scenes, but I'm encountering a technical issue with the scene data (storyboard moments are missing).\n\nSince I cannot modify the existing scenes right now, I recommend starting a new generation and including \"solid green background\" in your prompt. This will ensure the background is set correctly from the start.",
-    time: '1:46 PM',
-  },
-]
+const INITIAL_MESSAGES: ChatMessage[] = []
 
 const VERSION_HISTORY = [
   { id: 1, label: 'v3 — Current', time: 'Today, 2:41 PM', current: true },
@@ -155,8 +127,170 @@ const ICON_LIBRARY = [
   { name: 'Sparkle',      emoji: '✨' },
 ]
 
+const GEN_STEPS = [
+  'Analyzing content structure…',
+  'Generating scene compositions…',
+  'Applying motion transitions…',
+  'Syncing narration timeline…',
+  'Rendering keyframe animations…',
+  'Finalizing export settings…',
+]
+
+const GEN_TIPS = [
+  'Edit text, shapes, and images directly on the canvas in real time',
+  'Sync narration tracks to scenes automatically — no manual trimming needed',
+  'Keyframe any layer property: position, opacity, scale, and more',
+]
+
+const GEN_TIP_SVGS = [
+  /* Tip 0 — canvas editing: text cursor + selected element on canvas */
+  <svg key={0} className="me-gen-preview-svg" viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg">
+    <rect width="520" height="220" fill="#0e0e12"/>
+    {/* topbar */}
+    <rect width="520" height="30" fill="#16161a"/>
+    <rect x="10" y="9" width="44" height="12" rx="3" fill="#2a2a32"/>
+    <rect x="58" y="9" width="44" height="12" rx="3" fill="#2a2a32"/>
+    <rect x="106" y="9" width="44" height="12" rx="3" fill="#2a2a32"/>
+    <rect x="432" y="7" width="78" height="16" rx="8" fill="#f5c518"/>
+    {/* left panel */}
+    <rect x="0" y="30" width="90" height="130" fill="#13131a"/>
+    <rect x="8" y="38" width="32" height="8" rx="2" fill="#f5c518" opacity="0.8"/>
+    <rect x="44" y="38" width="24" height="8" rx="2" fill="#2a2a32"/>
+    <rect x="8" y="52" width="74" height="6" rx="2" fill="#222230"/>
+    <rect x="8" y="62" width="60" height="6" rx="2" fill="#1e1e28"/>
+    <rect x="8" y="72" width="68" height="6" rx="2" fill="#1e1e28"/>
+    <rect x="8" y="82" width="55" height="6" rx="2" fill="#1e1e28"/>
+    {/* canvas area */}
+    <rect x="90" y="30" width="340" height="130" fill="#181820"/>
+    {/* selected text element */}
+    <rect x="155" y="65" width="210" height="62" rx="4" fill="none" stroke="#f5c518" strokeWidth="1.5" strokeDasharray="4 2"/>
+    <rect x="152" y="62" width="7" height="7" rx="1.5" fill="#f5c518"/>
+    <rect x="359" y="62" width="7" height="7" rx="1.5" fill="#f5c518"/>
+    <rect x="152" y="119" width="7" height="7" rx="1.5" fill="#f5c518"/>
+    <rect x="359" y="119" width="7" height="7" rx="1.5" fill="#f5c518"/>
+    {/* text lines inside element */}
+    <rect x="168" y="79" width="120" height="8" rx="2" fill="rgba(255,255,255,0.7)"/>
+    <rect x="168" y="92" width="90" height="6" rx="2" fill="rgba(255,255,255,0.35)"/>
+    <rect x="168" y="104" width="105" height="6" rx="2" fill="rgba(255,255,255,0.35)"/>
+    {/* blinking cursor */}
+    <rect x="290" y="79" width="2" height="10" rx="1" fill="#f5c518" opacity="0.9"/>
+    {/* right panel */}
+    <rect x="430" y="30" width="90" height="130" fill="#13131a"/>
+    <rect x="438" y="38" width="30" height="6" rx="2" fill="#2a2a32"/>
+    <rect x="438" y="50" width="72" height="5" rx="2" fill="#1e1e28"/>
+    <rect x="438" y="60" width="72" height="5" rx="2" fill="#1e1e28"/>
+    <rect x="438" y="74" width="50" height="5" rx="2" fill="#f5c518" opacity="0.3"/>
+    <rect x="438" y="84" width="72" height="5" rx="2" fill="#1e1e28"/>
+    {/* timeline */}
+    <rect x="0" y="160" width="520" height="60" fill="#111118"/>
+    <rect x="0" y="160" width="520" height="1" fill="#222230"/>
+    <rect x="8" y="168" width="60" height="6" rx="2" fill="#2a2a32"/>
+    <rect x="74" y="168" width="130" height="6" rx="3" fill="#3b3b6a" opacity="0.8"/>
+    <rect x="210" y="168" width="110" height="6" rx="3" fill="#3b3b6a" opacity="0.6"/>
+  </svg>,
+
+  /* Tip 1 — narration track: audio waveform synced to scenes */
+  <svg key={1} className="me-gen-preview-svg" viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg">
+    <rect width="520" height="220" fill="#0e0e12"/>
+    <rect width="520" height="30" fill="#16161a"/>
+    <rect x="10" y="9" width="44" height="12" rx="3" fill="#2a2a32"/>
+    <rect x="58" y="9" width="44" height="12" rx="3" fill="#2a2a32"/>
+    <rect x="432" y="7" width="78" height="16" rx="8" fill="#f5c518"/>
+    {/* canvas preview */}
+    <rect x="0" y="30" width="520" height="100" fill="#181820"/>
+    {/* scene blocks in canvas */}
+    <rect x="40" y="50" width="180" height="64" rx="6" fill="#1c1c28"/>
+    <rect x="40" y="50" width="180" height="64" rx="6" stroke="#2a2a40" strokeWidth="1" fill="none"/>
+    <rect x="56" y="62" width="70" height="40" rx="3" fill="#222235"/>
+    <rect x="134" y="68" width="70" height="8" rx="2" fill="rgba(255,255,255,0.5)"/>
+    <rect x="134" y="80" width="52" height="6" rx="2" fill="rgba(255,255,255,0.25)"/>
+    <rect x="240" y="50" width="180" height="64" rx="6" fill="#1c1c28"/>
+    <rect x="240" y="50" width="180" height="64" rx="6" stroke="#f5c518" strokeWidth="1.5" fill="none"/>
+    <rect x="256" y="62" width="70" height="40" rx="3" fill="#222235"/>
+    <rect x="334" y="68" width="70" height="8" rx="2" fill="rgba(255,255,255,0.5)"/>
+    <rect x="334" y="80" width="52" height="6" rx="2" fill="rgba(255,255,255,0.25)"/>
+    {/* timeline area */}
+    <rect x="0" y="130" width="520" height="90" fill="#111118"/>
+    <rect x="0" y="130" width="520" height="1" fill="#222230"/>
+    {/* narration label */}
+    <rect x="8" y="140" width="55" height="7" rx="2" fill="#2a2a32"/>
+    {/* waveform bars — narration track */}
+    {[78,82,70,88,92,76,84,90,68,86,94,72,80,88,66,84,78,90,74,86].map((h, i) => (
+      <rect key={i} x={74 + i * 21} y={148 + (20 - h/5)} width="14" height={h/5} rx="2" fill={i < 8 ? '#3b3b6a' : '#f5c518'} opacity={i < 8 ? 0.8 : 0.5}/>
+    ))}
+    {/* playhead */}
+    <rect x="240" y="130" width="2" height="90" fill="#f5c518" opacity="0.8"/>
+    <polygon points="235,130 245,130 240,137" fill="#f5c518"/>
+    {/* scene track */}
+    <rect x="8" y="192" width="55" height="7" rx="2" fill="#2a2a32"/>
+    <rect x="74" y="190" width="160" height="16" rx="3" fill="#2a2a40"/>
+    <rect x="238" y="190" width="160" height="16" rx="3" fill="#f5c518" opacity="0.2"/>
+    <rect x="238" y="190" width="160" height="16" rx="3" stroke="#f5c518" strokeWidth="1" fill="none"/>
+  </svg>,
+
+  /* Tip 2 — keyframes: timeline with keyframe diamonds and curves */
+  <svg key={2} className="me-gen-preview-svg" viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg">
+    <rect width="520" height="220" fill="#0e0e12"/>
+    <rect width="520" height="30" fill="#16161a"/>
+    <rect x="10" y="9" width="44" height="12" rx="3" fill="#2a2a32"/>
+    <rect x="58" y="9" width="44" height="12" rx="3" fill="#2a2a32"/>
+    <rect x="432" y="7" width="78" height="16" rx="8" fill="#f5c518"/>
+    {/* canvas */}
+    <rect x="0" y="30" width="520" height="80" fill="#181820"/>
+    <rect x="160" y="40" width="200" height="60" rx="5" fill="#1c1c28" stroke="#2a2a40" strokeWidth="1"/>
+    <rect x="175" y="50" width="80" height="10" rx="2" fill="rgba(255,255,255,0.6)"/>
+    <rect x="175" y="65" width="120" height="7" rx="2" fill="rgba(255,255,255,0.25)"/>
+    <rect x="175" y="76" width="95" height="7" rx="2" fill="rgba(255,255,255,0.25)"/>
+    {/* selected layer highlight */}
+    <rect x="160" y="40" width="200" height="60" rx="5" fill="none" stroke="#f5c518" strokeWidth="1.5"/>
+    {/* timeline */}
+    <rect x="0" y="110" width="520" height="110" fill="#111118"/>
+    <rect x="0" y="110" width="520" height="1" fill="#222230"/>
+    {/* time ruler ticks */}
+    {[0,1,2,3,4,5,6,7,8].map(i => (
+      <rect key={i} x={74 + i * 54} y="114" width="1" height="8" fill="#2a2a32"/>
+    ))}
+    {/* layer rows */}
+    <rect x="8" y="126" width="55" height="7" rx="2" fill="#f5c518" opacity="0.6"/>
+    <rect x="8" y="148" width="55" height="7" rx="2" fill="#2a2a32"/>
+    <rect x="8" y="168" width="55" height="7" rx="2" fill="#2a2a32"/>
+    {/* keyframe track row 1 — position */}
+    <rect x="74" y="122" width="370" height="15" rx="3" fill="#1c1c28"/>
+    {/* keyframe diamonds */}
+    {[128, 200, 290, 380].map(x => (
+      <polygon key={x} points={`${x},126 ${x+5},130 ${x},134 ${x-5},130`} fill="#f5c518"/>
+    ))}
+    {/* easing curve between first two */}
+    <path d="M133 130 C155 120, 178 140, 200 130" stroke="#f5c518" strokeWidth="1.5" fill="none" opacity="0.5"/>
+    <path d="M205 130 C230 118, 265 142, 290 130" stroke="#f5c518" strokeWidth="1.5" fill="none" opacity="0.5"/>
+    <path d="M295 130 C320 120, 355 140, 380 130" stroke="#f5c518" strokeWidth="1.5" fill="none" opacity="0.5"/>
+    {/* row 2 — opacity */}
+    <rect x="74" y="144" width="370" height="15" rx="3" fill="#1c1c28"/>
+    {[155, 290].map(x => (
+      <polygon key={x} points={`${x},148 ${x+5},152 ${x},156 ${x-5},152`} fill="rgba(255,255,255,0.4)"/>
+    ))}
+    <path d="M160 152 C200 144, 250 160, 290 152" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" fill="none"/>
+    {/* row 3 — scale */}
+    <rect x="74" y="164" width="370" height="15" rx="3" fill="#1c1c28"/>
+    {[200, 350].map(x => (
+      <polygon key={x} points={`${x},168 ${x+5},172 ${x},176 ${x-5},172`} fill="rgba(255,255,255,0.4)"/>
+    ))}
+    {/* playhead */}
+    <rect x="200" y="110" width="2" height="110" fill="#f5c518" opacity="0.7"/>
+    <polygon points="195,110 205,110 200,118" fill="#f5c518"/>
+  </svg>,
+]
+
+const base = import.meta.env.BASE_URL
+
 export function MotionEditor() {
   const navigate = useNavigate()
+
+  /* Generating state */
+  const [isGenerating, setIsGenerating] = useState(true)
+  const [genProgress, setGenProgress]   = useState(0)
+  const [genStep, setGenStep]           = useState(0)
+  const [tipIndex, setTipIndex]         = useState(0)
 
   /* State */
   const [panelTab, setPanelTab]       = useState<PanelTab>('Layers')
@@ -303,6 +437,34 @@ export function MotionEditor() {
     const scaleH = (el.clientHeight - pad) / CARD_H
     return Math.round(Math.min(scaleW, scaleH) * 100)
   }
+
+  /* Generating timers */
+  const GEN_CHECKLIST_ID = 9999
+  useEffect(() => {
+    if (!isGenerating) return
+    const now = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    // Starter: user prompt + agent checklist message
+    setMessages([
+      { id: 1, role: 'user', text: 'Create a motion video for "Social Campaign – Present intellectual property"', time: now() },
+      { id: GEN_CHECKLIST_ID, role: 'agent', genChecklist: true, time: now() },
+    ])
+    setGenStep(0)
+
+    const dismiss = setTimeout(() => {
+      setIsGenerating(false)
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now(), role: 'agent', text: 'Your motion video is ready. You can now edit scenes, adjust keyframes, and export when done.', time: now() },
+      ])
+    }, 10_000)
+
+    const progress = setInterval(() => setGenProgress(p => Math.min(100, p + 1)), 100)
+    const steps = setInterval(() => setGenStep(s => Math.min(GEN_STEPS.length - 1, s + 1)), 1_500)
+    const tips = setInterval(() => setTipIndex(i => (i + 1) % GEN_TIPS.length), 5_000)
+
+    return () => { clearTimeout(dismiss); clearInterval(progress); clearInterval(steps); clearInterval(tips) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGenerating])
 
   /* Fit on mount */
   useEffect(() => {
@@ -570,11 +732,49 @@ export function MotionEditor() {
             Invite
           </button>
           <div className="mv3-divider-v" />
-          <button className="mv3-sub-share-btn" onClick={() => setShowExport(true)}>Export</button>
-          <div className="mv3-divider-v" />
-          <div className="mv3-plan-badge">
-            <span className="mv3-plan-label">Plan:</span>
-            <span className="mv3-plan-value">Unlimited</span>
+          <div className="me-export-anchor">
+            <button className="mv3-sub-share-btn" onClick={() => setShowExport(v => !v)}>Export</button>
+            {showExport && (
+              <div className="me-export-popover" onClick={e => e.stopPropagation()}>
+                <div className="me-export-modal-header">
+                  <span className="me-export-modal-title">Export video</span>
+                  <button className="me-export-modal-close" onClick={() => setShowExport(false)}>✕</button>
+                </div>
+
+                <div className="me-export-selects">
+                  <div className="me-export-select-group">
+                    <label className="me-export-select-label">FRAME RATE</label>
+                    <div className="me-export-select-wrap">
+                      <select className="me-export-select" defaultValue="30 fps">
+                        {(['24 fps', '30 fps', '60 fps'] as const).map(o => <option key={o}>{o}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="me-export-select-group">
+                    <label className="me-export-select-label">RESOLUTION</label>
+                    <div className="me-export-select-wrap">
+                      <select className="me-export-select" defaultValue="720p (720p)">
+                        {(['480p (480p)', '720p (720p)', '1080p (1080p)'] as const).map(o => <option key={o}>{o}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="me-export-meta">
+                  <span>Duration: {(totalMs / 1000).toFixed(2)}s</span>
+                  <span>Frames: {Math.round((totalMs / 1000) * 30)}</span>
+                  <span>Output: 1280×720 <span className="me-export-meta-dim">MP4 / H.264</span></span>
+                </div>
+
+                <div className="me-export-audio-row">
+                  Audio: mixing 2 clips (AAC, 128 kbps)
+                </div>
+
+                <button className="me-export-confirm-btn" onClick={() => setShowExport(false)}>
+                  Export
+                </button>
+              </div>
+            )}
           </div>
           <div className="mv3-avatar">T</div>
         </div>
@@ -609,12 +809,34 @@ export function MotionEditor() {
             </div>
           </div>
 
+          {/* Generating progress bar */}
+          {isGenerating && (
+            <div className="me-gen-chat-bar">
+              <div className="me-gen-bar-fill" style={{ width: `${genProgress}%` }} />
+            </div>
+          )}
+
           {/* Messages */}
           <div className="me-chat-messages">
-            {messages.map(msg => (
+            {messages.map((msg, idx) => (
               <div key={msg.id} className={`me-agent-msg me-agent-msg--${msg.role}`}>
 
-                {msg.toolCalls ? (
+                {msg.genChecklist ? (
+                  <div className="me-gen-checklist">
+                    {GEN_STEPS.map((step, i) => {
+                      const done = i < genStep
+                      const active = i === genStep && isGenerating
+                      return (
+                        <div key={i} className={`me-gen-checklist-item${done ? ' done' : active ? ' active' : ' pending'}`}>
+                          <span className="me-gen-checklist-icon">
+                            {done ? '✓' : active ? <span className="me-gen-spinner" /> : '○'}
+                          </span>
+                          {step}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : msg.toolCalls ? (
                   <div className="me-tool-chip-row">
                     {(expandedMsgs[msg.id] ? msg.toolCalls : msg.toolCalls.slice(0, 3)).map(tc => (
                       <div key={tc.id} style={{ width: '100%' }}>
@@ -651,10 +873,13 @@ export function MotionEditor() {
                   </div>
                 ) : (
                   <>
-                    <div className="me-agent-bubble">
+                    <div className={`me-agent-bubble${isGenerating && idx === messages.length - 1 ? ' me-agent-bubble--gen' : ''}`}>
+                      {isGenerating && idx === messages.length - 1 && (
+                        <span className="me-gen-spinner" style={{ marginRight: 8 }} />
+                      )}
                       {formatMessage(msg.text ?? '')}
                     </div>
-                    {msg.role === 'agent' && (
+                    {!isGenerating && msg.role === 'agent' && (
                       <div className="me-msg-reactions">
                         <button className="me-reaction-btn" title="Like"><ThumbsUp size={13} /></button>
                         <button className="me-reaction-btn" title="Dislike"><ThumbsDown size={13} /></button>
@@ -714,6 +939,32 @@ export function MotionEditor() {
 
         {/* ── Right side: content row + timeline ── */}
         <div className="me-body-right">
+
+          {/* Generating overlay — covers panels/timeline/inspector, chat+header stay visible */}
+          {isGenerating && (
+            <div className="me-gen-screen">
+              <div className="me-gen-modal">
+                <h2 className="me-gen-title">Learn while you wait</h2>
+                <div className="me-gen-tip">
+                  <span className="me-gen-tip-icon">💡</span>
+                  <span className="me-gen-tip-label">Tip:</span>
+                  {GEN_TIPS[tipIndex]}
+                </div>
+                <div className="me-gen-preview">
+                  {GEN_TIP_SVGS[tipIndex]}
+                </div>
+                {import.meta.env.DEV && (
+                  <button className="me-gen-skip" onClick={() => setIsGenerating(false)}>
+                    Skip (dev only)
+                  </button>
+                )}
+              </div>
+              <div className="me-gen-status-pill">
+                <span className="me-gen-status-dot" />
+                LayerProof is designing — please wait to edit
+              </div>
+            </div>
+          )}
 
           {/* Content row: layers + canvas + inspector */}
           <div className="me-body-content">
@@ -1711,42 +1962,8 @@ export function MotionEditor() {
         </div>
       )}
 
-      {/* ── Export modal ── */}
-      {showExport && (
-        <div className="me-export-overlay" onClick={() => setShowExport(false)}>
-          <div className="me-export-modal" onClick={e => e.stopPropagation()}>
-            <div className="me-export-modal-header">
-              <span className="me-export-modal-title">Export Video</span>
-              <button className="me-export-modal-close" onClick={() => setShowExport(false)}>×</button>
-            </div>
-            <div className="me-export-format-list">
-              {([
-                { id: 'mp4',  icon: '🎬', name: 'MP4 Video',    desc: 'Best for sharing and uploading' },
-                { id: 'gif',  icon: '🖼',  name: 'Animated GIF', desc: 'Loops, works everywhere' },
-                { id: 'webm', icon: '🌐', name: 'WebM',          desc: 'Optimised for the web' },
-              ] as const).map(f => (
-                <button
-                  key={f.id}
-                  className={`me-export-format-btn${exportFormat === f.id ? ' selected' : ''}`}
-                  onClick={() => setExportFormat(f.id)}
-                >
-                  <div className="me-export-format-icon">{f.icon}</div>
-                  <div>
-                    <div className="me-export-format-name">{f.name}</div>
-                    <div className="me-export-format-desc">{f.desc}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="me-export-modal-footer">
-              <button className="me-export-cancel" onClick={() => setShowExport(false)}>Cancel</button>
-              <button className="me-export-confirm" onClick={() => setShowExport(false)}>
-                Export as {exportFormat.toUpperCase()}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* dismiss export on outside click */}
+      {showExport && <div className="me-export-backdrop" onClick={() => setShowExport(false)} />}
     </div>
   )
 }
