@@ -1337,6 +1337,7 @@
 /* ── Right Panel (Layers / Assets / Audio) ── */
 .me-inspector {
   flex: none;
+  align-self: stretch;
   background: #161618;
   border-left: 1px solid rgba(255,255,255,0.07);
   display: flex;
@@ -1370,7 +1371,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  overflow-y: auto;
+  overflow: hidden;
   flex: 1;
 }
 
@@ -1525,10 +1526,12 @@
 .me-anim-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  align-content: start;
   gap: 6px;
-  padding: 0 10px;
+  padding: 0 10px 10px;
   overflow-y: auto;
   flex: 1;
+  min-height: 180px;
 }
 .me-anim-grid::-webkit-scrollbar { width: 3px; }
 .me-anim-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
@@ -1557,8 +1560,17 @@
   background: rgba(255,255,255,0.1);
   border-color: rgba(255,255,255,0.2);
 }
+.me-anim-thumb svg [id] {
+  opacity: 0.9;
+  animation-delay: 9999s !important;
+  animation-play-state: paused !important;
+}
+.me-anim-cell:hover .me-anim-thumb svg [id] {
+  animation-delay: 0s !important;
+  animation-play-state: running !important;
+}
 .me-anim-cell-name {
-  font-size: 10px;
+  font-size: 11.5px;
   color: rgba(255,255,255,0.55);
   text-align: center;
   white-space: nowrap;
@@ -3315,3 +3327,215 @@
 .me-waveform-seg--soundtrack {
   background: rgba(60, 60, 120, 0.35);
 }
+
+/* ============================================================
+   Light mode overrides
+   ============================================================ */
+html.light .me-layout { background: var(--app); }
+html.light .me-topbar { background: var(--panel); border-bottom-color: var(--line); }
+html.light .me-topbar-sep { background: var(--line-2); }
+html.light .me-title { color: var(--t1); }
+html.light .me-back { border-color: var(--line-2); color: var(--t2); }
+html.light .me-back:hover { background: var(--card-2); color: var(--t1); }
+html.light .me-topbar-btn { color: var(--t2); }
+html.light .me-topbar-btn:hover { background: var(--card-2); color: var(--t1); }
+html.light .me-export-btn { background: #1a1a1a; color: #fff; }
+
+/* Left panel */
+html.light .me-layers-panel { background: var(--panel); border-right-color: var(--line); }
+html.light .me-panel-tabs { border-bottom-color: var(--line); }
+html.light .me-panel-tab { color: var(--t2); }
+html.light .me-panel-tab.active { color: var(--t1); border-bottom-color: var(--t1); }
+html.light .me-layers-list { background: var(--panel); }
+html.light .me-layer-item { color: var(--t2); }
+html.light .me-layer-item:hover { background: var(--card-2); color: var(--t1); }
+html.light .me-layer-item--selected { background: var(--card-2); color: var(--t1); }
+html.light .me-layer-item-icon { color: var(--t3); }
+
+/* Right panel */
+html.light .me-inspector { background: var(--panel); border-left-color: var(--line); }
+html.light .me-panel-tabs--right { border-bottom-color: var(--line); }
+html.light .me-panel-tabs--right .me-panel-tab { color: var(--t2); }
+html.light .me-panel-tabs--right .me-panel-tab.active { color: var(--t1); border-bottom-color: var(--t1); }
+html.light .me-design-panel,
+html.light .me-anim-library { background: var(--panel); }
+
+/* Inspector mode toggle */
+html.light .me-inspector-mode-toggle { border-bottom-color: var(--line); }
+html.light .me-inspector-mode-pill { background: var(--card-2); }
+html.light .me-inspector-mode-toggle .me-mode-btn { color: var(--t3); }
+html.light .me-inspector-mode-toggle .me-mode-btn.active { background: var(--card); color: var(--t1); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+html.light .me-inspector-mode-toggle .me-mode-btn:hover:not(.active) { color: var(--t2); }
+
+/* Canvas info panel (right panel default view) */
+html.light .me-ci-section { border-bottom-color: var(--line); }
+html.light .me-ci-section-title { color: var(--t1); }
+html.light .me-ci-label { color: var(--t3); }
+html.light .me-ci-value { color: var(--t2); }
+html.light .me-ci-value--path { color: var(--t3); }
+html.light .me-ci-value--on { color: var(--t2); }
+html.light .me-ci-value--off { color: var(--t3); }
+html.light .me-anim-section-title { color: var(--t1); }
+
+/* Animation search & filters */
+html.light .me-anim-search-wrap { background: var(--card); border-color: var(--line-2); }
+html.light .me-anim-search-input { color: var(--t1); }
+html.light .me-anim-search-input::placeholder { color: var(--t3); }
+html.light .me-anim-filter-btn { background: var(--card); border-color: var(--line-2); color: var(--t2); }
+html.light .me-anim-filter-btn--active { background: var(--t1); border-color: var(--t1); color: var(--panel); }
+
+/* Animation grid cells */
+html.light .me-anim-thumb {
+  background: var(--card);
+  border-color: var(--line-2);
+  color: var(--t1);
+}
+html.light .me-anim-cell:hover .me-anim-thumb {
+  background: var(--card-2);
+  border-color: var(--line-2);
+}
+html.light .me-anim-cell-name { color: var(--t2); }
+
+/* Animation duration / subtabs */
+html.light .me-anim-subtab { color: var(--t2); }
+html.light .me-anim-subtab--active { color: var(--t1); border-bottom-color: var(--t1); }
+html.light .me-anim-duration-bar { border-top-color: var(--line); }
+html.light .me-anim-duration-label { color: var(--t2); }
+html.light .me-anim-duration-field { background: var(--card); border-color: var(--line-2); color: var(--t1); }
+html.light .me-anim-duration-stepper button { border-top-color: var(--line-2); color: var(--t2); }
+
+/* Transform panel */
+html.light .me-anim-section { border-bottom-color: var(--line); }
+html.light .me-anim-section-head { border-bottom-color: var(--line); }
+html.light .me-anim-row-label { color: var(--t2); }
+html.light .me-anim-field { background: var(--card); border-color: var(--line-2); }
+html.light .me-anim-field-axis { color: var(--t3); }
+html.light .me-anim-field-input { color: var(--t1); }
+html.light .me-anim-slider { background: var(--line-2); }
+html.light .me-anim-kf-icon-row { border-bottom-color: var(--line); }
+html.light .me-tl-tool-btn { color: var(--t2); }
+html.light .me-tl-tool-btn:hover { background: var(--card-2); color: var(--t1); }
+
+/* Object field */
+html.light .me-anim-object-field { background: var(--card); border-color: var(--line-2); color: var(--t1); }
+
+/* Canvas area */
+html.light .me-canvas-area { background: var(--app); }
+html.light .me-canvas-toolbar { background: var(--panel); border-bottom-color: var(--line); }
+html.light .me-canvas-toolbar-btn { color: var(--t2); border-color: var(--line-2); }
+html.light .me-canvas-toolbar-btn:hover { background: var(--card-2); color: var(--t1); }
+html.light .me-canvas-zoom { color: var(--t2); background: var(--card); border-color: var(--line-2); }
+html.light .me-time-display { color: var(--t2); }
+html.light .me-playback-btn { color: var(--t1); }
+
+/* Timeline */
+html.light .me-timeline { background: var(--panel); border-top-color: var(--line); }
+html.light .me-tl-header { background: var(--panel); border-bottom-color: var(--line); }
+html.light .me-tl-ruler { background: var(--card); border-bottom-color: var(--line); }
+html.light .me-tl-ruler-tick { background: var(--line-2); }
+html.light .me-tl-ruler-label { color: var(--t3); }
+html.light .me-track-row { border-bottom-color: var(--line); }
+html.light .me-track-label { background: var(--panel); border-right-color: var(--line); color: var(--t2); }
+html.light .me-track-label:hover { background: var(--card-2); }
+html.light .me-track-label--selected { background: var(--card-2); color: var(--t1); }
+html.light .me-track-group-header { background: var(--card); border-top-color: var(--line); border-bottom-color: var(--line); }
+html.light .me-track-group-header .me-track-label { background: var(--card); }
+html.light .me-track-group-header:hover { background: var(--card-2); }
+html.light .me-track-row--child .me-track-label,
+html.light .me-track-label--child { color: var(--t3); }
+html.light .me-tl-scene-chip { background: var(--accent); color: var(--accent-ink); }
+html.light .me-tl-playhead { background: var(--accent); }
+html.light .me-tl-scrub-area { background: var(--card); }
+html.light .me-kf-diamond { color: var(--t3); }
+html.light .me-kf-diamond--active { color: var(--accent); }
+
+/* Assets panel */
+html.light .me-assets-panel { background: var(--panel); }
+html.light .me-assets-toolbar { border-bottom-color: var(--line); }
+html.light .me-assets-search-bar { background: var(--card); border-color: var(--line-2); }
+html.light .me-assets-search-input { color: var(--t1); }
+html.light .me-assets-grid-label { color: var(--t3); }
+html.light .me-asset-thumb { background: var(--card); border-color: var(--line); }
+html.light .me-asset-thumb:hover { border-color: var(--line-2); background: var(--card-2); }
+html.light .me-asset-name { color: var(--t2); }
+
+/* Audio panel */
+html.light .me-audio-panel { background: var(--panel); }
+html.light .me-anim-section { background: var(--panel); }
+html.light .me-anim-section-head { background: var(--panel); }
+html.light .me-anim-duration-label { color: var(--t2); }
+
+/* Misc */
+html.light .me-ci-select { background: var(--card); border-color: var(--line-2); color: var(--t1); }
+html.light .me-ci-select:hover { border-color: var(--line-2); }
+html.light .me-tooltip[data-tooltip]::after { background: var(--t1); color: var(--panel); }
+html.light .me-anim-grid::-webkit-scrollbar-thumb { background: var(--line-2); }
+
+/* Canvas footer (playback bar) */
+html.light .me-canvas-footer { background: var(--panel); border-top: 1px solid var(--line); }
+html.light .me-canvas-footer-divider { background: var(--line-2); }
+html.light .me-footer-icon { color: var(--t2); }
+html.light .me-footer-icon:hover { color: var(--t1); }
+html.light .me-footer-speed { color: var(--t3); }
+html.light .me-footer-speed:hover { color: var(--t2); }
+
+/* Chat sidebar */
+html.light .me-chat { background: var(--panel); border-right-color: var(--line); }
+html.light .me-chat-card { background: var(--card); border-color: var(--line); box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+html.light .me-chat-panel-header { border-bottom-color: var(--line); }
+html.light .me-chat-panel-title { color: var(--t1); }
+html.light .me-agent-clear-btn { border-color: var(--line-2); color: var(--t3); }
+html.light .me-agent-clear-btn:hover { background: var(--card-2); color: var(--t1); border-color: var(--line-2); }
+html.light .me-chat-messages::-webkit-scrollbar-thumb { background: var(--line-2); }
+html.light .me-chat-bubble--user { background: var(--accent-soft); color: var(--t1); }
+html.light .me-chat-bubble--agent { background: var(--card-2); color: var(--t1); }
+html.light .me-agent-compose { background: var(--card); border-color: var(--line-2); }
+html.light .me-agent-compose-input { color: var(--t1); }
+html.light .me-agent-compose-input::placeholder { color: var(--t3); }
+html.light .me-chat-send { background: var(--accent); color: var(--accent-ink); }
+html.light .me-chat-send:hover { opacity: 0.85; }
+html.light .me-chat-resize-handle { border-color: var(--line); }
+html.light .me-chat-resize-handle:hover,
+html.light .me-chat-resize-handle:active { border-color: var(--accent); background: var(--accent-soft); }
+
+/* Topbar tool / mode / versions buttons */
+html.light .me-tool-btn { color: var(--t2); }
+html.light .me-tool-btn:hover { background: var(--card-2); color: var(--t1); }
+html.light .me-tool-btn.active { background: var(--card-2); color: var(--t1); }
+html.light .me-versions-btn { color: var(--t2); }
+html.light .me-versions-btn:hover { background: var(--card-2); color: var(--t1); }
+
+/* Canvas scene cards */
+html.light .me-canvas-bg { background: var(--app); }
+html.light .me-canvas-scene-card { background: var(--card); border-color: var(--line); }
+html.light .me-canvas-scene-card.active { border-color: var(--line-2); }
+html.light .me-canvas-scene-label { color: var(--t2); }
+html.light .me-canvas-scene-card.active .me-canvas-scene-label { color: var(--accent); }
+html.light .me-canvas-scene-hint { color: var(--t3); }
+
+/* Export popover */
+html.light .me-export-popover { background: var(--card); border-color: var(--line); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+html.light .me-export-modal-title { color: var(--t1); }
+html.light .me-export-modal-close { color: var(--t3); }
+html.light .me-export-modal-close:hover { color: var(--t1); }
+html.light .me-export-select-label { color: var(--t3); }
+html.light .me-export-select { background: var(--card-2); border-color: var(--line-2); color: var(--t1); }
+html.light .me-export-select-wrap::after { color: var(--t3); }
+html.light .me-export-meta { color: var(--t2); }
+html.light .me-export-meta-dim { color: var(--t3); }
+
+/* Versions overlay */
+html.light .me-versions-panel { background: var(--card); border-color: var(--line); }
+html.light .me-versions-panel-header { border-bottom-color: var(--line); color: var(--t1); }
+html.light .me-versions-panel-close { color: var(--t3); }
+html.light .me-versions-panel-close:hover { color: var(--t1); }
+
+/* Generating overlay */
+html.light .me-gen-modal { background: var(--card); }
+html.light .me-gen-title { color: var(--t1); }
+html.light .me-gen-checklist-item { color: var(--t2); }
+html.light .me-gen-checklist-item.done { color: var(--t3); }
+html.light .me-gen-checklist-item.pending { color: var(--line-2); }
+html.light .me-gen-skip { color: var(--t3); border-color: var(--line-2); }
+html.light .me-gen-skip:hover { color: var(--t2); border-color: var(--line-2); }
+html.light .me-gen-status-pill { background: var(--card-2); border-color: var(--line); color: var(--t2); }

@@ -88,21 +88,140 @@ function formatMessage(text: string) {
   return <Fragment>{blocks}</Fragment>
 }
 
-const ANIM_FILTERS = ['Trending', 'Basic', 'Light', 'Glitch', 'Mask']
+const ANIM_FILTERS = ['Trending', 'Basic', 'Motion', 'Emphasis', 'Exit']
 const ANIM_PRESETS = [
-  { name: 'None',       emoji: '⊘',  dur: '' },
-  { name: 'Zoom In',    emoji: '🔍', dur: '0.6s' },
-  { name: 'Fade In',    emoji: '🌅', dur: '0.5s' },
-  { name: 'Slide Up',   emoji: '⬆️', dur: '0.4s' },
-  { name: 'Wiper',      emoji: '🧹', dur: '0.8s' },
-  { name: 'Pop',        emoji: '💥', dur: '0.3s' },
-  { name: 'Zoom Out',   emoji: '🔎', dur: '0.6s' },
-  { name: 'Bounce',     emoji: '⚡', dur: '0.5s' },
-  { name: 'Slide Left', emoji: '⬅️', dur: '0.4s' },
-  { name: 'Rotate',     emoji: '🔄', dur: '0.7s' },
-  { name: 'Flip',       emoji: '🃏', dur: '0.5s' },
-  { name: 'Shake',      emoji: '📳', dur: '0.4s' },
+  { name: 'None',        dur: '',     cats: ['Trending', 'Basic', 'Motion', 'Emphasis', 'Exit'] },
+  { name: 'Fade In',     dur: '0.5s', cats: ['Trending', 'Basic'] },
+  { name: 'Zoom In',     dur: '0.6s', cats: ['Trending', 'Basic', 'Emphasis'] },
+  { name: 'Slide Up',    dur: '0.4s', cats: ['Trending', 'Motion'] },
+  { name: 'Slide Left',  dur: '0.4s', cats: ['Trending', 'Motion'] },
+  { name: 'Pop',         dur: '0.3s', cats: ['Trending', 'Emphasis'] },
+  { name: 'Bounce',      dur: '0.5s', cats: ['Trending', 'Emphasis'] },
+  { name: 'Zoom Out',    dur: '0.6s', cats: ['Basic', 'Emphasis'] },
+  { name: 'Slide Down',  dur: '0.4s', cats: ['Motion'] },
+  { name: 'Slide Right', dur: '0.4s', cats: ['Motion'] },
+  { name: 'Rotate In',   dur: '0.7s', cats: ['Motion', 'Emphasis'] },
+  { name: 'Spin',        dur: '0.6s', cats: ['Emphasis'] },
+  { name: 'Shake',       dur: '0.4s', cats: ['Emphasis'] },
+  { name: 'Pulse',       dur: '0.5s', cats: ['Emphasis'] },
+  { name: 'Fade Out',    dur: '0.5s', cats: ['Exit'] },
 ]
+
+function AnimPreviewSVG({ name }: { name: string }) {
+  const id = name.toLowerCase().replace(/\s/g, '-')
+  switch (name) {
+    case 'None':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <rect x="11" y="11" width="34" height="34" rx="5" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.5" strokeDasharray="4 3"/>
+          <line x1="14" y1="14" x2="42" y2="42" stroke="currentColor" strokeOpacity="0.4" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      )
+    case 'Fade In':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{opacity:0}50%,100%{opacity:0.9}}#${id}-r{animation:${id} 3s ease-out infinite}`}</style>
+          <rect id={`${id}-r`} x="16" y="9" width="24" height="38" rx="4" fill="currentColor"/>
+        </svg>
+      )
+    case 'Zoom In':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:scale(0.15);opacity:0}65%,100%{transform:scale(1);opacity:0.9}}#${id}-r{transform-origin:28px 28px;animation:${id} 1.4s cubic-bezier(.22,.68,0,1.2) infinite}`}</style>
+          <circle id={`${id}-r`} cx="28" cy="28" r="17" fill="currentColor"/>
+        </svg>
+      )
+    case 'Slide Up':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:translateY(22px);opacity:0}65%,100%{transform:translateY(0);opacity:0.9}}#${id}-r{animation:${id} 1.3s ease-out infinite}`}</style>
+          <rect id={`${id}-r`} x="8" y="20" width="40" height="16" rx="4" fill="currentColor"/>
+        </svg>
+      )
+    case 'Slide Left':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:translateX(22px);opacity:0}65%,100%{transform:translateX(0);opacity:0.9}}#${id}-r{animation:${id} 1.3s ease-out infinite}`}</style>
+          <rect id={`${id}-r`} x="18" y="9" width="20" height="38" rx="4" fill="currentColor"/>
+        </svg>
+      )
+    case 'Pop':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:scale(0);opacity:0}55%{transform:scale(1.25);opacity:0.9}75%,100%{transform:scale(1);opacity:0.9}}#${id}-r{transform-origin:28px 28px;animation:${id} 1.3s cubic-bezier(.36,.07,.19,.97) infinite}`}</style>
+          <circle id={`${id}-r`} cx="28" cy="28" r="14" fill="currentColor"/>
+        </svg>
+      )
+    case 'Bounce':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%,100%{transform:translateY(0)}25%{transform:translateY(-16px)}45%{transform:translateY(0)}65%{transform:translateY(-7px)}80%{transform:translateY(0)}}#${id}-r{animation:${id} 1.6s ease infinite}`}</style>
+          <circle id={`${id}-r`} cx="28" cy="36" r="12" fill="currentColor" fillOpacity="0.9"/>
+        </svg>
+      )
+    case 'Zoom Out':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:scale(2.2);opacity:0}65%,100%{transform:scale(1);opacity:0.9}}#${id}-r{transform-origin:28px 28px;animation:${id} 1.4s ease-out infinite}`}</style>
+          <rect id={`${id}-r`} x="12" y="12" width="32" height="32" rx="5" fill="currentColor"/>
+        </svg>
+      )
+    case 'Slide Down':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:translateY(-22px);opacity:0}65%,100%{transform:translateY(0);opacity:0.9}}#${id}-r{animation:${id} 1.3s ease-out infinite}`}</style>
+          <rect id={`${id}-r`} x="8" y="20" width="40" height="16" rx="4" fill="currentColor"/>
+        </svg>
+      )
+    case 'Slide Right':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:translateX(-22px);opacity:0}65%,100%{transform:translateX(0);opacity:0.9}}#${id}-r{animation:${id} 1.3s ease-out infinite}`}</style>
+          <rect id={`${id}-r`} x="18" y="9" width="20" height="38" rx="4" fill="currentColor"/>
+        </svg>
+      )
+    case 'Rotate In':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:rotate(-180deg) scale(0.4);opacity:0}65%,100%{transform:rotate(0deg) scale(1);opacity:0.9}}#${id}-r{transform-origin:28px 28px;animation:${id} 1.5s ease-out infinite}`}</style>
+          <polygon id={`${id}-r`} points="28,9 47,28 28,47 9,28" fill="currentColor"/>
+        </svg>
+      )
+    case 'Spin':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}#${id}-g{transform-origin:28px 28px;animation:${id} 1.2s linear infinite}`}</style>
+          <g id={`${id}-g`}>
+            <circle cx="28" cy="28" r="16" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="5"/>
+            <path d="M28 12 A16 16 0 0 1 44 28" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeOpacity="0.9"/>
+          </g>
+        </svg>
+      )
+    case 'Shake':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%,100%{transform:translateX(0)}15%{transform:translateX(-7px)}30%{transform:translateX(7px)}45%{transform:translateX(-5px)}60%{transform:translateX(5px)}75%,100%{transform:translateX(0)}}#${id}-r{animation:${id} 1.6s ease infinite}`}</style>
+          <rect id={`${id}-r`} x="8" y="16" width="40" height="24" rx="5" fill="currentColor" fillOpacity="0.9"/>
+        </svg>
+      )
+    case 'Pulse':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%,100%{transform:scale(1);opacity:0.9}50%{transform:scale(1.3);opacity:0.6}}#${id}-r{transform-origin:28px 28px;animation:${id} 1.2s ease-in-out infinite}`}</style>
+          <circle id={`${id}-r`} cx="28" cy="28" r="15" fill="currentColor"/>
+        </svg>
+      )
+    case 'Fade Out':
+      return (
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <style>{`@keyframes ${id}{0%,20%{opacity:0.9}90%,100%{opacity:0}}#${id}-r{animation:${id} 2.4s ease-in infinite}`}</style>
+          <rect id={`${id}-r`} x="16" y="9" width="24" height="38" rx="4" fill="currentColor"/>
+        </svg>
+      )
+    default:
+      return null
+  }
+}
 
 const ICON_LIBRARY = [
   { name: 'Star',         emoji: '⭐' },
@@ -1443,9 +1562,12 @@ export function MotionEditor() {
                       </div>
                       {/* Grid */}
                       <div className="me-anim-grid">
-                        {ANIM_PRESETS.filter(p => p.name.toLowerCase().includes(animSearch.toLowerCase())).map(p => (
+                        {ANIM_PRESETS.filter(p =>
+                          p.name.toLowerCase().includes(animSearch.toLowerCase()) &&
+                          (animFilter === 'Trending' ? p.cats.includes('Trending') : p.cats.includes(animFilter))
+                        ).map(p => (
                           <button key={p.name} className="me-anim-cell">
-                            <div className="me-anim-thumb">{p.emoji}</div>
+                            <div className="me-anim-thumb"><AnimPreviewSVG name={p.name} /></div>
                             <span className="me-anim-cell-name">{p.name}</span>
                           </button>
                         ))}
