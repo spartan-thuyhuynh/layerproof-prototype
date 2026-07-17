@@ -61,8 +61,10 @@ export function Imagery({ kit, ed }: ImageryProps) {
   const assets  = kit.imagery.assets ?? []
   const kitText = kit.imagery.styleDesc ?? kit.imagery.desc ?? ''
 
-  const [value,  setValue] = useState(kitText)
-  const [phase,  setPhase] = useState<Phase>('idle')
+  const [value,    setValue]   = useState(kitText)
+  const [phase,    setPhase]   = useState<Phase>('idle')
+  const [editing,  setEditing] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const saveTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const typeTimer  = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -112,6 +114,21 @@ export function Imagery({ kit, ed }: ImageryProps) {
 
   const busy = phase !== 'idle'
 
+  function handleEdit() {
+    setEditing(true)
+    setTimeout(() => textareaRef.current?.focus(), 0)
+  }
+
+  function handleSave() {
+    setEditing(false)
+    ed.setVal(['imagery', 'styleDesc'], value)
+  }
+
+  function handleCancel() {
+    setEditing(false)
+    setValue(kit.imagery.styleDesc ?? kit.imagery.desc ?? '')
+  }
+
   return (
     <div className="fade-in assets-page">
       {/* ── page header ── */}
@@ -134,34 +151,63 @@ export function Imagery({ kit, ed }: ImageryProps) {
         <div className="vsr-header-row">
           <div>
             <div className="assets-style-title">Visual Style Rules</div>
-            <div className="assets-style-sub">Set the image style that best reflects your brand</div>
           </div>
 
-          <button
-            className={`vsr-rewrite-btn${busy ? ' vsr-rewrite-btn--busy' : ''}`}
-            onClick={handleRewrite}
-            disabled={busy}
-          >
-            {phase === 'thinking' && <span className="vsr-spinner vsr-spinner--brand" />}
-            {phase === 'typing'   && <span className="vsr-sparkle vsr-sparkle--pulse">✦</span>}
-            {phase === 'idle'     && <span className="vsr-sparkle">✦</span>}
-            <span>
-              {phase === 'thinking' ? 'Thinking…' : phase === 'typing' ? 'Writing…' : 'Rewrite with AI'}
-            </span>
-          </button>
+          <div className="vsr-actions">
+            {editing ? (
+              <>
+                <button className="vsr-cancel-btn" onClick={handleCancel}>Cancel</button>
+                <button className="vsr-save-btn" onClick={handleSave}>Save</button>
+              </>
+            ) : (
+              <>
+                <button className="vsr-edit-btn" onClick={handleEdit} disabled={busy}>Edit</button>
+                <button
+                  className={`vsr-rewrite-btn${busy ? ' vsr-rewrite-btn--busy' : ''}`}
+                  onClick={handleRewrite}
+                  disabled={busy}
+                >
+                  {phase === 'thinking' && <span className="vsr-spinner vsr-spinner--brand" />}
+                  {phase === 'typing'   && <span className="vsr-sparkle vsr-sparkle--pulse">✦</span>}
+                  {phase === 'idle'     && <span className="vsr-sparkle">✦</span>}
+                  <span>
+                    {phase === 'thinking' ? 'Thinking…' : phase === 'typing' ? 'Writing…' : 'Rewrite with AI'}
+                  </span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="vsr-textarea-wrap">
-          <textarea
-            className="vsr-textarea"
-            value={value}
-            placeholder={busy ? '' : 'Describe your visual style rules…'}
-            rows={6}
-            disabled={busy}
-            onChange={e => handleChange(e.target.value)}
-          />
-          {phase === 'typing' && <span className="vsr-cursor" />}
-        </div>
+        {editing ? (
+          <div className="vsr-textarea-wrap">
+            <textarea
+              ref={textareaRef}
+              className="vsr-textarea"
+              value={value}
+              placeholder="Describe your visual style rules…"
+              rows={6}
+              onChange={e => handleChange(e.target.value)}
+            />
+          </div>
+        ) : (
+          <div className="vsr-display">
+            {value
+              ? <p className="vsr-display-text">{value}{phase === 'typing' && <span className="vsr-cursor vsr-cursor--inline" />}</p>
+              : (
+                <>
+                  <p className="vsr-display-empty-desc">Visual Style Rules define the visual language your brand imagery should follow — guiding tone, aesthetics, and consistency across all visuals. For example:</p>
+                  <ul className="vsr-display-empty-list">
+                    <li>Lighting & mood — e.g. dark and dramatic, bright and airy</li>
+                    <li>Composition & framing — e.g. tight crops, wide negative space</li>
+                    <li>Color temperature — e.g. warm tones, desaturated, high contrast</li>
+                    <li>What to avoid — e.g. stock photography, flat lighting, busy backgrounds</li>
+                  </ul>
+                </>
+              )
+            }
+          </div>
+        )}
       </div>
 
       {/* ── Uploaded grid ── */}

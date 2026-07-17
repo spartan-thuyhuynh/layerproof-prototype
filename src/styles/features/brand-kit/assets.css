@@ -24,20 +24,7 @@
   flex-direction: column;
   gap: 16px;
   position: relative;
-  border: 1.5px solid transparent;
   background: var(--card);
-}
-.assets-style-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius);
-  padding: 1.5px;
-  background: linear-gradient(135deg, #ec4899 0%, #ffde42 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
 }
 .assets-style-card-header { }
 .assets-style-title { font-size: 16px; font-weight: 700; color: var(--t1); margin-bottom: 4px; letter-spacing: -.01em; }
@@ -172,12 +159,89 @@
   font-family: inherit;
   line-height: 1.65;
   resize: none;
+  height: 320px;
   padding: 12px 14px;
   box-sizing: border-box;
   display: block;
 }
 .vsr-textarea::placeholder { color: var(--t3); }
-.vsr-textarea:focus { outline: none; }
+.vsr-textarea:focus { outline: none; border-color: var(--line-1); }
+
+/* ── Actions row (Edit / Save / Cancel / Rewrite) ─────────────── */
+.vsr-actions { display: flex; align-items: center; gap: 8px; }
+
+.vsr-edit-btn {
+  font-size: 12.5px;
+  font-family: inherit;
+  color: var(--t2);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.vsr-edit-btn:hover { color: var(--t1); border-color: var(--line-1); }
+.vsr-edit-btn:disabled { opacity: .4; cursor: default; }
+
+.vsr-save-btn {
+  font-size: 12.5px;
+  font-family: inherit;
+  color: #000;
+  background: var(--t1);
+  border: none;
+  border-radius: 7px;
+  padding: 5px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity .15s;
+}
+.vsr-save-btn:hover { opacity: .85; }
+
+.vsr-cancel-btn {
+  font-size: 12.5px;
+  font-family: inherit;
+  color: var(--t2);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.vsr-cancel-btn:hover { color: var(--t1); border-color: var(--line-1); }
+
+/* ── Read-only display ─────────────────────────────────────────── */
+.vsr-display { min-height: 60px; padding: 12px 14px; background: var(--card-2); border: 1.5px solid var(--line-2); border-radius: 10px; }
+.vsr-display-text {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--t2);
+  white-space: pre-wrap;
+  margin: 0;
+}
+.vsr-display-empty-desc {
+  font-size: 13.5px;
+  color: var(--t3);
+  margin: 0 0 10px;
+  line-height: 1.6;
+}
+.vsr-display-empty-list {
+  margin: 0;
+  padding: 0;
+  list-style-position: inside;
+  font-size: 13px;
+  color: var(--t3);
+  line-height: 1.9;
+}
+.vsr-cursor--inline {
+  display: inline-block;
+  position: static;
+  width: 2px;
+  height: 13px;
+  vertical-align: middle;
+  margin-left: 2px;
+}
 .vsr-spinner {
   display: inline-block;
   width: 12px;
