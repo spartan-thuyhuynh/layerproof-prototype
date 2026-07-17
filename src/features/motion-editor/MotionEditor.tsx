@@ -320,6 +320,8 @@ export function MotionEditor() {
   const [expandedChips, setExpandedChips] = useState<Record<number, boolean>>({})
   const [expandedMsgs, setExpandedMsgs]   = useState<Record<number, boolean>>({})
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
+  const [audioGroupOpen, setAudioGroupOpen] = useState(true)
+  const [scenesGroupOpen, setScenesGroupOpen] = useState(true)
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null)
   const [audioVolume, setAudioVolume]         = useState(80)
   const [audioFadeIn, setAudioFadeIn]         = useState(0.0)
@@ -345,7 +347,10 @@ export function MotionEditor() {
     },
   })
   const [layersExpanded, setLayersExpanded] = useState<Record<string, boolean>>({})
-  const [selectedLayerId, setSelectedLayerId] = useState<string>('rect-yfer4o')
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
+  const [canvasBgColor, setCanvasBgColor] = useState('#0e0e1a')
+  const [canvasAspect, setCanvasAspect] = useState('16:9')
+  const [sceneDuration, setSceneDuration] = useState(12.72)
   const [tlHeight, setTlHeight]           = useState(380)
   const [leftPanelW, setLeftPanelW]       = useState(200)
   const [rightPanelW, setRightPanelW]     = useState(290)
@@ -615,6 +620,7 @@ export function MotionEditor() {
     })
   }
   function toggleKf(prop: string, value: number) {
+    if (!selectedLayerId) return
     setKeyframes(prev => {
       const layerKfs = prev[selectedLayerId] ?? {}
       const arr = layerKfs[prop] ?? []
@@ -627,6 +633,7 @@ export function MotionEditor() {
   }
 
   function setKfValue(prop: string, value: number) {
+    if (!selectedLayerId) return
     setKeyframes(prev => {
       const layerKfs = prev[selectedLayerId] ?? {}
       const arr = layerKfs[prop] ?? []
@@ -639,6 +646,7 @@ export function MotionEditor() {
   }
 
   function getKfValue(prop: string, defaultVal: number): number {
+    if (!selectedLayerId) return defaultVal
     return getKfValueFor(selectedLayerId, prop, defaultVal)
   }
 
@@ -663,7 +671,7 @@ export function MotionEditor() {
     return `${v}`
   }
 
-  const selectedLayerKfs = keyframes[selectedLayerId] ?? {}
+  const selectedLayerKfs = selectedLayerId ? (keyframes[selectedLayerId] ?? {}) : {}
   const atKf     = anyKfAt(selectedLayerKfs, timeMs)
   const xAtKf    = hasKfAt(selectedLayerKfs, 'x', timeMs)
   const yAtKf    = hasKfAt(selectedLayerKfs, 'y', timeMs)
@@ -1154,7 +1162,7 @@ export function MotionEditor() {
                 </div>
               </div>
 
-              <div className="me-canvas-bg" ref={canvasBgRef} onWheel={handleCanvasWheel}>
+              <div className="me-canvas-bg" ref={canvasBgRef} onWheel={handleCanvasWheel} onClick={() => { setSelectedLayerId(null); setSelectedAudioId(null) }} style={{ background: canvasBgColor }}>
                 <div
                   className={`me-canvas-scene-card${activeScene === 1 ? ' active' : ''}`}
                   style={{
@@ -1163,6 +1171,7 @@ export function MotionEditor() {
                     transform: `scale(${zoom / 100})`,
                     transformOrigin: 'center center',
                   }}
+                  onClick={e => e.stopPropagation()}
                 >
                   <span className="me-canvas-scene-label">Scene {activeScene}</span>
                   <span className="me-canvas-scene-hint">
@@ -1243,7 +1252,55 @@ export function MotionEditor() {
 
             {/* Inspector */}
             <aside className="me-inspector" style={{ width: rightPanelW }}>
-              {selectedAudioId ? (
+              {!selectedLayerId && !selectedAudioId ? (
+                /* ── Canvas / Stage default panel ── */
+                <div className="me-canvas-info-panel">
+
+                  {/* Background color editor */}
+                  <div className="me-ci-section">
+                    <div className="me-ci-section-title">Canvas Background</div>
+                    <div className="me-design-fill-row">
+                      <div
+                        className="me-design-color-swatch"
+                        style={{ background: canvasBgColor, cursor: 'pointer', position: 'relative', flexShrink: 0 }}
+                      >
+                        <input
+                          type="color"
+                          value={canvasBgColor}
+                          onChange={e => setCanvasBgColor(e.target.value)}
+                          style={{ opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+                        />
+                      </div>
+                      <input
+                        className="me-design-input me-design-input--hex"
+                        type="text"
+                        value={canvasBgColor.replace('#', '').toUpperCase()}
+                        onChange={e => {
+                          const v = e.target.value.replace('#', '')
+                          if (/^[0-9a-fA-F]{0,6}$/.test(v)) setCanvasBgColor('#' + v)
+                        }}
+                      />
+                      <input className="me-design-input me-design-input--pct" type="number" defaultValue={100} min={0} max={100} />
+                      <span className="me-design-unit">%</span>
+                    </div>
+                  </div>
+
+                  {/* Project info */}
+                  <div className="me-ci-section">
+                    <div className="me-ci-section-title">Project</div>
+                    <table className="me-ci-table">
+                      <tbody>
+                        <tr><td className="me-ci-label">Name</td><td className="me-ci-value">Social Campaign</td></tr>
+                        <tr><td className="me-ci-label">Scenes</td><td className="me-ci-value">2</td></tr>
+                        <tr><td className="me-ci-label">Resolution</td><td className="me-ci-value">1280×720</td></tr>
+                        <tr><td className="me-ci-label">Frame rate</td><td className="me-ci-value">30.00fps</td></tr>
+                        <tr><td className="me-ci-label">Duration</td><td className="me-ci-value">{(totalMs / 1000).toFixed(2)}s</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                </div>
+              ) : selectedAudioId ? (
                 <div className="me-anim-panel me-audio-panel">
                   {/* Audio header */}
                   <div className="me-anim-layer-row">
@@ -1638,7 +1695,7 @@ export function MotionEditor() {
           </div>{/* end me-body-content */}
 
           {/* ── Timeline — spans full width of right area ── */}
-          <div className="me-timeline" style={{ height: tlHeight, display: mode === 'Design' ? 'none' : undefined }}>
+          <div className="me-timeline" style={{ height: tlHeight, display: (mode === 'Design' && !!selectedLayerId) ? 'none' : undefined }}>
 
             {/* ── Resize handle ── */}
             <div className="me-timeline-resize-handle" onMouseDown={handleTlResizeDown} />
@@ -1716,63 +1773,97 @@ export function MotionEditor() {
                   onMouseDown={handlePlayheadMouseDown}
                 />
 
-                {/* Narration row */}
-                <div
-                  className={`me-track-row me-track-row--tall${selectedTrackId === 'narration' ? ' me-track-row--track-selected' : ''}`}
-                  onClick={() => setSelectedTrackId(t => t === 'narration' ? null : 'narration')}
-                >
-                  <div className="me-track-label"><MusicNote size={16} /> Narration</div>
-                  <div className="me-track-content">
-                    <div
-                      className={`me-waveform-seg${selectedAudioId === 'narration-1' ? ' me-waveform-seg--selected' : ''}`}
-                      style={{ flex: 3920 }}
-                      onClick={e => { e.stopPropagation(); setSelectedAudioId(id => id === 'narration-1' ? null : 'narration-1') }}
-                    >
-                      {WAVEFORM_HEIGHTS.slice(0, 38).map((h, i) => (
-                        <div key={i} className="me-waveform-bar"
-                          style={{ height: `${h}px`, opacity: i / 38 < timeMs / 3920 ? 1 : 0.45 }} />
-                      ))}
-                    </div>
-                    <div
-                      className={`me-waveform-seg${selectedAudioId === 'narration-2' ? ' me-waveform-seg--selected' : ''}`}
-                      style={{ flex: 4720 }}
-                      onClick={e => { e.stopPropagation(); setSelectedAudioId(id => id === 'narration-2' ? null : 'narration-2') }}
-                    >
-                      {WAVEFORM_HEIGHTS.slice(38).map((h, i) => (
-                        <div key={i} className="me-waveform-bar"
-                          style={{ height: `${h}px`, opacity: timeMs > 3920 ? (i / 35 < (timeMs - 3920) / 4720 ? 1 : 0.45) : 0.45 }} />
-                      ))}
-                    </div>
-                    <div style={{ flex: 12720 - 3920 - 4720 }} />
+                {/* Audio group header */}
+                <div className="me-track-group-header" onClick={() => setAudioGroupOpen(o => !o)}>
+                  <div className="me-track-label">
+                    <SpeakerHigh size={16} style={{ color: '#f5c518', flexShrink: 0 }} />
+                    Audio
+                    <CaretRight size={10} style={{ transform: audioGroupOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s', flexShrink: 0, marginLeft: 'auto', opacity: 0.5 }} />
                   </div>
+                  <div className="me-track-content" />
                 </div>
 
+                {audioGroupOpen && (<>
+                  {/* Sound Track row */}
+                  <div
+                    className={`me-track-row me-track-row--tall me-track-row--child${selectedAudioId === 'soundtrack-1' ? ' me-track-row--track-selected' : ''}`}
+                    onClick={() => { setSelectedAudioId(id => id === 'soundtrack-1' ? null : 'soundtrack-1'); setSelectedTrackId(null) }}
+                  >
+                    <div className="me-track-label me-track-label--child"><MusicNote size={14} /> Sound Track</div>
+                    <div className="me-track-content">
+                      <div
+                        className={`me-waveform-seg${selectedAudioId === 'soundtrack-1' ? ' me-waveform-seg--selected' : ''}`}
+                        style={{ flex: totalMs }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {WAVEFORM_HEIGHTS.map((h, i) => (
+                          <div key={i} className="me-waveform-bar"
+                            style={{ height: `${h}px`, opacity: i / WAVEFORM_HEIGHTS.length < timeMs / totalMs ? 1 : 0.45 }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Narration row */}
+                  <div
+                    className={`me-track-row me-track-row--tall me-track-row--child${selectedTrackId === 'narration' ? ' me-track-row--track-selected' : ''}`}
+                    onClick={() => setSelectedTrackId(t => t === 'narration' ? null : 'narration')}
+                  >
+                    <div className="me-track-label me-track-label--child"><MusicNote size={14} /> Narration</div>
+                    <div className="me-track-content">
+                      <div
+                        className={`me-waveform-seg${selectedAudioId === 'narration-1' ? ' me-waveform-seg--selected' : ''}`}
+                        style={{ flex: 3920 }}
+                        onClick={e => { e.stopPropagation(); setSelectedAudioId(id => id === 'narration-1' ? null : 'narration-1') }}
+                      >
+                        {WAVEFORM_HEIGHTS.slice(0, 38).map((h, i) => (
+                          <div key={i} className="me-waveform-bar"
+                            style={{ height: `${h}px`, opacity: i / 38 < timeMs / 3920 ? 1 : 0.45 }} />
+                        ))}
+                      </div>
+                      <div
+                        className={`me-waveform-seg${selectedAudioId === 'narration-2' ? ' me-waveform-seg--selected' : ''}`}
+                        style={{ flex: 4720 }}
+                        onClick={e => { e.stopPropagation(); setSelectedAudioId(id => id === 'narration-2' ? null : 'narration-2') }}
+                      >
+                        {WAVEFORM_HEIGHTS.slice(38).map((h, i) => (
+                          <div key={i} className="me-waveform-bar"
+                            style={{ height: `${h}px`, opacity: timeMs > 3920 ? (i / 35 < (timeMs - 3920) / 4720 ? 1 : 0.45) : 0.45 }} />
+                        ))}
+                      </div>
+                      <div style={{ flex: 12720 - 3920 - 4720 }} />
+                    </div>
+                  </div>
+                </>)}
+
                 {/* Scenes row */}
-                <div className="me-track-row me-track-row--tall">
-                  <div className="me-track-label"><FilmStrip size={16} style={{ color: '#f5c518', flexShrink: 0 }} /> Scenes</div>
+                <div className="me-track-row me-track-row--tall me-track-group-header" onClick={() => setScenesGroupOpen(o => !o)}>
+                  <div className="me-track-label">
+                    <FilmStrip size={16} style={{ color: '#f5c518', flexShrink: 0 }} />
+                    Scenes
+                    <CaretRight size={10} style={{ transform: scenesGroupOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s', flexShrink: 0, marginLeft: 'auto', opacity: 0.5 }} />
+                  </div>
                   <div className="me-track-content">
                     <div
                       className={`me-scene-strip me-scene-strip--1${activeScene === 1 ? ' active' : ''}`}
                       style={{ flex: 3920 }}
-                      onClick={() => handleSceneClick(1)}
+                      onClick={e => { e.stopPropagation(); handleSceneClick(1) }}
                     >
-                      <span className="me-scene-strip-name">Scene 1</span>
                       <span className="me-scene-strip-dur">0:03.92</span>
                     </div>
                     <div
                       className={`me-scene-strip me-scene-strip--2${activeScene === 2 ? ' active' : ''}`}
                       style={{ flex: 4720 }}
-                      onClick={() => handleSceneClick(2)}
+                      onClick={e => { e.stopPropagation(); handleSceneClick(2) }}
                     >
-                      <span className="me-scene-strip-name">Scene 2</span>
                       <span className="me-scene-strip-dur">0:04.72</span>
                     </div>
                     <div style={{ flex: 12720 - 3920 - 4720 }} />
                   </div>
                 </div>
 
-                {/* Object track row — only visible in Scene 1 */}
-                {activeScene === 1 && (() => {
+                {/* Layer tracks — toggled by Scenes caret */}
+                {scenesGroupOpen && activeScene === 1 && (() => {
                   const layerStart = 0
                   const layerEnd   = 3920
                   const layerDur   = layerEnd - layerStart
@@ -1856,7 +1947,7 @@ export function MotionEditor() {
                 })()}
 
                 {/* Extra shapes — each toggleable */}
-                {([
+                {scenesGroupOpen && ([
                   activeScene === 1 && { id: 'circle-m4n8x', flexPre: 0,    flexStrip: 3920, flexPost: totalMs - 3920 },
                   activeScene === 2 && { id: 'text-b2r5w',   flexPre: 3920, flexStrip: 4720, flexPost: totalMs - 3920 - 4720 },
                 ].filter(Boolean) as { id: string; flexPre: number; flexStrip: number; flexPost: number }[]).map(layer => {

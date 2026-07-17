@@ -1155,8 +1155,10 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
+  background-color: #181820;
   background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
   background-size: 24px 24px;
+  transition: background-color .15s;
 }
 
 .me-canvas-scene-card {
@@ -2508,7 +2510,7 @@
 }
 
 .me-track-row--tall {
-  height: 44px;
+  height: 40px;
 }
 .me-track-row--track-selected {
   background: rgba(255,255,255,0.04);
@@ -3208,4 +3210,108 @@
 @keyframes me-gen-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+/* ── Canvas Info Panel (no-selection default state) ── */
+.me-canvas-info-panel {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.me-ci-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.me-ci-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.me-ci-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.me-ci-table tr {
+  border-bottom: none;
+}
+
+.me-ci-table tr + tr td {
+  padding-top: 9px;
+}
+
+.me-ci-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.38);
+  width: 45%;
+  padding-right: 8px;
+  vertical-align: top;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.me-ci-value {
+  font-size: 11px;
+  color: rgba(255,255,255,0.75);
+  vertical-align: top;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.me-ci-value--path {
+  color: rgba(255,255,255,0.4);
+  font-size: 10px;
+  word-break: break-all;
+}
+
+.me-ci-value--on  { color: rgba(255,255,255,0.6); }
+.me-ci-value--off { color: rgba(255,255,255,0.3); }
+
+.me-ci-select {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  color: rgba(255,255,255,0.75);
+  font-size: 11px;
+  padding: 2px 4px;
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+}
+.me-ci-select:hover {
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* ── Audio group track ── */
+.me-track-group-header {
+  display: flex;
+  align-items: stretch;
+  height: 40px;
+  cursor: pointer;
+  background: #111116;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.me-track-group-header:hover {
+  background: rgba(255,255,255,0.03);
+}
+.me-track-group-header .me-track-label {
+  background: #111116;
+}
+
+.me-track-row--child .me-track-label,
+.me-track-label--child {
+  padding-left: 28px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+}
+
+.me-waveform-seg--soundtrack {
+  background: rgba(60, 60, 120, 0.35);
 }
