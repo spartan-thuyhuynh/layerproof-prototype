@@ -187,7 +187,7 @@ function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
     return (
       <button
         className="ov-te-cta-card"
-        onClick={() => go('themes')}
+        onClick={() => go()}
       >
         {/* Decorative gradient strips */}
         <div className="ov-te-cta-grads" aria-hidden>
