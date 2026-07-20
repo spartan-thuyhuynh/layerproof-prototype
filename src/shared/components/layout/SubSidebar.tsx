@@ -15,6 +15,121 @@ import {
 import { useUIStore } from '@/shared/store/useUIStore'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
 
+/* ── kit setup checklist ────────────────────────────────────── */
+const SETUP_ITEMS = [
+  {
+    id: 'logos',
+    label: 'Logos',
+    required: false,
+    done: (kit: BrandKit) => kit.logos.variants.length > 0,
+  },
+  {
+    id: 'colors',
+    label: 'Colors',
+    required: false,
+    done: (kit: BrandKit) => kit.colors.palettes.length > 0,
+  },
+  {
+    id: 'typography',
+    label: 'Typography',
+    required: false,
+    done: (kit: BrandKit) => (kit.visitedSections ?? []).includes('typography'),
+  },
+  {
+    id: 'tone',
+    label: 'Brand Voice',
+    required: false,
+    done: (kit: BrandKit) => kit.tone.attrs.length > 0 || (kit.visitedSections ?? []).includes('tone'),
+  },
+  {
+    id: 'themes',
+    label: 'Brand Theme',
+    required: true,
+    done: (kit: BrandKit) => (kit.themes ?? []).length > 0,
+  },
+]
+
+function SetupChecklist({ kit, onSection }: { kit: BrandKit; onSection: (id: string) => void }) {
+  const markSectionVisited = useBrandStore((s) => s.markSectionVisited)
+  const [open, setOpen] = useState(true)
+  const hasTheme = (kit.themes ?? []).length > 0
+  if (kit.onboarding || hasTheme) return null
+
+  const doneCount = SETUP_ITEMS.filter((item) => item.done(kit)).length
+  const total = SETUP_ITEMS.length
+  const pct = Math.round((doneCount / total) * 100)
+  const nextItem = SETUP_ITEMS.find((item) => !item.done(kit))
+
+  return (
+    <div className="sub-checklist">
+      {open && <button className="sub-checklist-header" onClick={() => setOpen((o) => !o)}>
+        <div className="sub-checklist-header-left">
+          <span className="sub-checklist-title">Complete your brand kit</span>
+          <span className="sub-checklist-count">{doneCount}/{total}</span>
+        </div>
+        <svg viewBox="0 0 14 14" fill="none" style={{ width: 12, height: 12, color: 'var(--t3)', transition: 'transform .18s', flexShrink: 0 }}>
+          <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>}
+
+      {open && <div className="sub-checklist-bar-track">
+        <div className="sub-checklist-bar-fill" style={{ width: `${pct}%` }} />
+      </div>}
+
+      {open ? (
+        <div className="sub-checklist-rows">
+          {SETUP_ITEMS.map((item) => {
+            const done = item.done(kit)
+            return (
+              <button
+                key={item.id}
+                className={`sub-checklist-row${done ? ' done' : ''}${item.required && !done ? ' required' : ''}`}
+                onClick={() => {
+                  if (!done && (item.id === 'typography' || item.id === 'tone' || item.id === 'imagery')) {
+                    markSectionVisited(kit.id, item.id)
+                  }
+                  onSection(item.id)
+                }}
+              >
+                <span className="sub-checklist-dot">
+                  {done
+                    ? <svg viewBox="0 0 14 14" fill="none" style={{ width: 13, height: 13 }}><circle cx="7" cy="7" r="6" fill="var(--t2)" opacity=".15"/><circle cx="7" cy="7" r="6" stroke="var(--t2)" strokeWidth="1.3"/><path d="M4.5 7l2 2 3-3.5" stroke="var(--t2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    : <svg viewBox="0 0 14 14" fill="none" style={{ width: 13, height: 13 }}><circle cx="7" cy="7" r="6" stroke="var(--line-2)" strokeWidth="1.3"/></svg>
+                  }
+                </span>
+                <span className="sub-checklist-row-label">{item.label}</span>
+                </button>
+            )
+          })}
+        </div>
+      ) : nextItem && (
+        <div className="sub-checklist-next">
+          <button
+            className="sub-checklist-next-btn"
+            onClick={() => {
+              if (nextItem.id === 'typography' || nextItem.id === 'tone' || nextItem.id === 'imagery') {
+                markSectionVisited(kit.id, nextItem.id)
+              }
+              onSection(nextItem.id)
+            }}
+          >
+            <span className="sub-checklist-next-tag">Next</span>
+            <span className="sub-checklist-next-action">{['typography', 'tone'].includes(nextItem.id) ? 'Preview' : 'Set up'} {nextItem.label.toLowerCase()}</span>
+          </button>
+          <button
+            onClick={() => setOpen(true)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', padding: '2px 4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+          >
+            <svg viewBox="0 0 14 14" fill="none" style={{ width: 11, height: 11 }}>
+              <path d="M3 9l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface SubSidebarProps {
   kit: BrandKit
   activeSection: string
@@ -253,6 +368,8 @@ export function SubSidebar({
           </>
         )}
       </nav>
+
+      <SetupChecklist kit={kit} onSection={onSection} />
     </div>
   )
 }

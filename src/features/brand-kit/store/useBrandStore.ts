@@ -13,6 +13,7 @@ interface BrandStore {
   addTheme: (kitId: string, theme: BrandTheme) => void
   updateTheme: (kitId: string, themeId: string, updater: (t: BrandTheme) => BrandTheme) => void
   deleteTheme: (kitId: string, themeId: string) => void
+  markSectionVisited: (kitId: string, sectionId: string) => void
 }
 
 function makeEmptyKit(): BrandKit {
@@ -85,6 +86,14 @@ export const useBrandStore = create<BrandStore>((set) => ({
       kits: state.kits.map((k) =>
         k.id === kitId
           ? { ...k, themes: (k.themes ?? []).filter((t) => t.id !== themeId) }
+          : k
+      ),
+    })),
+  markSectionVisited: (kitId, sectionId) =>
+    set((state) => ({
+      kits: state.kits.map((k) =>
+        k.id === kitId
+          ? { ...k, visitedSections: [...new Set([...(k.visitedSections ?? []), sectionId])] }
           : k
       ),
     })),

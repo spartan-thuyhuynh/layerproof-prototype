@@ -52,10 +52,15 @@ interface DetailProps {
 }
 
 export function Detail({ kit }: DetailProps) {
-  const { updateKit, appliedId, setAppliedId } = useBrandStore()
+  const { updateKit, appliedId, setAppliedId, markSectionVisited } = useBrandStore()
   const { setModal } = useUIStore()
   const navigate = useNavigate()
   const [section, setSection] = useState('overview')
+  const VISIT_TRACKED = ['typography', 'tone', 'imagery']
+  const handleSection = (id: string) => {
+    if (VISIT_TRACKED.includes(id)) markSectionVisited(kit.id, id)
+    setSection(id)
+  }
   const [showAddCat, setShowAddCat] = useState(false)
   const [showDoc, setShowDoc] = useState(false)
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
@@ -198,7 +203,7 @@ export function Detail({ kit }: DetailProps) {
 
   function renderBody() {
     switch (section) {
-      case 'overview': return <Overview kit={kit} go={setSection} onNew={() => setModal({ type: 'new' })} ed={ed} showWelcomeBanner={showWelcomeBanner} onDismissBanner={() => setShowWelcomeBanner(false)} />
+      case 'overview': return <Overview kit={kit} go={handleSection} onNew={() => setModal({ type: 'new' })} ed={ed} showWelcomeBanner={showWelcomeBanner} onDismissBanner={() => setShowWelcomeBanner(false)} />
       case 'colors': return <Colors kit={kit} ed={ed} />
       case 'typography': return <Typography kit={kit} ed={ed} />
       case 'logos': return <Logos kit={kit} ed={ed} />
@@ -241,7 +246,7 @@ export function Detail({ kit }: DetailProps) {
       <SubSidebar
         kit={kit}
         activeSection={section}
-        onSection={setSection}
+        onSection={handleSection}
         onAddCategory={() => setShowAddCat(true)}
         onDeleteCategory={handleDeleteCategory}
         onReorderCategory={handleReorderCategory}
@@ -316,6 +321,8 @@ export function Detail({ kit }: DetailProps) {
             <button
               className="btn primary sm"
               onClick={() => setDesignMenuOpen((o) => !o)}
+              disabled={(kit.themes ?? []).length === 0}
+              title={(kit.themes ?? []).length === 0 ? 'Add a brand theme first to use this kit in a design' : undefined}
             >
               Use in a design
               <svg viewBox="0 0 12 12" fill="currentColor" style={{ width: 11, height: 11, marginLeft: 5, opacity: 0.8, flexShrink: 0 }}>

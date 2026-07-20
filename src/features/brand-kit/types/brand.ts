@@ -200,6 +200,7 @@ export interface BrandKit {
   categories: Category[]
   themes: BrandTheme[]
   guidelineDoc?: string
+  visitedSections?: string[]
 }
 
 export interface Category {

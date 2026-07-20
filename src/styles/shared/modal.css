@@ -2,7 +2,8 @@
 /* ============================================================  MODAL  */
 .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(3px); display: grid; place-items: center; z-index: 1000; padding: 24px; animation: fade .15s; }
 @keyframes fade { from { opacity: 0; } }
-.modal { background: var(--card); border: 1px solid var(--line-2); border-radius: 18px; width: 100%; max-width: 540px; box-shadow: var(--shadow); overflow: hidden; animation: pop .18s cubic-bezier(.2,.8,.3,1.1); max-height: 88vh; display: flex; flex-direction: column; }
+.modal { background: #1e1e1e; border: 1px solid var(--line-2); border-radius: 18px; width: 100%; max-width: 540px; box-shadow: var(--shadow); overflow: hidden; animation: pop .18s cubic-bezier(.2,.8,.3,1.1); max-height: 88vh; display: flex; flex-direction: column; }
+html.light .modal { background: #ffffff; }
 .modal.wide { max-width: 920px; }
 @keyframes pop { from { transform: translateY(12px) scale(.97); opacity: 0; } }
 .modal .mhead { padding: 22px 24px 0; }

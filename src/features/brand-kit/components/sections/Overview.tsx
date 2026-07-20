@@ -3,7 +3,6 @@ import type { EditorActions } from './types'
 import { ArrowRight, Plus } from '@/shared/icons'
 import { OnboardingOverview } from './OnboardingOverview'
 import { Banner } from './shared'
-import { useUIStore } from '@/shared/store/useUIStore'
 
 /* ── shared logo mark ─────────────────────────────────────── */
 function Mark({ kit, size = 40 }: { kit: BrandKit; size?: number }) {
@@ -180,43 +179,36 @@ function kitThemeGrads(kit: BrandKit): string[] {
 }
 
 function ThemesCard({ kit, go }: { kit: BrandKit; go: () => void }) {
-  const { setModal } = useUIStore()
   const themes = kit.themes ?? []
   const count = themes.length
   const grads = kitThemeGrads(kit)
 
   if (count === 0) {
     return (
-      <div style={{
-        gridColumn: '1 / -1', display: 'flex', borderRadius: 12, overflow: 'hidden',
-        border: '1px solid var(--line)', minHeight: 180, position: 'relative',
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-      }}>
-        {/* Left: info + CTA */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, padding: '22px 24px', zIndex: 1 }}>
-          <div className="ov-te-tag">Brand Themes</div>
-          <div className="ov-te-title">Define your creative direction</div>
-          <div className="ov-te-desc">
-            A rule set that tells AI how to apply your brand to presentations, social posts, and more.
-          </div>
-          <button
-            className="ov-te-btn"
-            onClick={(e) => { e.stopPropagation(); setModal({ type: 'new-theme' }) }}
-          >
-            <Plus style={{ width: 13, height: 13 }} /> New Theme
-          </button>
-        </div>
-
-        {/* Right: decorative gradient columns */}
-        <div style={{ width: 200, flexShrink: 0, display: 'flex', gap: 6, padding: '12px 16px 12px 0', alignItems: 'stretch' }}>
+      <button
+        className="ov-te-cta-card"
+        onClick={() => go('themes')}
+      >
+        {/* Decorative gradient strips */}
+        <div className="ov-te-cta-grads" aria-hidden>
           {grads.slice(0, 4).map((g, i) => (
-            <div key={i} style={{
-              flex: 1, borderRadius: 8, background: g,
-              opacity: 0.18 + i * 0.06,
-            }} />
+            <div key={i} className="ov-te-cta-grad-strip" style={{ background: g, opacity: 0.22 + i * 0.07 }} />
           ))}
         </div>
-      </div>
+
+        <div className="ov-te-cta-body">
+          {/* Gradient preview swatches */}
+          <div className="ov-te-cta-swatches" aria-hidden>
+            {grads.slice(0, 3).map((g, i) => (
+              <div key={i} className="ov-te-cta-swatch" style={{ background: g }} />
+            ))}
+          </div>
+          <div className="ov-te-cta-text">
+            <div className="ov-te-cta-title">Create your first brand theme <span className="ov-te-cta-arrow">→</span></div>
+            <div className="ov-te-cta-desc">Themes define your visual style for AI-generated designs</div>
+          </div>
+        </div>
+      </button>
     )
   }
 

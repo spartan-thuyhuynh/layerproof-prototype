@@ -127,7 +127,7 @@ export function Sidebar({ showBack }: SidebarProps) {
 
       <div className="create-wrap" ref={createRef}>
         <button className="create" onClick={() => { setCreateOpen(o => !o); setHoveredProduct(null) }}>
-          Create new design
+          Create new project
           <I.Chevron style={{ width: 15, height: 15, marginLeft: 'auto', transform: createOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
         </button>
         {createOpen && (

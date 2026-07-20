@@ -76,12 +76,23 @@
 .ov-theme-tile-name { font-size: 12px; font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ov-theme-tile-count { font-size: 10px; color: var(--t2); margin-top: 2px; }
 
-/* empty state banner inside ThemesCard */
-.ov-te-tag { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--t2); }
-.ov-te-title { font-size: 22px; font-weight: 700; color: var(--t1); line-height: 1.2; letter-spacing: -.01em; }
-.ov-te-desc { font-size: 13px; color: var(--t3); line-height: 1.6; max-width: 380px; }
-.ov-te-btn { margin-top: 4px; align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; background: rgba(255,255,255,0.08); color: var(--t1); border: 1px solid var(--line); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
-.ov-te-btn:hover { background: rgba(255,255,255,0.13); }
+/* Brand Themes empty-state CTA card */
+.ov-te-cta-card { grid-column: 1 / -1; position: relative; display: flex; align-items: center; border-radius: 14px; overflow: hidden; border: 1.5px solid rgba(255,255,255,.22); background: rgba(255,255,255,.06); cursor: pointer; font-family: inherit; text-align: left; padding: 0; min-height: 80px; transition: border-color .15s, background .15s; }
+.ov-te-cta-card:hover { border-color: rgba(255,255,255,.38); background: rgba(255,255,255,.1); }
+.ov-te-cta-grads { display: none; }
+.ov-te-cta-body { display: flex; align-items: center; gap: 16px; padding: 20px 24px; width: 100%; }
+.ov-te-cta-swatches { display: flex; gap: 5px; flex-shrink: 0; }
+.ov-te-cta-swatch { width: 32px; height: 44px; border-radius: 8px; }
+.ov-te-cta-text { flex: 1; }
+.ov-te-cta-title { font-size: 17px; font-weight: 700; color: var(--t1); margin-bottom: 4px; }
+.ov-te-cta-desc { font-size: 12.5px; color: var(--t2); margin-top: 3px; font-weight: 500; }
+.ov-te-cta-arrow { font-size: 16px; color: var(--t1); display: inline-block; transition: transform .15s; margin-left: 6px; }
+.ov-te-cta-card:hover .ov-te-cta-arrow { transform: translateX(4px); }
+
+/* Light mode overrides */
+html.light .ov-te-cta-card { border-color: rgba(0,0,0,.18); background: rgba(0,0,0,.04); }
+html.light .ov-te-cta-card:hover { border-color: rgba(0,0,0,.3); background: rgba(0,0,0,.07); }
+html.light .ov-te-cta-swatch { filter: saturate(1.3) brightness(0.82); }
 
 /* typography specimen tiles — own container, no ov-thumb base (avoids overflow:hidden) */
 .ov-type-thumbs { display: flex; flex-direction: column; gap: 6px; width: 148px; flex-shrink: 0; }
@@ -98,6 +109,28 @@
 .ov-voice-box-name { font-size: 14px; font-weight: 700; color: var(--t1); margin-top: 2px; }
 .ov-voice-box-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--t2); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; margin-top: 6px; width: fit-content; }
 .ov-voice-chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--t3); flex-shrink: 0; display: inline-block; }
+
+/* ============================================================  SETUP CHECKLIST  */
+.ov-checklist { margin: 0 32px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
+.ov-checklist-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 20px 12px; }
+.ov-checklist-title { font-size: 15px; font-weight: 700; color: var(--t1); letter-spacing: -.01em; }
+.ov-checklist-sub { font-size: 12.5px; color: var(--t2); margin-top: 3px; }
+.ov-checklist-count { font-size: 13px; font-weight: 700; color: var(--t2); white-space: nowrap; padding-top: 2px; }
+.ov-checklist-bar-track { height: 3px; background: var(--line); margin: 0 20px 4px; border-radius: 99px; overflow: hidden; }
+.ov-checklist-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .3s ease; }
+.ov-checklist-rows { display: flex; flex-direction: column; }
+.ov-checklist-row { display: flex; align-items: center; gap: 12px; padding: 11px 20px; background: none; border: none; border-top: 1px solid var(--line); cursor: pointer; font-family: inherit; text-align: left; color: var(--t1); transition: background .12s; width: 100%; }
+.ov-checklist-row:hover { background: var(--card-2); }
+.ov-checklist-row.required-incomplete { background: color-mix(in srgb, var(--accent) 6%, transparent); border-top-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+.ov-checklist-row.required-incomplete:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.ov-checklist-row.required-incomplete .ov-checklist-row-label { color: var(--accent); font-weight: 700; }
+.ov-checklist-row.done .ov-checklist-row-label { color: var(--t2); text-decoration: line-through; text-decoration-color: var(--t3); }
+.ov-checklist-row.done .ov-checklist-row-desc { color: var(--t3); }
+.ov-checklist-row-text { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ov-checklist-row-label { font-size: 13.5px; font-weight: 600; color: var(--t1); }
+.ov-checklist-row-desc { font-size: 12px; color: var(--t2); }
+.ov-checklist-badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; flex-shrink: 0; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+.ov-checklist-badge.recommended { background: var(--card-2); color: var(--t3); border-color: var(--line); }
 
 /* ============================================================  LAYOUT SECTION  */
 .spacing-scale { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
