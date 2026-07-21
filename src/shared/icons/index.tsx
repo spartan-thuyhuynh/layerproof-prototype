@@ -87,6 +87,11 @@ export const MessageSquare = S(['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a
 export const RotateCcw = S(['M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8', 'M3 3v5h5'])
 export const RotateCw = S(['M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8', 'M21 3v5h-5'])
 export const FileText = S(['M14 3v4a1 1 0 0 0 1 1h4', 'M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z', 'M9 9h1', 'M9 13h6', 'M9 17h6'])
+export const Search = S([{ t: 'circle', p: { cx: 11, cy: 11, r: 8 } }, 'M21 21l-4.35-4.35'])
+export const Sort = S(['M3 6h18', 'M7 12h10', 'M11 18h4'])
+export const List = S(['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'])
+export const MoreHoriz = S([{ t: 'circle', p: { cx: 5, cy: 12, r: 1, fill: 'currentColor', stroke: 'none' } }, { t: 'circle', p: { cx: 12, cy: 12, r: 1, fill: 'currentColor', stroke: 'none' } }, { t: 'circle', p: { cx: 19, cy: 12, r: 1, fill: 'currentColor', stroke: 'none' } }])
+export const Motion = S([{ t: 'circle', p: { cx: 12, cy: 12, r: 9 } }, 'M2 12h20', 'M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18'])
 
 // Fill variants
 export const SocialFill   = SF(['M7 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H7zm4 17h2a1 1 0 1 1 0 2h-2a1 1 0 1 1 0-2z'])
@@ -104,4 +109,5 @@ export const Icons: Record<string, (props: IconProps) => React.ReactElement> = {
   Palette, Layers, Type, Image, Mic, Grid, Lock, Unlock, Shield, Check, CheckCircle,
   X, Plus, ArrowLeft, ArrowRight, Chevron, ChevronUp, ChevronDown, Clock, Bell, Download, File,
   Eye, EyeOff, Trash, Zap, Ruler, Copy, Info, Wand, Globe, Dot, Star, Pencil, MessageSquare,
+  Search, Sort, List, MoreHoriz, Motion,
 }

@@ -15,6 +15,7 @@ import {
 } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar } from '@/shared/components/layout/Sidebar'
+import { ProjectCard } from '@/shared/components/project/ProjectCard'
 import { RECENT_PROJECTS } from '@/data/recent-projects'
 import type { RecentProject } from '@/data/recent-projects'
 
@@ -47,7 +48,7 @@ const FEATURE_CARDS = [
     product: 'Space',
     slug: 'space',
     title: 'Image Canvas',
-    desc: 'A drag-and-drop canvas for your creative process',
+    desc: 'Mix images on a drag-and-drop canvas',
     icon: 'Layers',
     color: '#22c55e',
     gradient: 'linear-gradient(to top left, rgba(236,72,153,0.6) 0%, transparent 65%)',
@@ -62,92 +63,53 @@ const MOTION_CARD = {
   color: '#f5c518',
 }
 
-const COMMUNITY = [
+const COMMUNITY: RecentProject[] = [
   {
     id: 'c1',
     title: 'Mastering Modern Kotlin: From Basics to Coroutines',
+    workspace: 'Community',
     type: 'Presentation',
+    typeColor: '#8b5cf6',
     thumbBg: 'var(--card-2)',
     thumbIcon: 'Present',
     thumbIconColor: 'var(--t3)',
-    date: 'May 7, 2026',
-    likes: 4,
+    lastAction: 'May 7, 2026',
   },
   {
     id: 'c2',
     title: 'Decoding the Feline Friend',
+    workspace: 'Community',
     type: 'Presentation',
+    typeColor: '#8b5cf6',
     thumbBg: 'var(--card-2)',
     thumbIcon: 'Present',
     thumbIconColor: 'var(--t3)',
-    date: 'May 7, 2026',
-    likes: 1,
+    lastAction: 'May 7, 2026',
   },
   {
     id: 'c3',
     title: 'Differentiating Apex Predators: T-Rex, Spinosaurus, Giga…',
+    workspace: 'Community',
     type: 'Presentation',
+    typeColor: '#8b5cf6',
     thumbBg: 'var(--card-2)',
     thumbIcon: 'Present',
     thumbIconColor: 'var(--t3)',
-    date: 'May 7, 2026',
-    likes: 1,
+    lastAction: 'May 7, 2026',
   },
   {
     id: 'c4',
     title: 'The Enduring Mystery of The Buzzer',
+    workspace: 'Community',
     type: 'Presentation',
+    typeColor: '#8b5cf6',
     thumbBg: 'var(--card-2)',
     thumbIcon: 'Present',
     thumbIconColor: 'var(--t3)',
-    date: 'May 7, 2026',
-    likes: 1,
-  },
-  {
-    id: 'c5',
-    title: 'Mastering Design Thinking Methodology',
-    type: 'Presentation',
-    thumbBg: 'var(--card-2)',
-    thumbIcon: 'Present',
-    thumbIconColor: 'var(--t3)',
-    date: 'May 7, 2026',
-    likes: 1,
-  },
-  {
-    id: 'c6',
-    title: 'Choosing React State Management Solutions',
-    type: 'Presentation',
-    thumbBg: 'var(--card-2)',
-    thumbIcon: 'Present',
-    thumbIconColor: 'var(--t3)',
-    date: 'May 20, 2026',
-    likes: 0,
+    lastAction: 'May 7, 2026',
   },
 ]
 
-function RecentCard({ project }: { project: RecentProject }) {
-  const Icon = I.Icons[project.thumbIcon]
-  return (
-    <div className="hp-recent-card">
-      <div className="hp-recent-thumb" style={{ background: project.thumbBg }}>
-        {Icon && <Icon style={{ color: project.thumbIconColor }} />}
-      </div>
-      <div className="hp-recent-body">
-        <span className="hp-recent-workspace">{project.workspace}</span>
-        <p className="hp-recent-title">{project.title}</p>
-        <div className="hp-recent-foot">
-          <span
-            className="hp-recent-badge"
-            style={{ background: `${project.typeColor}22`, color: project.typeColor }}
-          >
-            {project.type}
-          </span>
-          <span className="hp-recent-date">{project.lastAction}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -239,7 +201,7 @@ export function HomePage() {
                       Icon: Stack,
                       label: 'Space',
                       slug: 'space',
-                      desc: 'Mix images, text, and more on a drag-and-drop canvas',
+                      desc: 'Mix images on a drag-and-drop canvas',
                       chevron: false,
                     },
                     {
@@ -285,9 +247,7 @@ export function HomePage() {
                       <span className="hp-sub-pill-label">{item.label}</span>
                       <span className="hp-sub-pill-desc">{item.desc}</span>
                     </span>
-                    {'beta' in item && item.beta && (
-                      <span className="hp-sub-pill-beta">BETA</span>
-                    )}
+                    {'beta' in item && item.beta && <span className="hp-sub-pill-beta">BETA</span>}
                     {item.chevron && (
                       <I.ArrowRight
                         className="hp-sub-pill-chevron"
@@ -346,7 +306,7 @@ export function HomePage() {
             </div>
             <div className="hp-recent-grid">
               {RECENT_PROJECTS.slice(0, 4).map((p) => (
-                <RecentCard key={p.id} project={p} />
+                <ProjectCard key={p.id} project={p} />
               ))}
             </div>
 
@@ -379,35 +339,9 @@ export function HomePage() {
                 </div>
               </div>
               <div className="hp-community-grid">
-                {COMMUNITY.slice(0, 4).map((c) => {
-                  const Icon = I.Icons[c.thumbIcon]
-                  return (
-                    <div key={c.id} className="hp-community-card">
-                      <div className="hp-community-thumb" style={{ background: c.thumbBg }}>
-                        {Icon && (
-                          <Icon
-                            style={{ color: c.thumbIconColor, width: 28, height: 28, opacity: 0.5 }}
-                          />
-                        )}
-                      </div>
-                      <div className="hp-community-body">
-                        <span className="hp-recent-workspace">Personal Project</span>
-                        <p className="hp-community-card-title">{c.title}</p>
-                        <div className="hp-community-foot">
-                          <span
-                            className="hp-recent-badge"
-                            style={{ background: '#8b5cf622', color: '#8b5cf6' }}
-                          >
-                            {c.type}
-                          </span>
-                          <span className="hp-community-likes">
-                            <I.Star style={{ width: 11, height: 11 }} /> {c.likes}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                {COMMUNITY.slice(0, 4).map((c) => (
+                  <ProjectCard key={c.id} project={c} />
+                ))}
               </div>
             </div>
           </div>

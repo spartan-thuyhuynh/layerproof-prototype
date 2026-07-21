@@ -1,0 +1,169 @@
+/* ============================================================  COMMUNITY PAGE  */
+
+/* ── Banner wrapper (provides outer spacing) ──────────────────── */
+.cm-banner-wrap {
+  padding: 24px var(--gut) 0;
+}
+
+/* ── Banner ───────────────────────────────────────────────────── */
+.cm-banner {
+  position: relative;
+  overflow: hidden;
+  background: var(--card);
+  background-image:
+    linear-gradient(to bottom right, rgba(236, 72, 153, 0.30) 0%, transparent 55%),
+    linear-gradient(to top left, rgba(255, 222, 66, 0.15) 0%, transparent 50%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 36px var(--gut) 32px;
+}
+
+.cm-banner-orb { display: none; }
+
+.cm-banner-content {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.cm-banner-title {
+  font-size: 28px;
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  color: var(--t1);
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  margin: 0;
+}
+@media (min-width: 1280px) { .cm-banner-title { font-size: 32px; } }
+
+.cm-banner-desc {
+  font-size: 14px;
+  color: var(--t3);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 380px;
+}
+
+/* Search in banner */
+.cm-banner-search-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin-top: 4px;
+}
+.cm-banner-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--t3);
+  pointer-events: none;
+}
+.cm-banner-search {
+  width: 100%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-sm);
+  padding: 11px 36px 11px 40px;
+  font-size: 14px;
+  color: var(--t1);
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s, background .15s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.cm-banner-search::placeholder { color: var(--t3); }
+.cm-banner-search:focus {
+  border-color: rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.10);
+}
+
+/* Suggestion chips */
+.cm-banner-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cm-chip {
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.65);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cm-chip:hover {
+  border-color: rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+.cm-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+/* ── Light mode overrides ─────────────────────────────────────── */
+html.light .cm-banner {
+  background-image:
+    linear-gradient(to bottom right, rgba(236, 72, 153, 0.22) 0%, transparent 55%),
+    linear-gradient(to top left, rgba(234, 179, 8, 0.20) 0%, transparent 50%);
+  border-color: var(--line);
+}
+
+html.light .cm-banner-search {
+  background: rgba(255,255,255,0.65);
+  border-color: rgba(0,0,0,0.15);
+  color: var(--t1);
+}
+html.light .cm-banner-search:focus {
+  border-color: rgba(0,0,0,0.30);
+  background: rgba(255,255,255,0.85);
+}
+html.light .cm-banner-search::placeholder { color: var(--t3); }
+
+html.light .cm-chip {
+  background: rgba(255,255,255,0.55);
+  border-color: rgba(0,0,0,0.15);
+  color: var(--t2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+html.light .cm-chip:hover {
+  background: rgba(255,255,255,0.80);
+  border-color: rgba(0,0,0,0.25);
+  color: var(--t1);
+}
+html.light .cm-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ── Inner content ────────────────────────────────────────────── */
+.cm-inner {
+  padding: 32px var(--gut) 80px;
+  max-width: 1280px;
+  margin: 0 auto;
+}

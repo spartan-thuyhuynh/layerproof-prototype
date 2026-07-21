@@ -7,6 +7,9 @@ import { CreatePage } from '@/pages/CreatePage'
 import { EditorPage } from '@/pages/EditorPage'
 import { MatteV3Page } from '@/pages/MatteV3Page'
 import { MotionEditorPage } from '@/pages/MotionEditorPage'
+import { AllProjectsPage } from '@/pages/AllProjectsPage'
+import { TrashPage } from '@/pages/TrashPage'
+import { CommunityPage } from '@/pages/CommunityPage'
 
 export function AppRoutes() {
   return (
@@ -15,6 +18,9 @@ export function AppRoutes() {
       <Route path="/matte-v3" element={<MatteV3Page />} />
       <Route path="/motion-editor" element={<MotionEditorPage />} />
       <Route path="/home" element={<HomePage />} />
+      <Route path="/all-projects" element={<AllProjectsPage />} />
+      <Route path="/trash" element={<TrashPage />} />
+      <Route path="/community" element={<CommunityPage />} />
       <Route path="/brand-kit" element={<BrandKitPage />} />
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="/create/:product" element={<CreatePage />} />

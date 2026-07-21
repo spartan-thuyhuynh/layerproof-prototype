@@ -1,3 +1,21 @@
+/* ============================================================  RESPONSIVE — MOBILE / TABLET
+   Scale spacing down and adapt layout for small screens.
+   ============================================================ */
+
+/* ── Tablet: ≤1024px ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  :root {
+    --gut: 20px;
+  }
+}
+
+/* ── Mobile: ≤768px ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --gut: 16px;
+  }
+}
+
 /* ============================================================  RESPONSIVE — LARGE SCREENS
    Scale typography, spacing, and sidebar widths up for 1400px+ monitors.
    ============================================================ */

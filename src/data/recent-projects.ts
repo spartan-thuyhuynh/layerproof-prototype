@@ -8,13 +8,14 @@ export interface RecentProject {
   thumbIcon: string
   thumbIconColor: string
   lastAction: string
+  deleted?: boolean
 }
 
 export const RECENT_PROJECTS: RecentProject[] = [
   {
     id: '1',
     title: 'Social Campaign - promotion poster for Uselink...',
-    workspace: 'Workspace 2026-06-05T07:40:25.377831566Z',
+    workspace: 'Personal Project',
     type: 'Social Post',
     typeColor: '#f97316',
     thumbBg: 'var(--card-2)',
@@ -25,7 +26,7 @@ export const RECENT_PROJECTS: RecentProject[] = [
   {
     id: '2',
     title: 'Social Campaign - Implement fairness in ML...',
-    workspace: 'Workspace 2026-06-09T04:30:54.854407767Z',
+    workspace: 'Personal Project',
     type: 'Social Post',
     typeColor: '#f97316',
     thumbBg: 'var(--card-2)',
@@ -36,7 +37,7 @@ export const RECENT_PROJECTS: RecentProject[] = [
   {
     id: '3',
     title: 'Designing a Meta-Analysis Framework',
-    workspace: 'Workspace 2026-06-02T07:45:01.636606599Z',
+    workspace: 'Personal Project',
     type: 'Presentation',
     typeColor: '#8b5cf6',
     thumbBg: 'var(--card-2)',
@@ -47,7 +48,7 @@ export const RECENT_PROJECTS: RecentProject[] = [
   {
     id: '4',
     title: 'Social Campaign - Learn inflation and deflation',
-    workspace: 'Workspace 2026-06-02T07:50:14.394582222Z',
+    workspace: 'Personal Project',
     type: 'Social Post',
     typeColor: '#f97316',
     thumbBg: 'var(--card-2)',
@@ -69,7 +70,7 @@ export const RECENT_PROJECTS: RecentProject[] = [
   {
     id: '6',
     title: 'Mathematical Biology: Bridging Disciplines for...',
-    workspace: 'Workspace 2026-04-06T03:32:01.257243322Z',
+    workspace: 'Personal Project',
     type: 'Presentation',
     typeColor: '#8b5cf6',
     thumbBg: 'var(--card-2)',

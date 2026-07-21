@@ -22,6 +22,7 @@
 .brand-symbol { height: 28px; width: auto; flex: none; }
 .brand-wordmark { font-weight: 800; font-size: 16px; letter-spacing: -0.02em; color: var(--t1); }
 
+.sidebar-toggle { display: none; }
 .nav { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; flex: 1; margin: 0; padding: 0 10px; }
 .nav::-webkit-scrollbar { width: 0; }
 .navlabel { font-size: 10.5px; letter-spacing: 0.12em; color: var(--t3); font-weight: 700; text-transform: uppercase; padding: 16px 10px 6px; }
@@ -33,8 +34,8 @@
 }
 .navitem svg { width: 18px; height: 18px; flex: none; }
 .navitem:hover { background: #1d1d1d; color: var(--t1); }
-.navitem.active { background: var(--accent-soft); color: var(--accent); }
-.navitem.active svg { color: var(--accent); }
+.navitem.active { background: var(--card-2); color: var(--t1); }
+.navitem.active svg { color: var(--t1); }
 .navitem .soon { margin-left: auto; font-size: 9.5px; letter-spacing: .08em; color: var(--t3); background: #1f1f1f; padding: 2px 6px; border-radius: 5px; font-weight: 700; }
 .navitem .chev { margin-left: auto; opacity: .6; }
 
@@ -55,7 +56,54 @@
 
 /* ============================================================  APP LAYOUT  */
 .app { display: flex; height: 100vh; overflow: hidden; }
-.main { flex: 1; overflow: hidden; background: var(--app); }
+.main { flex: 1; overflow: hidden; background: var(--app); position: relative; }
+
+/* ── Mobile sidebar overlay ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .side {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+  .side.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.6);
+  }
+  .main {
+    width: 100%;
+  }
+  .panel {
+    border-radius: 0;
+  }
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    background: rgba(0, 0, 0, 0.5);
+  }
+  .sidebar-toggle {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 100;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--line-2);
+    color: var(--t1);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .sidebar-toggle:hover {
+    background: var(--card-2);
+  }
+}
 
 /* ============================================================  DETAIL VIEW  */
 .detail { display: flex; height: 100%; overflow: hidden; padding: 10px 10px 10px 0; gap: 10px; background: var(--app); }

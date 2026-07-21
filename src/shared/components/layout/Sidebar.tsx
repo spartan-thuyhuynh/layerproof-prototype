@@ -86,6 +86,11 @@ export function Sidebar({ showBack }: SidebarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const [hoveredProduct, setHoveredProduct] = useState<Product | null>(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -109,13 +114,18 @@ export function Sidebar({ showBack }: SidebarProps) {
   }, [userMenuOpen])
 
   return (
-    <aside className="side">
-      {showBack && (
+    <>
+      <button className="sidebar-toggle" onClick={() => setMobileOpen(true)} aria-label="Open menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+      {mobileOpen && <div className="sidebar-backdrop" onClick={() => setMobileOpen(false)} />}
+      <aside className={`side${mobileOpen ? ' open' : ''}`}>
         <button className="side-back-btn" onClick={() => navigate('/')}>
           <ChevronLeft size={14} />
           All Prototypes
         </button>
-      )}
 
       <div className="brand">
         <img src={`${import.meta.env.BASE_URL}logos/symbol.png`} alt="" className="brand-symbol" />
@@ -179,8 +189,11 @@ export function Sidebar({ showBack }: SidebarProps) {
         <button className={`navitem${onHome ? ' active' : ''}`} onClick={() => navigate('/home')}>
           <I.Home /> Home
         </button>
-        <button className="navitem">
+        <button className={`navitem${pathname.startsWith('/all-projects') ? ' active' : ''}`} onClick={() => navigate('/all-projects')}>
           <I.Grid /> All Projects
+        </button>
+        <button className={`navitem${pathname.startsWith('/community') ? ' active' : ''}`} onClick={() => navigate('/community')}>
+          <I.Globe /> Community
         </button>
 
         <div className="navlabel">Brand</div>
@@ -222,5 +235,6 @@ export function Sidebar({ showBack }: SidebarProps) {
         </button>
       </div>
     </aside>
+    </>
   )
 }

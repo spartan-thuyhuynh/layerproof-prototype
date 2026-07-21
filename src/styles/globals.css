@@ -48,6 +48,8 @@
 
 /* Motion Editor */
 @import "./features/motion-editor/motion-editor.css";
+@import "./features/all-projects/all-projects.css";
+@import "./features/community/community.css";
 
 /* Responsive overrides — must be last */
 @import "./responsive/breakpoints.css";
