@@ -34,7 +34,7 @@
 }
 .navitem svg { width: 18px; height: 18px; flex: none; }
 .navitem:hover { background: #1d1d1d; color: var(--t1); }
-.navitem.active { background: var(--card-2); color: var(--t1); }
+.navitem.active { background: rgba(255,255,255,0.08); color: var(--t1); }
 .navitem.active svg { color: var(--t1); }
 .navitem .soon { margin-left: auto; font-size: 9.5px; letter-spacing: .08em; color: var(--t3); background: #1f1f1f; padding: 2px 6px; border-radius: 5px; font-weight: 700; }
 .navitem .chev { margin-left: auto; opacity: .6; }

@@ -245,11 +245,23 @@ html.light .hp-sub-pill-beta { background: #f5e6a0; color: #7a5c00; border-color
 
 @media (max-width: 768px) {
   .hp-vellum-wrap { flex-direction: column; min-height: unset; margin-bottom: 40px; }
-  .hp-vellum-left { flex: none; padding: 28px 20px; }
-  .hp-vellum-right { min-height: 160px; }
+  .hp-vellum-left { flex: none; padding: 24px 20px 24px; }
+  .hp-vellum-right { min-height: 200px; }
   .hp-vellum-title { font-size: 22px; }
   .hp-vellum-desc { font-size: 13px; }
   .hp-community { margin-top: 40px; }
+  .hp-vellum-right { margin-top: -32px; }
+  .hp-vellum-overlay {
+    background: linear-gradient(to bottom, #0e0e10 0%, #0e0e10f0 25%, #0e0e1099 50%, transparent 75%);
+  }
+  /* Pull actions out of absolute overlay into normal flow */
+  .hp-vellum-actions {
+    position: static;
+    transform: none;
+    opacity: 1;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }
 
 html.light .hp-vellum-wrap { background: transparent; border-color: #e0e0e0; }
@@ -349,6 +361,16 @@ html.light .hp-vellum-desc { color: var(--t2); }
 }
 @media (max-width: 768px) {
   .hp-community-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .hp-community-head { flex-direction: column; gap: 10px; }
+  .hp-community-filters {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .hp-community-filters .hp-filter-select:first-child { display: none; }
+  .hp-view-all { margin-left: auto; }
 }
 
 .hp-community-card {
