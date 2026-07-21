@@ -219,7 +219,7 @@ html.light .hp-sub-pill-beta { background: #f5e6a0; color: #7a5c00; border-color
 }
 .hp-vellum-left { transition: filter 0.4s ease, opacity 0.4s ease; }
 .hp-vellum-banner-img { transition: filter 0.4s ease; }
-.hp-vellum-left { position: relative; flex: 0 0 52%; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 12px; padding: 36px 40px; z-index: 2; overflow: hidden; }
+.hp-vellum-left { position: relative; flex: 0 0 52%; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 12px; padding: 36px 40px; z-index: 2; overflow: hidden; }
 .hp-vellum-deco { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .hp-vellum-orb { position: absolute; border-radius: 50%; filter: blur(56px); }
 .hp-vellum-orb-1 { width: 260px; height: 260px; background: #f5c518; opacity: 0.1; top: -60px; left: -40px; }
@@ -244,24 +244,27 @@ html.light .hp-sub-pill-beta { background: #f5e6a0; color: #7a5c00; border-color
 .hp-vellum-overlay { position: absolute; inset: 0; background: linear-gradient(to right, #0e0e10 0%, #0e0e1088 30%, transparent 60%); pointer-events: none; z-index: 1; }
 
 @media (max-width: 768px) {
-  .hp-vellum-wrap { flex-direction: column; min-height: unset; margin-bottom: 40px; }
-  .hp-vellum-left { flex: none; padding: 24px 20px 24px; }
-  .hp-vellum-right { min-height: 200px; }
+  .hp-vellum-wrap { flex-direction: column; min-height: 240px; margin-bottom: 40px; }
+  .hp-vellum-left { flex: none; padding: 24px 20px 12px; position: relative; z-index: 2; }
+  .hp-vellum-desc { font-size: 13px; max-width: 200px; }
   .hp-vellum-title { font-size: 22px; }
-  .hp-vellum-desc { font-size: 13px; }
   .hp-community { margin-top: 40px; }
-  .hp-vellum-right { margin-top: -32px; }
-  .hp-vellum-overlay {
-    background: linear-gradient(to bottom, #0e0e10 0%, #0e0e10f0 25%, #0e0e1099 50%, transparent 75%);
-  }
-  /* Pull actions out of absolute overlay into normal flow */
+  .hp-vellum-right { position: absolute; right: 0; top: 0; bottom: 0; width: 60%; z-index: 1; }
+  .hp-vellum-banner-img { object-fit: cover; object-position: 65% center; }
+  .hp-vellum-overlay { background: linear-gradient(to right, #0e0e10 0%, rgba(14,14,16,0.85) 35%, transparent 90%); }
   .hp-vellum-actions {
-    position: static;
+    position: relative;
+    z-index: 2;
     transform: none;
     opacity: 1;
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 0 20px 24px;
+    margin-top: auto;
+    max-width: 55%;
   }
+  .hp-vellum-btn { width: 100%; text-align: center; }
 }
 
 html.light .hp-vellum-wrap { background: transparent; border-color: #e0e0e0; }

@@ -266,9 +266,7 @@ export function HomePage() {
                   <span className="hp-vellum-orb hp-vellum-orb-2" />
                 </div>
                 <span className="hp-vellum-title">
-                  Create with
-                  <br />
-                  LayerProof <span className="hp-vellum-accent">Motion</span>
+                  Turn any doc<br />into an editable <span className="hp-vellum-accent">launch video</span>
                 </span>
                 <span className="hp-vellum-desc">
                   Animate your content into scroll-stopping videos with AI-driven scenes, narration,
