@@ -42,6 +42,10 @@
 
   --font: "Archivo", system-ui, -apple-system, sans-serif;
   --shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 30px rgba(0,0,0,0.35);
+  --shadow-panel: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.25);
+
+  --accent-vellum: #f5c518;    /* Vellum sub-brand gold — distinct from --accent */
+  --card-sub: #141414;         /* recessed surface inside cards */
 }
 
 /* density tweak hook */
@@ -89,6 +93,8 @@ html.light {
   --t2: #555555;
   --t3: #888888;
   --shadow: 0 1px 0 rgba(0,0,0,0.04) inset, 0 8px 30px rgba(0,0,0,0.10);
+  --shadow-panel: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --card-sub: #f0f0f0;
 }
 
 /* Sidebar light mode fixes */
@@ -134,11 +140,12 @@ html.light .ob-hero-sub { color: var(--t2); }
 html.light .ob-import-card { background: #1e1e1e; border-color: #303030; }
 html.light .ob-import-title { color: #f0f0f0; }
 html.light .ob-import-sub { color: #888; }
-html.light .ob-url-input-wrap { background: #2a2a2a; border-color: #3a3a3a; color: #888; }
-html.light .ob-url-input { color: #f0f0f0; }
-html.light .ob-url-input::placeholder { color: #555; }
-html.light .ob-upload-btn { background: #2a2a2a; border-color: #3a3a3a; color: #e0e0e0; }
-html.light .ob-upload-btn:hover { border-color: #555; background: #333; }
+/* Scope dark URL input overrides to the intentionally-dark overview import card only */
+html.light .ob-import-card .ob-url-input-wrap { background: #2a2a2a; border-color: #3a3a3a; color: #888; }
+html.light .ob-import-card .ob-url-input { color: #f0f0f0; }
+html.light .ob-import-card .ob-url-input::placeholder { color: #555; }
+html.light .ob-import-card .ob-upload-btn { background: #2a2a2a; border-color: #3a3a3a; color: #e0e0e0; }
+html.light .ob-import-card .ob-upload-btn:hover { border-color: #555; background: #333; }
 
 /* Brand kit detail panel */
 html.light .detail-panel { background: var(--panel); }
@@ -182,7 +189,9 @@ html.light .onb-social-btn:hover { background: var(--card-2); }
 html.light .onb-intent-chip { background: var(--card); border-color: var(--line-2); }
 html.light .onb-intent-chip:hover { background: var(--card-2); border-color: var(--line); }
 html.light .onb-avatar-preview { background: var(--card); }
-html.light .onb-import-hero { background: var(--card); border-color: var(--line-2); }
+html.light .onb-import-hero { background: var(--card); border-color: rgba(0,0,0,0.06); }
+html.light .onb-import-alt { border-color: rgba(0,0,0,0.06); }
+html.light .onb-import-alt-icon { border: none; background: var(--card-sub); }
 html.light .onb-import-alt-icon { background: var(--card-2); border-color: var(--line); }
 html.light .onb-chip-btn { background: var(--card); border-color: var(--line-2); }
 html.light .onb-chip-btn:hover { background: var(--card-2); }
@@ -193,6 +202,43 @@ html.light .onb-proc-step.active { background: var(--card-2); }
 html.light .onb-review-icon { background: var(--card-2); border-color: var(--line); }
 html.light .onb-swatch { border-color: rgba(0,0,0,0.1); }
 html.light .onb-proc-swatch { border-color: rgba(0,0,0,0.08); }
+html.light .onb-role-chip { border-color: var(--line-2); color: var(--t2); background: var(--card); }
+html.light .onb-role-chip:hover { border-color: var(--line-2); color: var(--t1); background: var(--card-2); }
+html.light .onb-role-chip.active { border-color: var(--accent); background: var(--accent-soft); color: #7a6600; }
+html.light .onb-tone-card { background: var(--card-2); border-color: var(--line); }
+html.light .onb-tone-card:hover:not(.disabled) { background: var(--card); border-color: var(--line-2); }
+html.light .onb-tone-card.active { border-color: var(--accent); background: var(--accent-soft); }
+html.light .onb-tone-label { color: var(--t1); }
+html.light .onb-tone-card.active .onb-tone-label { color: #7a6600; }
+html.light .onb-tone-check { color: var(--accent-ink); }
+
+/* Onboarding panel — drop border, add soft shadow, dim the shell background */
+html.light .onb-product-bg { border: none; box-shadow: var(--shadow-panel); }
+html.light .onb-shell { background: #e4e4e4; }
+html.light .onb-panel-back { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.12); color: var(--t2); }
+html.light .onb-panel-back:hover { background: rgba(0,0,0,0.09); color: var(--t1); }
+html.light .onb-panel-question { color: var(--t3); }
+
+/* Auth page — light mode */
+html.light .onb-auth-page { background: #e8e8e8; }
+html.light .onb-auth-left { background: #f0f0f0; }
+html.light .onb-auth-right {
+  background: #ffffff;
+  --t1: #1a1a1a;
+  --t2: #555555;
+  --t3: #888888;
+}
+html.light .onb-auth-logo-text { color: var(--t1); }
+html.light .onb-auth-google { background: #f5f5f5; border-color: rgba(0,0,0,0.12); color: var(--t1); }
+html.light .onb-auth-google:hover { background: #ebebeb; border-color: rgba(0,0,0,0.2); }
+html.light .onb-auth-input { background: #f5f5f5; border-color: rgba(0,0,0,0.12); color: var(--t1); }
+html.light .onb-auth-input:focus { border-color: var(--accent); background: #fff; }
+html.light .onb-auth-label { color: var(--t2); }
+html.light .onb-auth-check-label { color: var(--t2); }
+html.light .onb-auth-forgot { color: var(--t3); }
+html.light .onb-auth-forgot:hover { color: var(--t1); }
+html.light .onb-auth-foot { color: var(--t3); }
+html.light .onb-link { color: #7a6600; }
 
 
 /* ── Light mode: layout viz (thumbnail radius preview) ── */

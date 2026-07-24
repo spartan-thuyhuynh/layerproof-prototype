@@ -212,7 +212,7 @@ export function HomePage() {
                       chevron: false,
                     },
                     {
-                      Icon: Globe,
+                      Icon: FilmStrip,
                       label: 'Motion',
                       slug: 'motion',
                       desc: 'Animate your ideas into motion videos',
@@ -233,12 +233,15 @@ export function HomePage() {
                       desc: 'Make quick image edits with AI',
                       chevron: true,
                     },
-                  ] as const
+                  ]
                 ).map((item) => (
                   <button
                     key={item.label}
                     className="hp-sub-pill"
-                    onClick={() => item.slug && navigate(`/create/${item.slug}`)}
+                    onClick={() => {
+                      if ('brandKit' in item && item.brandKit) navigate('/brand-kit')
+                      else if (item.slug) navigate(`/create/${item.slug}`)
+                    }}
                   >
                     <span className="hp-sub-pill-icon">
                       <item.Icon size={20} />

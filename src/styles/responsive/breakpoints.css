@@ -7,6 +7,12 @@
   :root {
     --gut: 20px;
   }
+
+  /* Product carousel — 2-up */
+  .onb-step--wide    { max-width: 700px; }
+  .onb-product-bg    { padding: 24px; }
+  .onb-product-title { font-size: 30px; }
+  .onb-scroll-card   { width: calc((100% - 12px) / 2); }
 }
 
 /* ── Mobile: ≤768px ──────────────────────────────────────────── */
@@ -14,6 +20,44 @@
   :root {
     --gut: 16px;
   }
+
+  /* Product carousel — vertical stack */
+  .onb-step--wide      { max-width: 100%; }
+  .onb-product-bg      { padding: 20px 16px; border-radius: 16px; }
+  .onb-product-title   { font-size: 26px; }
+  .onb-carousel-sub    { font-size: 15px; margin-bottom: 20px; }
+  .onb-carousel-clip   { flex-direction: column; overflow-x: hidden; overflow-y: visible; scroll-snap-type: none; }
+  .onb-scroll-card     { width: 100%; scroll-snap-align: none; }
+  .onb-carousel-btn    { display: none; }
+  .onb-carousel-dots   { display: none; }
+
+  /* Auth / sign-up — hide hero, single column */
+  .onb-auth-shell { grid-template-columns: 1fr; }
+  .onb-auth-left  { display: none; }
+  .onb-auth-form-wrap { padding: 24px 20px; }
+
+  /* Brand kit import — stack hero vertically */
+  .onb-import-hero        { flex-direction: column; }
+  .onb-import-hero-visual { display: none; }
+
+  /* Brand kit done — stack theme card + single-col kit grid */
+  .onb-done-theme-card  {
+    flex-direction: column;
+    border: none !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    margin-bottom: 8px !important;
+  }
+  .onb-done-theme-thumb { flex: none !important; min-height: 80px !important; width: 100%; border-radius: 12px; }
+  .onb-done-kit-row     { grid-template-columns: 1fr !important; }
+  .onb-done-kit-row > div { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .onb-done-kit-row > div:last-child { border-bottom: none; }
+
+  /* Brand kit setup — single column, hide preview */
+  .onb-setup-panels     { flex-direction: column; gap: 20px; }
+  .onb-setup-preview    { display: none; }
+  .onb-setup-type-grid  { flex-direction: column; gap: 12px; }
+  .onb-setup-voice-grid { flex-direction: column; gap: 8px; }
 }
 
 /* ============================================================  RESPONSIVE — LARGE SCREENS

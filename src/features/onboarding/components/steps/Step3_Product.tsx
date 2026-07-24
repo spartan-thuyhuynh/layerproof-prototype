@@ -1,72 +1,76 @@
-import { useEffect, useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import * as I from '@/shared/icons'
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore'
 
 const base = import.meta.env.BASE_URL
 
+type Category = 'write' | 'visual' | 'build'
+
+const PINK = 'linear-gradient(to top left, rgba(236,72,153,0.6) 0%, rgba(236,72,153,0) 65%)'
+const YELLOW = 'linear-gradient(to top left, rgba(234,179,8,0.55) 0%, rgba(234,179,8,0) 65%)'
+
 const PRODUCTS = [
   {
     slug: 'social-post',
-    name: 'LayerProof Matte',
-    sub: 'Social Post Generator',
-    desc: 'AI-powered posts for Instagram, LinkedIn & beyond',
+    label: 'Social Post',
+    category: 'write' as Category,
+    desc: 'Create publish-ready posts and carousels',
     icon: 'Social',
     color: '#f97316',
+    gradient: PINK,
     img: `${base}home/card-social-post.png`,
-    recommended: true,
-  },
-  {
-    slug: 'presentation',
-    name: 'LayerProof Chromo',
-    sub: 'Slide Generation',
-    desc: 'Turn ideas into polished decks, pitch-ready in minutes',
-    icon: 'Present',
-    color: '#8b5cf6',
-    img: `${base}home/card-presentation.png`,
-    recommended: false,
-  },
-  {
-    slug: 'space',
-    name: 'LayerProof Vellum',
-    sub: 'Image Generator',
-    desc: 'Generate on-brand visuals from text prompts',
-    icon: 'Layers',
-    color: '#14b8a6',
-    img: `${base}home/card-space.png`,
-    recommended: false,
-  },
-  {
-    slug: 'docs',
-    name: 'LayerProof Kraft',
-    sub: 'Long Form Content',
-    desc: 'Blogs, briefs, reports and docs, in your brand voice',
-    icon: 'Docs',
-    color: '#f97316',
-    img: `${base}home/card-docs.png`,
-    recommended: false,
-  },
-  {
-    slug: 'bristol',
-    name: 'LayerProof Bristol',
-    sub: 'HTML Builder',
-    desc: 'Build interactive experiences and webpages',
-    icon: 'Globe',
-    color: '#3b82f6',
-    img: `${base}home/card-bristol.png`,
-    recommended: false,
-    comingSoon: false,
   },
   {
     slug: 'motion',
-    name: 'LayerProof Motion',
-    sub: 'Motion Design Composer',
-    desc: 'Create seamless graphic motion assets tailored to your brand',
+    label: 'Motion',
+    category: 'visual' as Category,
+    desc: 'Animate your ideas into motion videos',
     icon: 'Sparkle',
     color: '#a855f7',
-    img: undefined,
-    recommended: false,
-    comingSoon: true,
+    gradient: YELLOW,
+    img: `${base}home/card-motion.png`,
+    isNew: true,
+  },
+  {
+    slug: 'presentation',
+    label: 'Presentation',
+    category: 'visual' as Category,
+    desc: 'Turn your ideas into ready-to-present decks',
+    icon: 'Present',
+    color: '#8b5cf6',
+    gradient: PINK,
+    img: `${base}home/card-presentation.png`,
+  },
+  {
+    slug: 'space',
+    label: 'Image Canvas',
+    category: 'visual' as Category,
+    desc: 'Mix images on a drag-and-drop canvas',
+    icon: 'Layers',
+    color: '#14b8a6',
+    gradient: YELLOW,
+    img: `${base}home/card-space.png`,
+  },
+  {
+    slug: 'docs',
+    label: 'Docs',
+    category: 'write' as Category,
+    desc: 'Write insightful long-form content',
+    icon: 'Docs',
+    color: '#f97316',
+    gradient: PINK,
+    img: `${base}home/card-docs.png`,
+  },
+  {
+    slug: 'report',
+    label: 'Report',
+    category: 'write' as Category,
+    desc: 'Turn data into interactive HTML reports',
+    icon: 'FileText',
+    color: '#0ea5e9',
+    gradient: YELLOW,
+    img: `${base}home/card-report.png`,
   },
 ]
 
@@ -81,83 +85,135 @@ function BackButton({ onClick }: { onClick: () => void }) {
   )
 }
 
+function getPageSize() {
+  if (window.innerWidth <= 768) return 1
+  if (window.innerWidth <= 1024) return 2
+  return 3
+}
+
 export function Step3_Product() {
   const navigate = useNavigate()
   const { prevStep } = useOnboardingStore()
-  const [showNudge, setShowNudge] = useState(false)
+  const [firstVisible, setFirstVisible] = useState(0)
+  const [pageSize, setPageSize] = useState(getPageSize)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const t = setTimeout(() => setShowNudge(true), 7000)
-    return () => clearTimeout(t)
+    const mq768  = window.matchMedia('(max-width: 768px)')
+    const mq1024 = window.matchMedia('(max-width: 1024px)')
+    const update = () => setPageSize(getPageSize())
+    mq768.addEventListener('change', update)
+    mq1024.addEventListener('change', update)
+    return () => {
+      mq768.removeEventListener('change', update)
+      mq1024.removeEventListener('change', update)
+    }
   }, [])
 
   function handleCardClick(slug: string) {
-    setShowNudge(false)
-    navigate(`/create/${slug}`)
+    if (slug === 'motion') navigate('/motion-editor')
+    else navigate(`/create/${slug}`)
   }
+
+  function goTo(i: number) {
+    const idx = Math.max(0, Math.min(i, PRODUCTS.length - 1))
+    const el = scrollRef.current?.children[idx] as HTMLElement | undefined
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+    setFirstVisible(idx)
+  }
+
+  function handleScroll() {
+    const clip = scrollRef.current
+    if (!clip) return
+    const cards = Array.from(clip.children) as HTMLElement[]
+    let leftmost = 0
+    for (let i = 0; i < cards.length; i++) {
+      if (cards[i].offsetLeft >= clip.scrollLeft - 4) { leftmost = i; break }
+    }
+    setFirstVisible(leftmost)
+  }
+
+  const pageCount = Math.ceil(PRODUCTS.length / pageSize)
+  const currentPage = Math.floor(firstVisible / pageSize)
+
+  const canPrev = currentPage > 0
+  const canNext = currentPage < pageCount - 1
 
   return (
     <div className="onb-step onb-step--wide fade-in">
       <div className="onb-product-bg">
         <BackButton onClick={prevStep} />
         <div className="h-eyebrow" style={{ marginBottom: 12, marginTop: 20 }}>Welcome to LayerProof</div>
-        <h1 className="onb-step-title" style={{ fontSize: 36, marginBottom: 8, fontFamily: 'Anton', fontWeight: 400, letterSpacing: '.01em' }}>How would you like to get started?</h1>
-        <p className="onb-step-sub" style={{ fontSize: 16, marginBottom: 28 }}>Pick a product to dive into — you can explore everything else from your dashboard.</p>
-        <div className="onb-product-grid onb-product-grid--6" style={showNudge ? { paddingTop: 56 } : undefined}>
-          {PRODUCTS.map(({ slug, name, sub, desc, icon, color, img, recommended, comingSoon }) => {
-            const Icon = I.Icons[icon]
-            const isNudged = showNudge && recommended
-            return (
-              <div key={slug} className="onb-product-card-wrap">
-                {isNudged && (
-                  <div className="onb-nudge">
-                    <div className="onb-nudge-bubble">Not sure? Start here!</div>
-                    <div className="onb-nudge-arrow" />
-                  </div>
-                )}
+        <h1 className="onb-step-title onb-product-title">
+          What are you making today?
+        </h1>
+        <p className="onb-step-sub onb-carousel-sub">
+          Whatever you're creating, make it on-brand in minutes.
+        </p>
+
+        <div className="onb-carousel">
+          <button className="onb-carousel-btn" disabled={!canPrev} onClick={() => goTo((currentPage - 1) * pageSize)} aria-label="Previous">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+
+          <div className="onb-carousel-clip" ref={scrollRef} onScroll={handleScroll}>
+            {PRODUCTS.map((p, idx) => {
+              const Icon = I.Icons[p.icon]
+              return (
                 <button
-                  className={`onb-product-card card hover${isNudged ? ' onb-product-card--nudged' : ''}${comingSoon ? ' onb-product-card--coming-soon' : ''}`}
-                  onClick={() => !comingSoon && handleCardClick(slug)}
+                  key={p.slug}
+                  className="onb-scroll-card"
+                  onClick={() => handleCardClick(p.slug)}
                 >
-                  <div className="onb-product-thumb">
-                    {comingSoon && !img ? (
-                      <div className="onb-product-thumb-cs" style={{ '--cs-color': color } as React.CSSProperties}>
-                        <div className="onb-product-thumb-cs-blob" />
-                        <div className="onb-product-thumb-cs-blur" />
-                        <span className="onb-product-thumb-cs-label">Coming Soon</span>
-                      </div>
-                    ) : (
-                      <>
-                        {comingSoon && <span className="onb-coming-soon-badge">Coming Soon</span>}
-                        <img
-                          src={img}
-                          alt={name}
-                          className="onb-product-thumb-img"
-                          onError={(e) => {
-                            const el = e.currentTarget
-                            el.style.display = 'none'
-                            const placeholder = el.nextElementSibling as HTMLElement | null
-                            if (placeholder) placeholder.style.display = 'flex'
-                          }}
-                        />
-                        <div
-                          className="onb-product-thumb-placeholder"
-                          style={{ background: `${color}18`, display: 'none' }}
-                        />
-                      </>
-                    )}
-                  </div>
-                  <div className="onb-product-body">
-                    <div className="onb-product-header">
-                      <div className="onb-product-name">{name}</div>
+                  {'recommended' in p && !!(p as Record<string, unknown>).recommended && (
+                    <div className="onb-scroll-rec">Most popular</div>
+                  )}
+                  <div className="onb-scroll-card-img-wrap" style={{ background: p.gradient }}>
+                    {p.img
+                      ? <img src={p.img} alt={p.label} className="onb-scroll-card-img" />
+                      : <div className="onb-scroll-card-fallback" style={{ background: `${p.color}22`, color: p.color }}>
+                          {Icon && <Icon width={48} height={48} />}
+                        </div>
+                    }
+                    <div className="onb-scroll-card-cta-overlay">
+                      <span className="onb-scroll-card-cta-btn">
+                        Get started
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </span>
                     </div>
-                    <div className="onb-product-sub">{sub}</div>
-                    <div className="onb-product-desc">{desc}</div>
+                  </div>
+                  <div className="onb-scroll-card-body">
+                    <div className="onb-scroll-card-title">
+                      {p.label}
+                      {'isNew' in p && p.isNew && (
+                        <span className="onb-new-badge">NEW</span>
+                      )}
+                      {'beta' in p && !!(p as Record<string, unknown>).beta && (
+                        <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 5px', borderRadius: 99, background: '#2a2000', color: '#d4a017', border: '1px solid #d4a01744', verticalAlign: 'middle' }}>BETA</span>
+                      )}
+                    </div>
+                    <div className="onb-scroll-card-desc">{p.desc}</div>
                   </div>
                 </button>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+
+          <button className="onb-carousel-btn" disabled={!canNext} onClick={() => goTo((currentPage + 1) * pageSize)} aria-label="Next">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="onb-carousel-dots">
+          {Array.from({ length: pageCount }).map((_, i) => (
+            <button key={i} className={`onb-carousel-dot${i === currentPage ? ' active' : ''}`} onClick={() => goTo(i * pageSize)} />
+          ))}
         </div>
       </div>
     </div>

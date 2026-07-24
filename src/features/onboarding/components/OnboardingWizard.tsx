@@ -4,30 +4,27 @@ import { ChevronLeft } from 'lucide-react'
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore'
 import { Step1_SignUp }     from './steps/Step1_SignUp'
 import { Step2_Intent }     from './steps/Step2_Intent'
-import { Step3_DeviceGate } from './steps/Step3_DeviceGate'
 import { Step4_BrandName }  from './steps/Step4_BrandName'
-import { Step3_Product as Step5_Product } from './steps/Step3_Product'
+import { Step3_Product as Step4_Product } from './steps/Step3_Product'
 import { ArrowLeft } from '@/shared/icons'
 
 const base = import.meta.env.BASE_URL
 
-const TOTAL_STEPS = 5
+const TOTAL_STEPS = 4
 
 const STEP_LABELS: Record<number, string> = {
   1: 'Sign up',
   2: 'About you',
-  3: 'Device check',
-  4: 'Brand kit',
-  5: 'Choose product',
+  3: 'Brand kit',
+  4: 'Choose product',
 }
 
 function StepContent({ step }: { step: number }) {
   switch (step) {
     case 1: return <Step1_SignUp />
     case 2: return <Step2_Intent />
-    case 3: return <Step3_DeviceGate />
-    case 4: return <Step4_BrandName />
-    case 5: return <Step5_Product />
+    case 3: return <Step4_BrandName />
+    case 4: return <Step4_Product />
     default: return null
   }
 }
@@ -208,27 +205,14 @@ export function OnboardingWizard() {
   const { step, prevStep, reset, setStep } = useOnboardingStore()
   const location = useLocation()
 
-  const onMobile = typeof window !== 'undefined'
-    && (window.innerWidth < 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent))
-
   useLayoutEffect(() => {
     if (!location.state?.resumeFromCreate) reset()
   }, [])
 
-  // On desktop, skip step 3 (device gate) by advancing the store immediately
-  useLayoutEffect(() => {
-    if (step === 3 && !onMobile) setStep(4)
-  }, [step, onMobile])
-
   const displayStep = step
 
   function handleBack() {
-    // Skip back over step 3 (device gate) on desktop
-    if (step === 4 && !onMobile) {
-      setStep(2)
-    } else {
-      prevStep()
-    }
+    prevStep()
   }
 
   const isProcessing = false

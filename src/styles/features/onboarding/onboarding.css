@@ -134,6 +134,9 @@
   white-space: nowrap;
   font-family: inherit;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .ob-url-btn:hover { opacity: .88; }
 .ob-url-btn:disabled { opacity: .4; cursor: default; }
@@ -386,7 +389,7 @@
   min-height: 100vh;
   background: var(--panel);
 }
-.onb-shell--no-left { grid-template-columns: 1fr; background: #1c1c1c; }
+.onb-shell--no-left { grid-template-columns: 1fr; }
 .onb-shell--no-left .onb-nav .onb-back { display: none; }
 .onb-shell--no-left .onb-product-bg { background: #0a0a0a; border-color: #222; }
 .onb-shell--no-left .onb-step-title { color: #fff; }
@@ -552,7 +555,7 @@
   gap: 0;
 }
 .onb-step--wide { max-width: 900px; }
-.onb-product-bg { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 32px; margin-top: 8px; }
+.onb-product-bg { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 32px; margin-top: 8px; position: relative; }
 .onb-panel-top-row { display: flex; align-items: center; justify-content: space-between; }
 .onb-panel-back { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500; padding: 7px 14px; cursor: pointer; font-family: var(--font); transition: background .12s, color .12s; }
 .onb-panel-back:hover { background: rgba(255,255,255,0.1); color: #fff; }
@@ -573,6 +576,19 @@
   margin: 0 0 28px;
 }
 
+/* ── Product step heading overrides ── */
+.onb-product-title {
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: 36px;
+  letter-spacing: .01em;
+  margin-bottom: 8px;
+}
+.onb-carousel-sub {
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
 /* ── Form elements ── */
 .onb-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
 .onb-label {
@@ -581,7 +597,7 @@
 }
 .onb-input {
   width: 100%;
-  background: #141414;
+  background: var(--card-sub);
   border: 1px solid var(--line-2);
   border-radius: 10px;
   padding: 12px 14px;
@@ -675,7 +691,7 @@
 .onb-social-btn {
   width: 100%;
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  background: #1e1e1e; border: 1px solid var(--line-2);
+  background: var(--app); border: 1px solid var(--line-2);
   border-radius: 10px; padding: 12px 20px;
   color: var(--t1); font-size: 14.5px; font-weight: 700;
   transition: background .15s;
@@ -697,14 +713,14 @@
 }
 .onb-intent-chip {
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  background: #111; border: 1px solid #2a2a2a;
+  background: #111; border: 1px solid var(--line);
   border-radius: 12px; padding: 18px 16px;
   color: var(--t1); font-size: 15px; font-weight: 600;
   text-align: center; cursor: pointer;
   transition: border-color .15s, background .15s, color .15s;
 }
 .onb-intent-chip:hover { border-color: #3a3a3a; background: #1a1a1a; }
-.onb-intent-chip.active { border-color: rgba(255,222,66,0.35); background: rgba(255,222,66,0.12); color: var(--accent); }
+.onb-intent-chip.active { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent); }
 .onb-intent-chip.active .onb-chip-label { color: var(--accent); }
 /* Rich chip variant */
 .onb-intent-chip--rich { padding: 18px 16px; }
@@ -743,7 +759,7 @@
 }
 .onb-role-chip.active {
   border-color: var(--accent);
-  background: rgba(255,222,66,.1);
+  background: var(--accent-soft);
   color: var(--accent);
 }
 
@@ -783,7 +799,7 @@
 }
 .onb-tone-card.active {
   border-color: var(--accent);
-  background: rgba(255,222,66,.08);
+  background: var(--accent-soft);
 }
 .onb-tone-card.disabled {
   opacity: .38;
@@ -817,7 +833,7 @@
 
 /* Other text input */
 .onb-other-wrap { margin-bottom: 20px; }
-.onb-other-input { width: 100%; background: #141414; border: 1.5px solid var(--accent-line); border-radius: 10px; padding: 13px 16px; font-size: 14px; font-family: var(--font); color: var(--t1); outline: none; box-sizing: border-box; transition: border-color .15s, box-shadow .15s; }
+.onb-other-input { width: 100%; background: var(--card-sub); border: 1.5px solid var(--accent-line); border-radius: 10px; padding: 13px 16px; font-size: 14px; font-family: var(--font); color: var(--t1); outline: none; box-sizing: border-box; transition: border-color .15s, box-shadow .15s; }
 .onb-other-input::placeholder { color: var(--t3); }
 .onb-other-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
@@ -896,11 +912,218 @@
 .onb-product-sub { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--t3); margin-bottom: 8px; }
 .onb-product-desc { font-size: 13px; color: var(--t2); line-height: 1.45; }
 
+/* ── Step 3: Category filter ── */
+.onb-cat-strip { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.onb-cat-btn {
+  padding: 6px 16px; border-radius: 20px;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--t2); font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: var(--font);
+  transition: border-color .12s, color .12s, background .12s;
+}
+.onb-cat-btn:hover { border-color: var(--line-2); color: var(--t1); }
+.onb-cat-btn.active { background: var(--t1); color: #0a0a0a; border-color: var(--t1); }
+
+/* ── Step 3: Hero card ── */
+.onb-hero-card {
+  display: flex; align-items: center; gap: 16px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: var(--card); border: 1px solid var(--line-2);
+  border-radius: 14px; padding: 18px 20px;
+  margin-bottom: 10px; position: relative;
+  transition: border-color .15s, background .15s;
+}
+.onb-hero-card:hover { border-color: var(--accent); background: #1a1a1a; }
+.onb-hero-rec {
+  position: absolute; top: -1px; right: 20px;
+  background: var(--accent); color: #1a1a1a;
+  font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 0 0 8px 8px;
+}
+.onb-hero-img-wrap {
+  width: 100px; flex-shrink: 0; overflow: hidden;
+  background: transparent;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.onb-hero-img { width: 115%; height: auto; object-fit: contain; object-position: center bottom; display: block; }
+.onb-hero-body { flex: 1; min-width: 0; }
+.onb-hero-cat { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--t3); margin-bottom: 3px; }
+.onb-hero-title { font-size: 16px; font-weight: 700; color: var(--t1); margin-bottom: 4px; }
+.onb-hero-desc { font-size: 13px; color: var(--t2); line-height: 1.4; }
+.onb-hero-arrow { color: var(--t3); flex-shrink: 0; }
+
+/* ── Step 3: Carousel ── */
+.onb-carousel {
+  display: flex; align-items: center; gap: 10px;
+}
+.onb-carousel-clip {
+  flex: 1;
+  display: flex; align-items: flex-start; gap: 12px;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.onb-carousel-clip::-webkit-scrollbar { display: none; }
+
+.onb-carousel-btn {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--t1);
+  transition: border-color .15s, opacity .15s;
+}
+.onb-carousel-btn:disabled { opacity: 0.2; cursor: default; }
+.onb-carousel-btn:not(:disabled):hover { border-color: var(--accent); }
+
+.onb-carousel-dots {
+  display: flex; gap: 5px; justify-content: center; align-items: center; margin-top: 14px;
+}
+.onb-carousel-dot {
+  height: 5px; width: 5px; border-radius: 99px;
+  background: rgba(255,255,255,0.18); border: none; cursor: pointer; padding: 0;
+  transition: width 0.25s ease, background 0.25s;
+  flex-shrink: 0;
+}
+.onb-carousel-dot.active { width: 20px; background: var(--accent); }
+
+.onb-card-tooltip-timed {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  white-space: nowrap; z-index: 20;
+  background: #fff; color: #111;
+  font-size: 12px; font-weight: 700; letter-spacing: .02em;
+  padding: 7px 14px; border-radius: 99px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  animation: tooltip-pop-in 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  pointer-events: none;
+}
+.onb-card-tooltip-arrow {
+  position: absolute; top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #fff;
+  display: block; width: 0; height: 0;
+}
+@keyframes tooltip-pop-in {
+  from { opacity: 0; transform: translate(-50%, calc(-100% + 6px)); }
+  to   { opacity: 1; transform: translate(-50%, -100%); }
+}
+
+.onb-scroll-card {
+  scroll-snap-align: start;
+  width: calc((100% - 24px) / 3);
+  flex-shrink: 0;
+  border-radius: 10px; border: none;
+  background: transparent;
+  display: flex; flex-direction: column;
+  overflow: hidden; cursor: pointer; text-align: left;
+  position: relative;
+}
+
+.onb-scroll-rec {
+  position: absolute; top: 12px; left: 14px; z-index: 1;
+  background: var(--accent); color: #1a1a1a;
+  font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 99px;
+}
+.onb-scroll-card-img-wrap {
+  flex: 0 0 auto;
+  aspect-ratio: 4 / 3;
+  overflow: hidden; background: transparent;
+  display: flex; align-items: flex-end; justify-content: center;
+  position: relative;
+  border-radius: 0 0 8px 8px;
+  border: 1px solid var(--line);
+}
+.onb-scroll-card-img {
+  width: 100%; height: 100%;
+  object-fit: contain; object-position: center bottom; display: block;
+}
+.onb-scroll-card-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+
+.onb-scroll-card-body {
+  padding: 16px 20px 18px; flex-shrink: 0;
+}
+.onb-scroll-card-title {
+  font-size: 17px; font-weight: 700; color: var(--t1);
+  margin-bottom: 5px; display: flex; align-items: center;
+}
+.onb-new-badge {
+  margin-left: 6px; font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 1px 5px; border-radius: 99px; vertical-align: middle;
+  background: #2a2000; color: #f5c842; border: 1px solid rgba(245,200,66,0.27);
+}
+html.light .onb-new-badge {
+  background: #fef9e7; color: #92400e; border-color: rgba(234,179,8,0.4);
+}
+.onb-scroll-card-desc { font-size: 13px; color: var(--t2); line-height: 1.45; }
+
+.onb-scroll-card-cta-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.45);
+  opacity: 0; transition: opacity 0.18s ease;
+  z-index: 2;
+}
+.onb-scroll-card:hover .onb-scroll-card-cta-overlay { opacity: 1; }
+.onb-scroll-card-cta-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 99px;
+  background: #fff; color: #111;
+  font-size: 13px; font-weight: 700; letter-spacing: .01em;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+.onb-vcard {
+  display: flex; align-items: center; gap: 14px;
+  padding: 6px 12px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--line);
+  cursor: pointer; text-align: left; width: 100%;
+  transition: border-color .2s, background .2s, opacity .2s;
+  flex-shrink: 0;
+  opacity: 0.45;
+}
+.onb-vcard.active {
+  opacity: 1;
+  border-color: var(--accent);
+  background: #1a1a1a;
+}
+.onb-vcard:not(.active):hover { opacity: 0.7; }
+
+.onb-vcard-thumb {
+  width: 100px; height: 100px; flex-shrink: 0;
+  overflow: hidden; background: transparent;
+  display: flex; align-items: flex-end; justify-content: center;
+  border-radius: 8px;
+}
+.onb-vcard-img {
+  width: 120%; height: auto;
+  object-fit: contain; object-position: center bottom; display: block;
+}
+.onb-vcard-fallback {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+}
+.onb-vcard-body { flex: 1; min-width: 0; }
+.onb-vcard-title {
+  font-size: 15px; font-weight: 700; color: var(--t1);
+  display: flex; align-items: center; gap: 7px; margin-bottom: 4px;
+}
+.onb-vcard-popular {
+  font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 4px;
+  background: var(--accent); color: #1a1a1a;
+}
+.onb-vcard-desc { font-size: 13px; color: var(--t2); line-height: 1.4; }
+
 /* ── Step 4: Brand Name avatar ── */
 .onb-avatar-preview {
   display: flex; align-items: center; gap: 14px;
   padding: 16px; border-radius: 12px;
-  background: #141414; border: 1px solid var(--line);
+  background: var(--card-sub); border: 1px solid var(--line);
   margin-bottom: 24px;
 }
 .onb-avatar {
@@ -914,12 +1137,12 @@
 
 /* ── Step 5: Import ── */
 .onb-import-hero {
-  background: #141414; border: 1px solid var(--line-2);
+  background: var(--card-sub); border: 1px solid var(--line-2);
   border-radius: 14px; padding: 22px;
   margin-bottom: 14px;
 }
 .onb-import-hero-label {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   font-size: 15px; font-weight: 700; color: var(--t1);
   margin-bottom: 6px;
 }
@@ -934,7 +1157,7 @@
 }
 .onb-import-alt-icon {
   width: 38px; height: 38px; border-radius: 10px;
-  background: #1e1e1e; border: 1px solid var(--line);
+  background: var(--app); border: 1px solid var(--line);
   display: grid; place-items: center; color: var(--t2); flex: none;
 }
 .onb-import-alt-title { font-size: 14px; font-weight: 700; color: var(--t1); }
@@ -1017,7 +1240,7 @@
   display: flex; flex-wrap: wrap; gap: 8px;
 }
 .onb-chip-btn {
-  background: #141414; border: 1px solid var(--line-2);
+  background: var(--card-sub); border: 1px solid var(--line-2);
   border-radius: 8px; padding: 8px 14px;
   color: var(--t2); font-size: 13px; font-weight: 600; cursor: pointer;
   transition: border-color .15s, color .15s, background .15s;
@@ -1045,12 +1268,12 @@
 .onb-complete-card {
   display: flex; align-items: center; gap: 14px;
   width: 100%; padding: 18px 20px; border-radius: 14px;
-  background: #141414; border: 1px solid var(--line-2);
+  background: var(--card-sub); border: 1px solid var(--line-2);
   margin: 24px 0 20px;
 }
 .onb-complete-card-icon {
   width: 44px; height: 44px; border-radius: 11px;
-  background: #1e1e1e; border: 1px solid var(--line);
+  background: var(--app); border: 1px solid var(--line);
   display: grid; place-items: center; flex: none;
 }
 .onb-complete-card-body { flex: 1; min-width: 0; }
@@ -1181,8 +1404,8 @@
   color: #fff;
 }
 .auth-switcher-chip.active {
-  background: var(--accent, #fbbf24);
-  border-color: var(--accent, #fbbf24);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #000;
 }
 
@@ -1199,7 +1422,6 @@
   --t1: #f6f6f6;
   --t2: rgba(255,255,255,0.65);
   --t3: rgba(255,255,255,0.38);
-  --accent: #fbbf24;
   color: var(--t1);
 }
 /* Wrapper that centers the form in remaining vertical space */
@@ -1237,7 +1459,7 @@
   font-family: 'Anton', sans-serif;
   font-size: 40px;
   font-weight: 400; /* Anton is display-bold by design */
-  color: #f6f6f6;
+  color: var(--t1);
   text-align: center;
   margin: 0 0 24px;
   line-height: 1.15;
@@ -1292,7 +1514,7 @@
   box-sizing: border-box;
 }
 .onb-auth-input:focus {
-  border-color: var(--accent, #fbbf24);
+  border-color: var(--accent);
 }
 .onb-auth-input::placeholder {
   color: var(--t3);
@@ -1339,7 +1561,7 @@
 .onb-auth-checkbox {
   width: 15px;
   height: 15px;
-  accent-color: var(--accent, #fbbf24);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 .onb-auth-forgot {
@@ -1358,7 +1580,7 @@
 .onb-auth-cta {
   width: 100%;
   padding: 14px 18px;
-  background: var(--accent, #fbbf24);
+  background: var(--accent);
   border: none;
   border-radius: 10px;
   color: #000;

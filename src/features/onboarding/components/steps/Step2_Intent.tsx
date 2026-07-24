@@ -113,8 +113,8 @@ export function Step2_Intent() {
   const [referral, setReferral] = useState<string | null>(null)
   const [referralOther, setReferralOther] = useState('')
 
-  const canContinueSub1 = role !== 'other' || roleOther.trim() !== ''
-  const canContinueSub2 = referral !== 'other' || referralOther.trim() !== ''
+  const canContinueSub1 = role !== null && (role !== 'other' || roleOther.trim() !== '')
+  const canContinueSub2 = referral !== null && (referral !== 'other' || referralOther.trim() !== '')
 
   if (sub === 1) {
     return (
@@ -122,10 +122,9 @@ export function Step2_Intent() {
         <div className="onb-product-bg">
           <div className="onb-panel-top-row">
             <BackButton onClick={prevStep} />
-            <button className="onb-skip" onClick={() => setSub(2)}>Skip for now</button>
+            <button className="onb-skip" onClick={nextStep}>Skip for now</button>
           </div>
-          <div className="h-eyebrow" style={{ marginBottom: 12, marginTop: 24 }}>Personalize</div>
-          <h1 className="onb-step-title" style={{ fontFamily: 'Anton', fontWeight: 400, fontSize: 'clamp(26px, 3.5vw, 36px)', textTransform: 'uppercase', letterSpacing: '.01em', marginBottom: 6 }}>
+          <h1 className="onb-step-title" style={{ fontFamily: 'Anton', fontWeight: 400, fontSize: 'clamp(26px, 3.5vw, 36px)', textTransform: 'uppercase', letterSpacing: '.01em', marginBottom: 6, marginTop: 24 }}>
             What best describes your job?
           </h1>
           <p className="onb-step-sub" style={{ fontSize: 14, marginBottom: 28 }}>Customize LayerProof for your role.</p>
@@ -145,8 +144,7 @@ export function Step2_Intent() {
           <BackButton onClick={() => setSub(1)} />
           <button className="onb-skip" onClick={nextStep}>Skip for now</button>
         </div>
-        <div className="h-eyebrow" style={{ marginBottom: 12, marginTop: 24 }}>Personalize</div>
-        <h1 className="onb-step-title" style={{ fontFamily: 'Anton', fontWeight: 400, fontSize: 'clamp(26px, 3.5vw, 36px)', textTransform: 'uppercase', letterSpacing: '.01em', marginBottom: 6 }}>
+        <h1 className="onb-step-title" style={{ fontFamily: 'Anton', fontWeight: 400, fontSize: 'clamp(26px, 3.5vw, 36px)', textTransform: 'uppercase', letterSpacing: '.01em', marginBottom: 6, marginTop: 24 }}>
           How did you hear about us?
         </h1>
         <p className="onb-step-sub" style={{ fontSize: 14, marginBottom: 28 }}>We'd love to know how you found LayerProof.</p>

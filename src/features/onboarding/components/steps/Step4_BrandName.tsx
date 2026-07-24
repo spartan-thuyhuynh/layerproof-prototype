@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
-import { ArrowRight } from '@/shared/icons'
+import { ArrowRight, Upload } from '@/shared/icons'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -32,7 +32,17 @@ const GENERATING_STEPS: { label: string; sub: string }[] = [
   { label: 'Generating your first brand theme', sub: 'A brand theme applies your kit\'s rules to a specific output format — your first one is ready.' },
 ]
 
-type Phase = 'hook' | 'setup' | 'generating' | 'done'
+type Phase = 'hook' | 'import' | 'setup' | 'generating' | 'done'
+
+function LinkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+      strokeLinecap="round" strokeLinejoin="round" style={{ width: 17, height: 17, flexShrink: 0, color: 'var(--t3)' }}>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  )
+}
 
 // ─── Generating animation ─────────────────────────────────────────────────────
 
@@ -163,7 +173,7 @@ function DonePhase({ brandName, color, fontPair, palette, logoPreview, tone, onC
       </div>
 
       {/* Brand theme card — horizontal */}
-      <div style={{
+      <div className="onb-done-theme-card" style={{
         borderRadius: 16, overflow: 'hidden',
         border: '1px solid rgba(255,255,255,.08)',
         marginBottom: 20,
@@ -171,7 +181,7 @@ function DonePhase({ brandName, color, fontPair, palette, logoPreview, tone, onC
         background: '#111113',
       }}>
         {/* Left: gradient thumbnail */}
-        <div style={{
+        <div className="onb-done-theme-thumb" style={{
           flex: '0 0 160px',
           position: 'relative',
           background: `linear-gradient(160deg, ${color} 0%, ${activePalette[1] ?? color}bb 60%, ${activePalette[2] ?? '#111'}88 100%)`,
@@ -217,7 +227,7 @@ function DonePhase({ brandName, color, fontPair, palette, logoPreview, tone, onC
       <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,.07)', marginBottom: 24 }}>
 
         {/* Row 1: Logo | Typography | Tone */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#111113', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
+        <div className="onb-done-kit-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#111113', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
 
           {/* Logo */}
           <div style={{ padding: '16px 18px', borderRight: '1px solid rgba(255,255,255,.07)' }}>
@@ -658,11 +668,14 @@ export function Step4_BrandName() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  const [importUrl, setImportUrl]           = useState('')
+  const [importSource, setImportSource]     = useState<'url' | 'pdf' | 'setup'>('url')
+  const pdfRef = useRef<HTMLInputElement>(null)
+
   const canSetup = localName.trim().length > 0
 
   function handleBack() {
-    const onMobile = window.innerWidth < 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
-    if (onMobile) prevStep(); else setStep(2)
+    prevStep()
   }
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -706,6 +719,52 @@ export function Step4_BrandName() {
     }, GENERATING_STEPS.length * 600 + 300)
   }
 
+  function createImportedKit(kitName: string) {
+    const name = kitName.trim() || 'My Brand'
+    const id = createKit()
+    updateKit(id, (k) => ({
+      ...k,
+      name,
+      tagline:   '',
+      logoText:  name[0]?.toUpperCase() ?? 'B',
+      color:     '#EC4899',
+      logoStyle: { background: '#EC4899', color: '#fff' },
+      swatches:  ['#EC4899', '#FFDE42', '#8B5CF6', '#0A0A0A'],
+      type: {
+        display: { family: 'Playfair Display', weight: '800', note: '' },
+        body:    { family: 'Inter',            weight: '400', note: '' },
+        scale:   [],
+        rules:   [],
+      },
+      onboarding: true,
+    }))
+    setAppliedId(id)
+    setNewKitId(id)
+    setBrandSkipped(false)
+    setBrandName(name)
+    setLocalName(name)
+    setPhase('done')
+  }
+
+  function handleUrlImport() {
+    if (!importUrl.trim()) return
+    let extracted = 'My Brand'
+    try {
+      const h = new URL(importUrl).hostname.replace(/^www\./, '').split('.')[0]
+      extracted = h.charAt(0).toUpperCase() + h.slice(1)
+    } catch {}
+    setImportSource('url')
+    setPhase('generating')
+    setTimeout(() => createImportedKit(extracted), GENERATING_STEPS.length * 600 + 300)
+  }
+
+  function handlePdfImport(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.length) return
+    setImportSource('pdf')
+    setPhase('generating')
+    setTimeout(() => createImportedKit('My Brand'), GENERATING_STEPS.length * 600 + 300)
+  }
+
   if (phase === 'generating') {
     return <GeneratingPhase brandName={localName} color={primaryColor} />
   }
@@ -721,6 +780,108 @@ export function Step4_BrandName() {
         tone={selectedTone}
         onContinue={() => nextStep()}
       />
+    )
+  }
+
+  // ── Phase: Import (URL / PDF) ─────────────────────────────────────────────
+  if (phase === 'import') {
+    const canImportUrl = importUrl.trim().length > 0
+
+    return (
+      <div className="onb-step fade-in" style={{ maxWidth: 640 }}>
+        <div className="onb-product-bg">
+          <div style={{ marginBottom: 20 }}>
+            <BackButton onClick={() => setPhase('hook')} />
+          </div>
+
+          <div className="h-eyebrow" style={{ marginBottom: 10 }}>Brand kit</div>
+          <h1 className="onb-step-title" style={{ marginBottom: 8, fontSize: 28, fontFamily: 'Anton', fontWeight: 400, letterSpacing: '.01em' }}>
+            Set up your brand
+          </h1>
+          <p className="onb-step-sub" style={{ marginBottom: 20 }}>
+            Import from your website or brand guidelines — we'll extract colors, fonts and tone automatically.
+          </p>
+
+          {/* URL hero card */}
+          <div className="onb-import-hero" style={{ marginBottom: 14, display: 'flex', gap: 0, alignItems: 'stretch', padding: 0, overflow: 'hidden' }}>
+            {/* Left: brand kit preview image */}
+            <div className="onb-import-hero-visual" style={{ flexShrink: 0, width: 160, position: 'relative', overflow: 'hidden' }}>
+              <img
+                src={`${import.meta.env.BASE_URL}onboarding/illustration.png`}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'left center', display: 'block' }}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+              />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to left, #141414 0%, transparent 40%)' }} />
+            </div>
+
+            {/* Right: text + input */}
+            <div style={{ flex: 1, minWidth: 0, padding: '22px 22px 22px 22px' }}>
+              <div className="onb-import-hero-label">
+                <LinkIcon />
+                <span>Import from URL</span>
+                <span className="chip solid" style={{ fontSize: 11, padding: '2px 8px' }}>Recommended</span>
+              </div>
+              <p className="onb-import-hero-sub">
+                Paste your website URL — we'll scan it for colors, fonts, logo and tone.
+              </p>
+              <div className="ob-url-input-wrap" style={{ marginTop: 14 }}>
+                <LinkIcon />
+                <input
+                  className="ob-url-input"
+                  type="url"
+                  placeholder="https://your-website.com"
+                  value={importUrl}
+                  autoFocus
+                  onChange={(e) => setImportUrl(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && canImportUrl) handleUrlImport() }}
+                />
+                <button
+                  className="ob-url-btn"
+                  onClick={handleUrlImport}
+                  disabled={!canImportUrl}
+                >
+                  Import <ArrowRight style={{ width: 14, height: 14 }} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Secondary options */}
+          <div className="onb-import-secondary">
+            <button className="onb-import-alt card hover" onClick={() => pdfRef.current?.click()}>
+              <div className="onb-import-alt-icon">
+                <Upload style={{ width: 20, height: 20 }} />
+              </div>
+              <div>
+                <div className="onb-import-alt-title">Upload brand PDF</div>
+                <div className="onb-import-alt-sub">Style guide, brand manual, guidelines doc</div>
+              </div>
+            </button>
+
+            <button className="onb-import-alt card hover" onClick={() => setPhase('setup')}>
+              <div className="onb-import-alt-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </div>
+              <div>
+                <div className="onb-import-alt-title">Set up manually</div>
+                <div className="onb-import-alt-sub">Configure colors, fonts and tone yourself</div>
+              </div>
+            </button>
+          </div>
+
+          <input
+            ref={pdfRef}
+            type="file"
+            accept=".pdf"
+            style={{ display: 'none' }}
+            onChange={handlePdfImport}
+          />
+        </div>
+      </div>
     )
   }
 
@@ -788,7 +949,7 @@ export function Step4_BrandName() {
             <button
               className="btn primary"
               style={{ width: '100%', justifyContent: 'center', padding: '13px 24px', fontSize: 15 }}
-              onClick={() => setPhase('setup')}
+              onClick={() => setPhase('import')}
             >
               Yes, set up my brand <ArrowRight style={{ width: 16, height: 16 }} />
             </button>
@@ -823,10 +984,10 @@ export function Step4_BrandName() {
         </div>
 
         {/* Two-panel body */}
-        <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+        <div className="onb-setup-panels" style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
 
           {/* ── Left: live preview ─────────────────────────────── */}
-          <div style={{ flex: 1, minWidth: 0, position: 'sticky', top: 0 }}>
+          <div className="onb-setup-preview" style={{ flex: 1, minWidth: 0, position: 'sticky', top: 0 }}>
             {/* Preview card */}
             <div style={{
               borderRadius: 18, overflow: 'hidden',
@@ -967,7 +1128,7 @@ export function Step4_BrandName() {
             {/* Typography */}
             <div className="onb-field" style={{ marginBottom: 24 }}>
               <label className="onb-label">Typography</label>
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div className="onb-setup-type-grid" style={{ display: 'flex', gap: 10 }}>
                 <FontDropdown
                   label="Heading"
                   options={HEADING_FONTS}
@@ -995,7 +1156,7 @@ export function Step4_BrandName() {
                   border: '1px solid rgba(255,222,66,.15)', borderRadius: 4, padding: '1px 6px',
                 }}>Preset</span>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="onb-setup-voice-grid" style={{ display: 'flex', gap: 8 }}>
                 {TONES.map(({ id, label, desc }) => {
                   const active = selectedTone === id
                   return (

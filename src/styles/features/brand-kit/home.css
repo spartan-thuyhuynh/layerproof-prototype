@@ -122,7 +122,7 @@
   .hp-feature-grid { grid-template-columns: 1fr; }
 }
 .hp-feature-card {
-  border: 1px solid #3a3a3a;
+  border: 1px solid var(--line-2);
   border-radius: var(--radius); overflow: hidden;
   cursor: pointer; text-align: left; font-family: inherit;
   padding: 0; transition: border-color .15s, transform .15s;
@@ -222,11 +222,11 @@ html.light .hp-sub-pill-beta { background: #f5e6a0; color: #7a5c00; border-color
 .hp-vellum-left { position: relative; flex: 0 0 52%; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 12px; padding: 36px 40px; z-index: 2; overflow: hidden; }
 .hp-vellum-deco { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .hp-vellum-orb { position: absolute; border-radius: 50%; filter: blur(56px); }
-.hp-vellum-orb-1 { width: 260px; height: 260px; background: #f5c518; opacity: 0.1; top: -60px; left: -40px; }
-.hp-vellum-orb-2 { width: 200px; height: 200px; background: #ff4fa3; opacity: 0.08; bottom: -60px; left: 30%; }
-.hp-vellum-chip { position: relative; z-index: 1; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .05em; background: #f5c51822; color: #f5c518; border: 1px solid #f5c51844; width: fit-content; text-transform: uppercase; }
+.hp-vellum-orb-1 { width: 260px; height: 260px; background: var(--accent-vellum); opacity: 0.1; top: -60px; left: -40px; }
+.hp-vellum-orb-2 { width: 200px; height: 200px; background: var(--c-pink); opacity: 0.08; bottom: -60px; left: 30%; }
+.hp-vellum-chip { position: relative; z-index: 1; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .05em; background: rgba(245,197,24,0.13); color: var(--accent-vellum); border: 1px solid rgba(245,197,24,0.27); width: fit-content; text-transform: uppercase; }
 .hp-vellum-title { position: relative; z-index: 1; font-size: 30px; font-family: 'Anton', sans-serif; font-weight: 400; color: #fff; letter-spacing: -0.01em; line-height: 1.1; }
-.hp-vellum-accent { color: #ec4899; }
+.hp-vellum-accent { color: var(--c-pink); }
 .hp-vellum-desc { position: relative; z-index: 1; font-size: 14px; color: rgba(255,255,255,0.6); font-weight: 400; line-height: 1.5; max-width: 340px; }
 .hp-vellum-actions { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% + 12px)); display: flex; gap: 10px; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; z-index: 3; }
 .hp-vellum-btn { padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: var(--font); white-space: nowrap; transition: opacity 0.15s ease; }
@@ -237,7 +237,7 @@ html.light .hp-sub-pill-beta { background: #f5e6a0; color: #7a5c00; border-color
 @media (hover: none) {
   .hp-vellum-actions { opacity: 1; transform: translate(-50%, -50%); }
 }
-.hp-vellum-btn--primary { background: #f5c518; color: #1a1400; }
+.hp-vellum-btn--primary { background: var(--accent-vellum); color: #1a1400; }
 .hp-vellum-btn--secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
 .hp-vellum-right { flex: 1; position: relative; overflow: hidden; }
 .hp-vellum-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center right; display: block; }
@@ -254,6 +254,8 @@ html.light .hp-sub-pill-beta { background: #f5e6a0; color: #7a5c00; border-color
   .hp-vellum-overlay { background: linear-gradient(to right, #0e0e10 0%, rgba(14,14,16,0.85) 35%, transparent 90%); }
   .hp-vellum-actions {
     position: relative;
+    top: auto;
+    left: auto;
     z-index: 2;
     transform: none;
     opacity: 1;
@@ -264,7 +266,7 @@ html.light .hp-sub-pill-beta { background: #f5e6a0; color: #7a5c00; border-color
     margin-top: auto;
     max-width: 55%;
   }
-  .hp-vellum-btn { width: 100%; text-align: center; }
+  .hp-vellum-btn { width: 100%; text-align: center; box-sizing: border-box; }
 }
 
 html.light .hp-vellum-wrap { background: transparent; border-color: #e0e0e0; }
