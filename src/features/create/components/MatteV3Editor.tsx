@@ -195,11 +195,14 @@ export function MatteV3Editor() {
   }
   type PublishHistoryItem = {
     id: number; title: string; platform: string; imageCount: number
-    format: 'single' | 'carousel'; status: 'published' | 'scheduled'
-    publishedAt: string; scheduledFor?: string
+    format: 'single' | 'carousel'; status: 'published' | 'scheduled' | 'cancelled'
+    publishedAt: string; scheduledFor?: string; caption?: string
   }
   const [savedDrafts, setSavedDrafts] = useState<PublishDraft[]>([])
-  const [publishHistory, setPublishHistory] = useState<PublishHistoryItem[]>([])
+  const [publishHistory, setPublishHistory] = useState<PublishHistoryItem[]>([
+    { id: 1, title: 'Safeguarding Your Innovation', platform: 'instagram', imageCount: 3, format: 'carousel', status: 'scheduled', publishedAt: new Date().toISOString(), scheduledFor: new Date(Date.now() + 86400000).toISOString(), caption: 'Safeguarding your innovation on Apple platforms. Protect what you build with LayerProof — the IP layer every developer needs.' },
+    { id: 2, title: 'Safeguarding Your Innovation', platform: 'linkedin', imageCount: 1, format: 'single', status: 'published', publishedAt: new Date(Date.now() - 3600000).toISOString(), caption: 'Protect your intellectual property before going public. LayerProof helps developers secure what they build.' },
+  ])
   const [publishTime] = useState(() => {
     const now = new Date()
     return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
@@ -214,6 +217,11 @@ export function MatteV3Editor() {
   const [showAssetsLibrary, setShowAssetsLibrary] = useState(false)
   const [selectedAssets, setSelectedAssets] = useState<string[]>([])
   const [assetsTab, setAssetsTab] = useState<'uploads' | 'generated'>('uploads')
+  const [assetsProjectFilter, setAssetsProjectFilter] = useState<string>('all')
+  const [assetsProjectDropdownOpen, setAssetsProjectDropdownOpen] = useState(false)
+  const [uploadFolderId, setUploadFolderId] = useState<string>('images')
+  const [expandedUploadFolders, setExpandedUploadFolders] = useState<Set<string>>(new Set(['root']))
+  const [assetsSearch, setAssetsSearch] = useState('')
   const [chatAttachments, setChatAttachments] = useState<Array<{id: string; label: string; bg: string}>>([])
   const pageIdRef = useRef(3)
   const [briefOpen, setBriefOpen] = useState(true)
@@ -1851,8 +1859,14 @@ export function MatteV3Editor() {
             publishedAt: new Date().toISOString(),
             scheduledFor: publishScheduleType === 'later' && publishScheduledDate
               ? `${publishScheduledDate}T${publishScheduledTime}` : undefined,
+            caption: publishCaption.trim() || undefined,
           }, ...prev])
-          setEditorTab('preview')
+          setPublishSelectedPageIds(new Set())
+          setPublishCaption('')
+          setPublishScheduleType('now')
+          setPublishScheduledDate('')
+          setPublishScheduledTime('')
+          setSettingsTab('history')
         }
 
         const platformColor = PUBLISH_PLATFORMS.find(p => p.id === publishPlatform)?.color ?? '#0077b5'
@@ -2562,24 +2576,62 @@ export function MatteV3Editor() {
                   {publishHistory.length === 0 ? (
                     <p className="mv3-pub-history-empty">No publish history yet.</p>
                   ) : (
-                    publishHistory.map(item => (
-                      <div key={item.id} className="mv3-pub-history-item">
-                        <div className="mv3-pub-history-item-icon" style={{ background: PUBLISH_PLATFORMS.find(p => p.id === item.platform)?.color ?? '#888' }}>
-                          {platformIcon(item.platform, 11)}
+                    publishHistory.map(item => {
+                      const platColor = PUBLISH_PLATFORMS.find(p => p.id === item.platform)?.color ?? '#888'
+                      const platLabel = PLATFORM_LABELS[item.platform] ?? item.platform
+                      const scheduledDate = item.scheduledFor
+                        ? new Date(item.scheduledFor).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : null
+                      const scheduledTime = item.scheduledFor
+                        ? new Date(item.scheduledFor).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                        : null
+                      const publishedAgo = (() => {
+                        const diff = Date.now() - new Date(item.publishedAt).getTime()
+                        if (diff < 3600000) return `${Math.round(diff / 60000)}m ago`
+                        if (diff < 86400000) return `${Math.round(diff / 3600000)}h ago`
+                        return new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      })()
+                      return (
+                        <div key={item.id} className="mv3-pub-history-item">
+                          <div className="mv3-pub-history-item-icon" style={{ background: platColor }}>
+                            {platformIcon(item.platform, 13)}
+                          </div>
+                          <div className="mv3-pub-history-item-meta">
+                            <div className="mv3-pub-history-item-row1">
+                              <span className="mv3-pub-history-item-platform">{platLabel}</span>
+                              {item.status === 'scheduled' ? (
+                                <button
+                                  className="mv3-pub-history-cancel-btn"
+                                  onClick={() => setPublishHistory(prev =>
+                                    prev.map(h => h.id === item.id ? { ...h, status: 'cancelled' as const } : h)
+                                  )}
+                                >Cancel</button>
+                              ) : (
+                                <span className={`mv3-pub-history-badge mv3-pub-history-badge--${item.status}`}>
+                                  {item.status === 'cancelled' ? 'Cancelled' : 'Published'}
+                                </span>
+                              )}
+                            </div>
+                            {item.caption && (
+                              <p className="mv3-pub-history-item-caption">{item.caption}</p>
+                            )}
+                            <div className="mv3-pub-history-item-row2">
+                              <span className="mv3-pub-history-item-chip">{item.imageCount} {item.imageCount === 1 ? 'image' : 'images'}</span>
+                              <span className="mv3-pub-history-item-chip">{item.format === 'carousel' ? 'Carousel' : 'Single'}</span>
+                              {item.status === 'scheduled' && scheduledDate && (
+                                <span className="mv3-pub-history-item-time">{scheduledDate} · {scheduledTime}</span>
+                              )}
+                              {item.status === 'published' && (
+                                <span className="mv3-pub-history-item-time">{publishedAgo}</span>
+                              )}
+                              {item.status === 'cancelled' && (
+                                <span className="mv3-pub-history-item-time">Cancelled</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="mv3-pub-history-item-meta">
-                          <span className="mv3-pub-history-item-title">{item.title}</span>
-                          <span className="mv3-pub-history-item-sub">
-                            {item.status === 'scheduled' && item.scheduledFor
-                              ? `Scheduled · ${new Date(item.scheduledFor).toLocaleDateString()}`
-                              : 'Published'}
-                          </span>
-                        </div>
-                        <span className={`mv3-pub-history-badge mv3-pub-history-badge--${item.status}`}>
-                          {item.status === 'scheduled' ? 'Scheduled' : 'Published'}
-                        </span>
-                      </div>
-                    ))
+                      )
+                    })
                   )}
                 </div>
               )}
@@ -3118,16 +3170,55 @@ export function MatteV3Editor() {
 
       {/* ── Assets Library modal ── */}
       {showAssetsLibrary && (() => {
-        const generatedAssets = [
-          { id: 'gen-p1', label: 'Western Woman Portrait', bg: '#c9b89a', preview: 'p1' },
-          { id: 'gen-p2', label: 'Western Man Portrait',   bg: '#8ca8c4', preview: 'p2' },
-          { id: 'gen-p3', label: 'Chinese Woman Portrait', bg: '#b8c4b0', preview: 'p3' },
-          { id: 'gen-p4', label: 'Chinese Man Portrait',   bg: '#a8b4c0', preview: 'p4' },
-          { id: 'gen-s1', label: 'Office Interior',        bg: 'linear-gradient(135deg,#e8e0d8,#d0c8c0)', preview: 's1' },
-          { id: 'gen-s2', label: 'Tech Abstract',          bg: 'linear-gradient(135deg,#1a1a3e,#2a2a5e)', preview: 's2' },
-          { id: 'gen-s3', label: 'Product Flat Lay',       bg: 'linear-gradient(135deg,#f0ece8,#e0dcd8)', preview: 's3' },
-          { id: 'gen-s4', label: 'City Skyline',           bg: 'linear-gradient(135deg,#1c2b3a,#2c3b4a)', preview: 's4' },
+        const generatedProjects = [
+          {
+            id: 'proj-social',
+            name: 'Social Campaign – Create a poster campaign to launch LayerProof new',
+            assets: [
+              { id: 'gs-1',  bg: '#c9b89a' },
+              { id: 'gs-2',  bg: 'linear-gradient(160deg,#1a120a,#3d2408)' },
+              { id: 'gs-3',  bg: '#b8c0cc' },
+              { id: 'gs-4',  bg: 'linear-gradient(160deg,#1a120a,#3d2408)' },
+              { id: 'gs-5',  bg: 'linear-gradient(135deg,#f2a8b0,#e87ca0)' },
+              { id: 'gs-6',  bg: '#b8d4c0' },
+              { id: 'gs-7',  bg: 'linear-gradient(135deg,#1a3a6a,#2a5a9a)' },
+              { id: 'gs-8',  bg: '#e8d4b0' },
+              { id: 'gs-9',  bg: '#c0c8d8' },
+              { id: 'gs-10', bg: 'linear-gradient(135deg,#2a4a2a,#4a7a4a)' },
+            ],
+          },
+          {
+            id: 'proj-brand',
+            name: 'Brand Refresh – Q3 2025 Visual Identity Update',
+            assets: [
+              { id: 'gb-1',  bg: '#f5e6d0' },
+              { id: 'gb-2',  bg: 'linear-gradient(135deg,#0f0f20,#1a1a40)' },
+              { id: 'gb-3',  bg: '#d0e8f0' },
+              { id: 'gb-4',  bg: '#e8c8d0' },
+              { id: 'gb-5',  bg: 'linear-gradient(135deg,#2a1a0a,#5a3a1a)' },
+              { id: 'gb-6',  bg: '#c8d8e8' },
+            ],
+          },
+          {
+            id: 'proj-product',
+            name: 'Product Launch – LayerProof Editor Announcement',
+            assets: [
+              { id: 'gp-1',  bg: 'linear-gradient(135deg,#1a2a4a,#2a4a7a)' },
+              { id: 'gp-2',  bg: '#e0d0c0' },
+              { id: 'gp-3',  bg: 'linear-gradient(135deg,#3a1a4a,#6a2a8a)' },
+              { id: 'gp-4',  bg: '#c8e0c8' },
+              { id: 'gp-5',  bg: '#d8c8e0' },
+            ],
+          },
         ]
+
+        const genQ = assetsSearch.trim().toLowerCase()
+        const visibleProjects = (assetsProjectFilter === 'all'
+          ? generatedProjects
+          : generatedProjects.filter(p => p.id === assetsProjectFilter)
+        ).filter(p => !genQ || p.name.toLowerCase().includes(genQ))
+
+        const allGeneratedAssets = generatedProjects.flatMap(p => p.assets.map(a => ({ ...a, projectId: p.id })))
         const toggleAsset = (id: string) => setSelectedAssets(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id])
 
         return (
@@ -3139,14 +3230,14 @@ export function MatteV3Editor() {
                 <div className="mv3-assets-tabs">
                   <button
                     className={`mv3-assets-tab${assetsTab === 'uploads' ? ' mv3-assets-tab--active' : ''}`}
-                    onClick={() => setAssetsTab('uploads')}
+                    onClick={() => { setAssetsTab('uploads'); setAssetsSearch('') }}
                   >
                     My Uploads
                     <span className="mv3-assets-tab-badge mv3-assets-tab-badge--beta">BETA</span>
                   </button>
                   <button
                     className={`mv3-assets-tab${assetsTab === 'generated' ? ' mv3-assets-tab--active' : ''}`}
-                    onClick={() => setAssetsTab('generated')}
+                    onClick={() => { setAssetsTab('generated'); setAssetsSearch('') }}
                   >
                     Generated
                     <span className="mv3-assets-tab-badge">99+</span>
@@ -3159,8 +3250,17 @@ export function MatteV3Editor() {
                   <input
                     className="mv3-assets-search-input"
                     placeholder={assetsTab === 'uploads' ? 'Search your uploads' : 'Search generated'}
-                    readOnly
+                    value={assetsSearch}
+                    onChange={e => setAssetsSearch(e.target.value)}
+                    autoComplete="off"
                   />
+                  {assetsSearch && (
+                    <button className="mv3-assets-search-clear" onClick={() => setAssetsSearch('')}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  )}
                 </div>
                 <button className="mv3-assets-close" onClick={() => setShowAssetsLibrary(false)}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -3174,67 +3274,207 @@ export function MatteV3Editor() {
 
                 {/* Left sidebar */}
                 <div className="mv3-assets-sidebar">
-                  <button className="mv3-assets-sidebar-item mv3-assets-sidebar-item--active">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    {assetsTab === 'uploads' ? 'My Uploads' : 'All Generated'}
-                  </button>
+                  {assetsTab === 'uploads' ? (() => {
+                    const uploadTree = [
+                      {
+                        id: 'root', name: 'My Uploads',
+                        children: [
+                          {
+                            id: 'images', name: 'Images',
+                            files: [
+                              { id: 'uf-1', name: '31e62970-6563-4157-a206-9db855958962.png', size: '3.1 MB', bg: '#c9b89a' },
+                              { id: 'uf-2', name: '207a4f52-5325-4fce-8fad-32a214f228b3.png', size: '2.9 MB', bg: '#8ca8c4' },
+                            ],
+                          },
+                          { id: 'documents', name: 'Documents', files: [] },
+                          { id: 'videos',    name: 'Videos',    files: [] },
+                        ],
+                      },
+                    ]
+                    const toggleExpand = (id: string) => setExpandedUploadFolders(prev => {
+                      const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s
+                    })
+                    const renderTree = (nodes: typeof uploadTree, depth = 0): React.ReactNode =>
+                      nodes.map(node => (
+                        <div key={node.id}>
+                          <button
+                            className={`mv3-assets-sidebar-item${uploadFolderId === node.id ? ' mv3-assets-sidebar-item--active' : ''}`}
+                            style={{ paddingLeft: 10 + depth * 14 }}
+                            onClick={() => { setUploadFolderId(node.id); if ('children' in node) toggleExpand(node.id) }}
+                          >
+                            {'children' in node ? (
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ transform: expandedUploadFolders.has(node.id) ? 'rotate(90deg)' : 'none', transition: 'transform .15s', flexShrink: 0 }}>
+                                <polyline points="9 18 15 12 9 6"/>
+                              </svg>
+                            ) : <span style={{ width: 12 }} />}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            <span className="mv3-assets-sidebar-label">{node.name}</span>
+                          </button>
+                          {'children' in node && expandedUploadFolders.has(node.id) && renderTree(node.children as typeof uploadTree, depth + 1)}
+                        </div>
+                      ))
+                    return <>{renderTree(uploadTree)}</>
+                  })() : (
+                    <>
+                      <button
+                        className={`mv3-assets-sidebar-item${assetsProjectFilter === 'all' ? ' mv3-assets-sidebar-item--active' : ''}`}
+                        onClick={() => setAssetsProjectFilter('all')}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        All Generated
+                      </button>
+                      <div className="mv3-assets-sidebar-section">Projects</div>
+                      {generatedProjects.map(p => (
+                        <button
+                          key={p.id}
+                          className={`mv3-assets-sidebar-item${assetsProjectFilter === p.id ? ' mv3-assets-sidebar-item--active' : ''}`}
+                          onClick={() => setAssetsProjectFilter(p.id)}
+                          title={p.name}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                          <span className="mv3-assets-sidebar-label">{p.name}</span>
+                        </button>
+                      ))}
+                    </>
+                  )}
                 </div>
 
                 {/* Main content */}
                 <div className="mv3-assets-content">
-                  {assetsTab === 'uploads' ? (
+                  {assetsTab === 'uploads' ? (() => {
+                    const uploadFolders: Record<string, { name: string; parent?: string; files: { id: string; name: string; size: string; bg: string }[] }> = {
+                      root:      { name: 'My Uploads', files: [] },
+                      images:    { name: 'Images',    parent: 'root', files: [
+                        { id: 'uf-1', name: '31e62970-6563-4157-a206-9db855958962.png', size: '3.1 MB', bg: '#c9b89a' },
+                        { id: 'uf-2', name: '207a4f52-5325-4fce-8fad-32a214f228b3.png', size: '2.9 MB', bg: '#8ca8c4' },
+                      ]},
+                      documents: { name: 'Documents', parent: 'root', files: [] },
+                      videos:    { name: 'Videos',    parent: 'root', files: [] },
+                    }
+                    const q = assetsSearch.trim().toLowerCase()
+                    // When searching: show all files across folders that match
+                    const searchResults = q
+                      ? Object.values(uploadFolders).flatMap(f => f.files).filter(f => f.name.toLowerCase().includes(q))
+                      : null
+                    const current = uploadFolders[uploadFolderId] ?? uploadFolders.root
+                    const breadcrumb = current.parent
+                      ? [{ id: current.parent, name: uploadFolders[current.parent]?.name ?? 'My Uploads' }, { id: uploadFolderId, name: current.name }]
+                      : [{ id: uploadFolderId, name: current.name }]
+                    const displayFiles = searchResults ?? current.files
+
+                    const highlight = (text: string) => {
+                      if (!q) return <>{text}</>
+                      const i = text.toLowerCase().indexOf(q)
+                      if (i === -1) return <>{text}</>
+                      return <>{text.slice(0, i)}<mark className="mv3-search-highlight">{text.slice(i, i + q.length)}</mark>{text.slice(i + q.length)}</>
+                    }
+
+                    return (
+                      <>
+                        {/* Breadcrumb — hide when searching */}
+                        {!q && (
+                          <div className="mv3-upload-breadcrumb">
+                            {breadcrumb.map((crumb, i) => (
+                              <span key={crumb.id} className="mv3-upload-breadcrumb-row">
+                                {i > 0 && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>}
+                                <button
+                                  className={`mv3-upload-breadcrumb-btn${i === breadcrumb.length - 1 ? ' mv3-upload-breadcrumb-btn--current' : ''}`}
+                                  onClick={() => setUploadFolderId(crumb.id)}
+                                >{crumb.name}</button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {/* Search result label */}
+                        {q && (
+                          <div className="mv3-search-result-label">
+                            {displayFiles.length} result{displayFiles.length !== 1 ? 's' : ''} for "{assetsSearch}"
+                          </div>
+                        )}
+                        {/* Drop zone — hide when searching */}
+                        {!q && (
+                          <div className="mv3-assets-dropzone">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--t3)' }}>
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                              <polyline points="17 8 12 3 7 8"/>
+                              <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span className="mv3-assets-dropzone-main">Drop images here or click to select</span>
+                            <span className="mv3-assets-dropzone-sub">Max size: 20.0 MB per file</span>
+                            <span className="mv3-assets-dropzone-sub">Supported: Images, Text, PDF, CSV, Excel, Word, PowerPoint</span>
+                          </div>
+                        )}
+                        {/* File list */}
+                        {displayFiles.length > 0 ? (
+                          <div className="mv3-upload-filelist">
+                            {displayFiles.map(f => (
+                              <button
+                                key={f.id}
+                                className={`mv3-upload-file${selectedAssets.includes(f.id) ? ' mv3-upload-file--selected' : ''}`}
+                                onClick={() => setSelectedAssets(prev => prev.includes(f.id) ? prev.filter(x => x !== f.id) : [...prev, f.id])}
+                              >
+                                <div className="mv3-upload-file-thumb" style={{ background: f.bg }} />
+                                <span className="mv3-upload-file-name">{highlight(f.name)}</span>
+                                <span className="mv3-upload-file-size">{f.size}</span>
+                                {selectedAssets.includes(f.id) && (
+                                  <div className="mv3-asset-check" style={{ position: 'static', width: 18, height: 18 }}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="mv3-assets-empty">
+                            {q ? 'No files match your search.' : 'This folder is empty.'}
+                          </div>
+                        )}
+                      </>
+                    )
+                  })() : (
                     <>
-                      <div className="mv3-assets-content-title">My Uploads</div>
-                      {/* Drop zone */}
-                      <div className="mv3-assets-dropzone">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--t3)' }}>
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                          <polyline points="17 8 12 3 7 8"/>
-                          <line x1="12" y1="3" x2="12" y2="15"/>
-                        </svg>
-                        <span className="mv3-assets-dropzone-main">Drop images here or click to select</span>
-                        <span className="mv3-assets-dropzone-sub">Max size: 20.0 MB per file</span>
-                        <span className="mv3-assets-dropzone-sub">Supported: Images, Text, PDF, CSV, Excel, Word, PowerPoint</span>
-                      </div>
-                      {/* Empty state */}
-                      <div className="mv3-assets-empty">
-                        You haven't uploaded anything yet — drop images above to get started.
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="mv3-assets-content-title">All Generated</div>
-                      <div className="mv3-assets-grid">
-                        {generatedAssets.map(a => (
-                          <button
-                            key={a.id}
-                            className={`mv3-asset-card${selectedAssets.includes(a.id) ? ' mv3-asset-card--selected' : ''}`}
-                            onClick={() => toggleAsset(a.id)}
-                          >
-                            <div className="mv3-asset-thumb" style={{ background: a.bg }}>
-                              {(a.preview === 'p1' || a.preview === 'p2' || a.preview === 'p3' || a.preview === 'p4') && (
-                                <svg width="40" height="40" viewBox="0 0 40 40" style={{opacity:.6}}><circle cx="20" cy="15" r="8" fill="rgba(0,0,0,.25)"/><ellipse cx="20" cy="34" rx="14" ry="10" fill="rgba(0,0,0,.2)"/></svg>
-                              )}
-                              {(a.preview === 's1'||a.preview==='s2'||a.preview==='s3'||a.preview==='s4') && (
-                                <svg width="40" height="40" viewBox="0 0 40 40" style={{opacity:.5}}><rect x="4" y="10" width="32" height="20" rx="2" fill="rgba(0,0,0,.2)"/><rect x="8" y="14" width="10" height="12" rx="1" fill="rgba(0,0,0,.2)"/></svg>
-                              )}
-                              {selectedAssets.includes(a.id) && (
-                                <div className="mv3-asset-check">
-                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="20 6 9 17 4 12"/>
-                                  </svg>
+                      {/* Search result label */}
+                      {genQ && (
+                        <div className="mv3-search-result-label">
+                          {visibleProjects.length} project{visibleProjects.length !== 1 ? 's' : ''} match "{assetsSearch}"
+                        </div>
+                      )}
+                      {visibleProjects.length === 0 && (
+                        <div className="mv3-assets-empty">No projects match your search.</div>
+                      )}
+                      {/* Grouped by project */}
+                      {visibleProjects.map(project => (
+                        <div key={project.id} className="mv3-gen-group">
+                          <div className="mv3-gen-group-title">
+                            {genQ ? (() => {
+                              const i = project.name.toLowerCase().indexOf(genQ)
+                              if (i === -1) return project.name
+                              return <>{project.name.slice(0, i)}<mark className="mv3-search-highlight">{project.name.slice(i, i + genQ.length)}</mark>{project.name.slice(i + genQ.length)}</>
+                            })() : project.name}
+                          </div>
+                          <div className="mv3-gen-masonry">
+                            {project.assets.map(a => (
+                              <button
+                                key={a.id}
+                                className={`mv3-gen-card${selectedAssets.includes(a.id) ? ' mv3-gen-card--selected' : ''}`}
+                                onClick={() => toggleAsset(a.id)}
+                              >
+                                <div className="mv3-gen-thumb" style={{ background: a.bg }}>
+                                  {selectedAssets.includes(a.id) && (
+                                    <div className="mv3-asset-check">
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                      </svg>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                            <span className="mv3-asset-label">{a.label}</span>
-                          </button>
-                        ))}
-                      </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </>
                   )}
                 </div>
@@ -3251,10 +3491,9 @@ export function MatteV3Editor() {
                     className="mv3-assets-apply"
                     disabled={selectedAssets.length === 0}
                     onClick={() => {
-                      const allAssets = generatedAssets
                       const picked = selectedAssets.map(id => {
-                        const asset = allAssets.find(a => a.id === id)
-                        return { id, label: asset?.label ?? id, bg: asset?.bg ?? '#333' }
+                        const asset = allGeneratedAssets.find(a => a.id === id)
+                        return { id, label: id, bg: asset?.bg ?? '#333' }
                       })
                       setChatAttachments(prev => {
                         const existingIds = new Set(prev.map(a => a.id))

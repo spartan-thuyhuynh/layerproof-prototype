@@ -11,8 +11,8 @@
     {
       "name": "layerproof-preview",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview", "--", "--port", "4175"],
-      "port": 4175
+      "runtimeArgs": ["run", "preview", "--", "--port", "4176"],
+      "port": 4176
     },
     {
       "name": "prd-docs",
