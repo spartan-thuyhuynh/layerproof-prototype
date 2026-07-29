@@ -955,6 +955,7 @@
 /* ── Step 3: Carousel ── */
 .onb-carousel {
   display: flex; align-items: center; gap: 10px;
+  position: relative;
 }
 .onb-carousel-clip {
   flex: 1;
@@ -967,14 +968,19 @@
 .onb-carousel-clip::-webkit-scrollbar { display: none; }
 
 .onb-carousel-btn {
-  width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
-  background: var(--card); border: 1px solid var(--line);
+  width: 48px; height: 48px; flex-shrink: 0; border-radius: 14px;
+  background: #ffffff; border: none;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--t1);
-  transition: border-color .15s, opacity .15s;
+  cursor: pointer; color: #111111;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.45);
+  transition: opacity .15s, transform .15s, box-shadow .15s;
+  position: relative; z-index: 2;
 }
-.onb-carousel-btn:disabled { opacity: 0.2; cursor: default; }
-.onb-carousel-btn:not(:disabled):hover { border-color: var(--accent); }
+.onb-carousel-btn:disabled { opacity: 0.2; cursor: default; transform: none; }
+.onb-carousel-btn:not(:disabled):hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.55);
+  transform: scale(1.08);
+}
 
 .onb-carousel-dots {
   display: flex; gap: 5px; justify-content: center; align-items: center; margin-top: 14px;

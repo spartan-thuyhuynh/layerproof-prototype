@@ -153,7 +153,7 @@ export function Step3_Product() {
 
         <div className="onb-carousel">
           <button className="onb-carousel-btn" disabled={!canPrev} onClick={() => goTo((currentPage - 1) * pageSize)} aria-label="Previous">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
@@ -204,7 +204,7 @@ export function Step3_Product() {
           </div>
 
           <button className="onb-carousel-btn" disabled={!canNext} onClick={() => goTo((currentPage + 1) * pageSize)} aria-label="Next">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
