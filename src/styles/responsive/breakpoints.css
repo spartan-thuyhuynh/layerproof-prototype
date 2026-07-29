@@ -12,7 +12,7 @@
   .onb-step--wide    { max-width: 700px; }
   .onb-product-bg    { padding: 24px; }
   .onb-product-title { font-size: 30px; }
-  .onb-scroll-card   { width: calc((100% - 12px) / 2); }
+  .onb-scroll-card   { width: calc((100% - 60px) / 2); }
 }
 
 /* ── Mobile: ≤768px ──────────────────────────────────────────── */
