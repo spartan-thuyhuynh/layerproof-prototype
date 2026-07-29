@@ -3312,7 +3312,7 @@ export function MatteV3Editor() {
                             </svg>
                             <span className="mv3-assets-sidebar-label">{node.name}</span>
                           </button>
-                          {'children' in node && expandedUploadFolders.has(node.id) && renderTree(node.children as typeof uploadTree, depth + 1)}
+                          {'children' in node && expandedUploadFolders.has(node.id) && renderTree(node.children as any, depth + 1)}
                         </div>
                       ))
                     return <>{renderTree(uploadTree)}</>
