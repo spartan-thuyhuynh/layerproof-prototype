@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useState, useRef, useCallback, useEffect, Fragment } from 'react'
 import { LookAndFeelModal } from './LookAndFeelModal'
+import { EditorDialog, EditorDialogTrigger, EditorDialogContent, EditorDialogHeader, EditorDialogTitle, EditorDialogBody, EditorDialogFooter, EditorDialogClose } from '@/features/create/components/matte-v3/editor-ui'
 import type { ThemeOption } from '../themes'
 import { SYSTEM_THEMES } from '../themes'
 
@@ -103,6 +104,27 @@ const PLATFORM_OPTIONS: PlatformOption[] = [
   { id: 'facebook',    label: 'Facebook',        ratio: '1.91:1', w: 191, h: 100 },
 ]
 
+const PUB_STEPS: Array<{key: 'select' | 'setup' | 'connect' | 'review'; label: string}> = [
+  { key: 'select',  label: 'Select Images' },
+  { key: 'setup',   label: 'Set Up Post' },
+  { key: 'connect', label: 'Connect Account' },
+  { key: 'review',  label: 'Review & Publish' },
+]
+
+const PLATFORM_LABELS: Record<string, string> = {
+  instagram: 'Instagram', facebook: 'Facebook', twitter: 'X',
+  linkedin: 'LinkedIn', tiktok: 'TikTok', threads: 'Threads',
+}
+
+const PUBLISH_PLATFORMS = [
+  { id: 'instagram', label: 'Instagram', color: '#e1306c' },
+  { id: 'facebook',  label: 'Facebook',  color: '#1877f2' },
+  { id: 'twitter',   label: 'X',         color: '#fff' },
+  { id: 'linkedin',  label: 'LinkedIn',  color: '#0a66c2' },
+  { id: 'tiktok',    label: 'TikTok',    color: '#010101' },
+  { id: 'threads',   label: 'Threads',   color: '#101010' },
+] as const
+
 export function MatteV3Editor() {
   const navigate = useNavigate()
   const [selected, setSelected] = useState(false)
@@ -110,7 +132,7 @@ export function MatteV3Editor() {
   const [thumbMenuPos, setThumbMenuPos] = useState<{ x: number; y: number } | null>(null)
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [dropIdx, setDropIdx] = useState<number | null>(null)
-  const [pages, setPages] = useState([0, 1, 2])
+  const [pages, setPages] = useState([0, 1, 2, 3, 4])
   const [pageTitles, setPageTitles] = useState<Record<number, string>>({})
   const [activePage, setActivePage] = useState(0)
   const [sections, setSections] = useState<{ id: number; title: string; collapsed: boolean; afterPageId: number }[]>([])
@@ -139,8 +161,8 @@ export function MatteV3Editor() {
       text: "Here's what I created based on your brief:\n\n• 3-page social campaign on \"Safeguarding Your Innovation on Apple Platforms\"\n• Each page features a headline, supporting copy, a visual lock icon, and a clear CTA — \"Explore IP Best Practices\"\n• Consistent 1:1 square format, optimised for Instagram and LinkedIn feeds",
     },
   ])
-  const [pageData, setPageData] = useState<Record<number, PlatformOption>>({ 0: PLATFORM_OPTIONS[0], 1: PLATFORM_OPTIONS[0], 2: PLATFORM_OPTIONS[0] })
-  const [pageRenderSlot, setPageRenderSlot] = useState<Record<number, number>>({ 0: 0, 1: 1, 2: 2 })
+  const [pageData, setPageData] = useState<Record<number, PlatformOption>>({ 0: PLATFORM_OPTIONS[0], 1: PLATFORM_OPTIONS[0], 2: PLATFORM_OPTIONS[0], 3: PLATFORM_OPTIONS[0], 4: PLATFORM_OPTIONS[0] })
+  const [pageRenderSlot, setPageRenderSlot] = useState<Record<number, number>>({ 0: 0, 1: 1, 2: 2, 3: 3, 4: 4 })
   const [showPlatformPicker, setShowPlatformPicker] = useState(false)
   const [showVersionHistory, setShowVersionHistory] = useState(false)
   const [selectedVersionId, setSelectedVersionId] = useState<number | null>(null)
@@ -149,15 +171,49 @@ export function MatteV3Editor() {
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [shareTab, setShareTab] = useState<'link' | 'publish' | 'download'>('link')
   const [publishPlatform, setPublishPlatform] = useState('linkedin')
-  const [publishCaption, setPublishCaption] = useState('Safeguarding your innovation on Apple platforms. Protect what you build with LayerProof — the IP layer every developer needs.')
+  const [publishCaption, setPublishCaption] = useState('')
   const [publishHashtags, setPublishHashtags] = useState(['LayerProof', 'IPProtection', 'AppleDev', 'Innovation'])
-  const [publishTitle, setPublishTitle] = useState('Safeguarding Your Innovation')
+  const [publishTitle, setPublishTitle] = useState('Social post')
   const [generatingCaption, setGeneratingCaption] = useState(false)
+  const [adaptingCaption, setAdaptingCaption] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<'settings' | 'history'>('settings')
+  const [publishFormat, setPublishFormat] = useState<'single' | 'carousel'>('single')
+  const [publishSelectedPageIds, setPublishSelectedPageIds] = useState<Set<number>>(new Set())
+  const [sizeFilter, setSizeFilter] = useState<string>('all')
+  const [publishStep, setPublishStep] = useState<'select' | 'setup' | 'connect' | 'review'>('select')
+  const [connectedAccounts, setConnectedAccounts] = useState<Record<string, string>>({})
+  const [connectingAccount, setConnectingAccount] = useState(false)
+  const [publishPlatformExpanded, setPublishPlatformExpanded] = useState(false)
+  const [publishScheduleType, setPublishScheduleType] = useState<'now' | 'later'>('now')
+  const [publishScheduledDate, setPublishScheduledDate] = useState('')
+  const [publishScheduledTime, setPublishScheduledTime] = useState('')
+  type PublishDraft = {
+    id: number; title: string; platform: string; imageCount: number
+    format: 'single' | 'carousel'; caption: string; hashtags: string[]
+    scheduleType: 'now' | 'later'; scheduledDate: string; scheduledTime: string
+    savedAt: string
+  }
+  type PublishHistoryItem = {
+    id: number; title: string; platform: string; imageCount: number
+    format: 'single' | 'carousel'; status: 'published' | 'scheduled'
+    publishedAt: string; scheduledFor?: string
+  }
+  const [savedDrafts, setSavedDrafts] = useState<PublishDraft[]>([])
+  const [publishHistory, setPublishHistory] = useState<PublishHistoryItem[]>([])
+  const [publishTime] = useState(() => {
+    const now = new Date()
+    return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+      + ` (${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })})`
+  })
+  const [editorTab, setEditorTab] = useState<'preview' | 'publishing'>('preview')
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
   const [attachMenuPos, setAttachMenuPos] = useState({ x: 0, y: 0 })
   const attachBtnRef = useRef<HTMLButtonElement>(null)
+  const [connectedSources, setConnectedSources] = useState<Set<string>>(new Set(['notion']))
   const [showAssetsLibrary, setShowAssetsLibrary] = useState(false)
   const [selectedAssets, setSelectedAssets] = useState<string[]>([])
+  const [assetsTab, setAssetsTab] = useState<'uploads' | 'generated'>('uploads')
   const [chatAttachments, setChatAttachments] = useState<Array<{id: string; label: string; bg: string}>>([])
   const pageIdRef = useRef(3)
   const [briefOpen, setBriefOpen] = useState(true)
@@ -522,6 +578,11 @@ export function MatteV3Editor() {
     setActivePage(i => i + 1)
   }
 
+  const openPublishingTab = () => {
+    setPublishStep('select')
+    setEditorTab('publishing')
+  }
+
   const prevPage = () => setActivePage(i => Math.max(i - 1, 0))
   const nextPage = () => setActivePage(i => Math.min(i + 1, pages.length - 1))
 
@@ -693,18 +754,31 @@ export function MatteV3Editor() {
             </svg>
             Rate
           </button>
-          <button className="mv3-sub-share-btn" onClick={() => { setShareTab('publish'); setShowShareMenu(true) }}>Share</button>
-          <div className="mv3-divider-v" />
-          <div className="mv3-plan-badge">
-            <span className="mv3-plan-label">Plan:</span>
-            <span className="mv3-plan-value">Unlimited</span>
-          </div>
+          <button className="mv3-sub-share-btn" onClick={() => { setShareTab('link'); setShowShareMenu(true) }}>Share</button>
           <div className="mv3-avatar">T</div>
         </div>
       </header>
 
-      {/* ── Body ── */}
+      {/* ── Body — always rendered so agent panel can animate out ── */}
       <div className="mv3-body">
+        {/* Canvas zone — tabs + pages sidebar + main canvas */}
+        <div className="mv3-canvas-zone">
+
+          {/* ── Editor tabs ── */}
+          <div className="mv3-editor-tabs">
+            <div className="mv3-editor-tab-group">
+              <button className="mv3-editor-tab mv3-editor-tab--active" onClick={() => setEditorTab('preview')}>
+                Image preview
+              </button>
+              <button className="mv3-editor-tab" onClick={openPublishingTab}>
+                Publishing
+              </button>
+            </div>
+          </div>
+
+          {/* Pages + canvas row */}
+          <div className="mv3-canvas-row">
+
         {/* Left sidebar — Pages */}
         <aside className={`mv3-sidebar${sidebarCollapsed ? ' mv3-sidebar--collapsed' : ''}`}>
           <div className="mv3-sidebar-header">
@@ -832,7 +906,7 @@ export function MatteV3Editor() {
                           >
                             <div className="mv3-page-thumb-preview">
                               <div className="mv3-page-thumb-inner">
-                                <MiniPostPreview page={pageRenderSlot[pages[idx]] ?? idx} />
+                                <MiniPostPreview page={pageRenderSlot[pages[idx]] ?? idx} ratio={pageData[pages[idx]]?.ratio ?? '1:1'} />
                               </div>
                             </div>
                           </button>
@@ -853,33 +927,103 @@ export function MatteV3Editor() {
                               <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
                             </svg>
                           </button>
-                          {thumbMenuPage === idx && thumbMenuPos && (
-                            <>
-                              <div className="mv3-thumb-menu-backdrop" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null) }} />
-                              <div className="mv3-thumb-menu" style={{ left: thumbMenuPos.x, top: thumbMenuPos.y }}>
-                                {sections.length > 0 && (
-                                  <>
-                                    <div className="mv3-thumb-menu-label">Move to section</div>
-                                    {sections.map(sec => (
-                                      <button key={sec.id} className="mv3-thumb-menu-item" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null); movePageToSection(idx, sec.id) }}>
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                                          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-                                        </svg>
-                                        {sec.title}
-                                      </button>
-                                    ))}
+                          {thumbMenuPage === idx && thumbMenuPos && (() => {
+                              const closeMenu = () => { setThumbMenuPage(null); setThumbMenuPos(null) }
+                              return (
+                                <>
+                                  <div className="mv3-thumb-menu-backdrop" onClick={closeMenu} />
+                                  <div className="mv3-thumb-menu" style={{ left: thumbMenuPos.x, top: thumbMenuPos.y }}>
+                                    {/* Duplicate */}
+                                    <button className="mv3-thumb-menu-item" onClick={() => {
+                                      closeMenu()
+                                      const pageId = pages[idx]
+                                      const newId = pageIdRef.current++
+                                      setPageData(prev => ({ ...prev, [newId]: prev[pageId] ?? PLATFORM_OPTIONS[0] }))
+                                      setPageRenderSlot(prev => ({ ...prev, [newId]: prev[pageId] ?? idx }))
+                                      setPages(p => { const next = [...p]; next.splice(idx + 1, 0, newId); return next })
+                                      setActivePage(idx + 1)
+                                    }}>
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                      </svg>
+                                      Duplicate
+                                    </button>
+                                    {/* Move up */}
+                                    <button className="mv3-thumb-menu-item" disabled={idx === 0} onClick={() => {
+                                      if (idx === 0) return
+                                      closeMenu()
+                                      setPages(p => { const next = [...p]; [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]; return next })
+                                      setActivePage(idx - 1)
+                                    }}>
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+                                      </svg>
+                                      Move up
+                                    </button>
+                                    {/* Move down */}
+                                    <button className="mv3-thumb-menu-item" disabled={idx === pages.length - 1} onClick={() => {
+                                      if (idx === pages.length - 1) return
+                                      closeMenu()
+                                      setPages(p => { const next = [...p]; [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]; return next })
+                                      setActivePage(idx + 1)
+                                    }}>
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+                                      </svg>
+                                      Move down
+                                    </button>
                                     <div className="mv3-thumb-menu-divider" />
-                                  </>
-                                )}
-                                <button className="mv3-thumb-menu-item mv3-thumb-menu-item--danger" onClick={() => { setThumbMenuPage(null); setThumbMenuPos(null); deletePage() }}>
-                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                                  </svg>
-                                  Delete page
-                                </button>
-                              </div>
-                            </>
-                          )}
+                                    {/* Set as cover */}
+                                    <button className="mv3-thumb-menu-item" disabled={idx === 0} onClick={() => {
+                                      if (idx === 0) return
+                                      closeMenu()
+                                      setPages(p => { const next = [...p]; const [removed] = next.splice(idx, 1); next.unshift(removed); return next })
+                                      setActivePage(0)
+                                    }}>
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                      </svg>
+                                      Set as cover
+                                    </button>
+                                    {/* Download image */}
+                                    <button className="mv3-thumb-menu-item" onClick={closeMenu}>
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                                      </svg>
+                                      Download image
+                                    </button>
+                                    {/* Move to section */}
+                                    {sections.length > 0 && (
+                                      <>
+                                        <div className="mv3-thumb-menu-divider" />
+                                        <div className="mv3-thumb-menu-label">Move to section</div>
+                                        {sections.map(sec => (
+                                          <button key={sec.id} className="mv3-thumb-menu-item" onClick={() => { closeMenu(); movePageToSection(idx, sec.id) }}>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                                            </svg>
+                                            {sec.title}
+                                          </button>
+                                        ))}
+                                      </>
+                                    )}
+                                    <div className="mv3-thumb-menu-divider" />
+                                    {/* Delete */}
+                                    <button className="mv3-thumb-menu-item mv3-thumb-menu-item--danger" disabled={pages.length === 1} onClick={() => {
+                                      if (pages.length === 1) return
+                                      closeMenu()
+                                      setPages(p => p.filter((_, i) => i !== idx))
+                                      setActivePage(i => Math.max(i - 1, 0))
+                                    }}>
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                      </svg>
+                                      Delete page
+                                    </button>
+                                  </div>
+                                </>
+                              )
+                            })()}
                         </div>
                       </div>
                     </div>
@@ -906,68 +1050,67 @@ export function MatteV3Editor() {
           {/* ── Page toolbar bar ── */}
           {!(commentMode || tweakOpen) && (
           <div className="mv3-page-toolbar" onClick={e => e.stopPropagation()}>
-            <>
-                {(() => {
-                  const tbPlatform = pageData[pages[activePage]] ?? PLATFORM_OPTIONS[0]
-                  return (
-                    <div className="mv3-platform-btn-wrap">
-                      <button className="mv3-platform-btn" onClick={e => { e.stopPropagation(); setShowPlatformPicker(p => !p) }}>
-                        <span className="mv3-platform-btn-label">{tbPlatform.label}</span>
-                        <span className="mv3-platform-btn-ratio">{tbPlatform.ratio}</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                      </button>
-                      {showPlatformPicker && (
-                        <div className="mv3-platform-picker" onClick={e => e.stopPropagation()}>
-                          <div className="mv3-platform-picker-title">Choose platform &amp; size</div>
-                          {PLATFORM_OPTIONS.map(p => (
-                            <button key={p.id} className={`mv3-platform-option${tbPlatform.id === p.id ? ' mv3-platform-option--active' : ''}`} onClick={() => changePlatform(p)}>
-                              <span className="mv3-platform-option-label">{p.label}</span>
-                              <span className="mv3-platform-option-ratio">{p.ratio}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })()}
-                <div className="mv3-sel-sep" />
-                <button className="mv3-sel-btn" onClick={e => { e.stopPropagation(); setShowVersionHistory(true); setSelectedVersionId(null) }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 8 14"/>
-                  </svg>
-                  Version History
-                </button>
-                <div className="mv3-sel-sep" />
-                <button className="mv3-sel-btn mv3-sel-btn--mark" onClick={e => { e.stopPropagation(); setCommentMode(true) }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                  </svg>
-                  Mark to edit
-                </button>
-                <div style={{ flex: 1 }} />
-                <button className="mv3-sel-icon-btn" title="Undo (⌘Z)" onClick={e => { e.stopPropagation(); undoGeneration() }} disabled={undoStack.length === 0}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
-                  </svg>
-                </button>
-                <button className="mv3-sel-icon-btn" title="Redo (⌘⇧Z)" onClick={e => { e.stopPropagation(); redoGeneration() }} disabled={redoStack.length === 0}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.5"/>
-                  </svg>
-                </button>
-                <div className="mv3-sel-sep" />
-                <button className="mv3-sel-icon-btn" title="Download">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                </button>
-                <div className="mv3-sel-sep" />
-                <button className="mv3-sel-icon-btn" title="Duplicate page" onClick={e => { e.stopPropagation(); duplicatePage() }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                </button>
-            </>
+            {/* Left actions */}
+            <button className="mv3-sel-btn" onClick={e => { e.stopPropagation(); setShowVersionHistory(true); setSelectedVersionId(null) }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 8 14"/>
+              </svg>
+              Version history
+            </button>
+            <button className="mv3-sel-btn mv3-sel-btn--mark" onClick={e => { e.stopPropagation(); setCommentMode(true) }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              Mark to edit
+            </button>
+            <button className="mv3-sel-btn" onClick={e => e.stopPropagation()}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+              </svg>
+              Image Property
+            </button>
+
+            {/* Platform info + action icons */}
+            {(() => {
+              const tbPlatform = pageData[pages[activePage]] ?? PLATFORM_OPTIONS[0]
+              return (
+                <>
+                  <div className="mv3-platform-btn-wrap">
+                    <button className="mv3-platform-btn" onClick={e => { e.stopPropagation(); setShowPlatformPicker(p => !p) }}>
+                      <span className="mv3-platform-btn-label">{tbPlatform.label}</span>
+                      <span className="mv3-platform-btn-ratio">{tbPlatform.ratio}</span>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                    {showPlatformPicker && (
+                      <div className="mv3-platform-picker mv3-platform-picker--right" onClick={e => e.stopPropagation()}>
+                        <div className="mv3-platform-picker-title">Choose platform &amp; size</div>
+                        {PLATFORM_OPTIONS.map(p => (
+                          <button key={p.id} className={`mv3-platform-option${tbPlatform.id === p.id ? ' mv3-platform-option--active' : ''}`} onClick={() => changePlatform(p)}>
+                            <span className="mv3-platform-option-label">{p.label}</span>
+                            <span className="mv3-platform-option-ratio">{p.ratio}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button className="mv3-tb-icon-btn" title="Duplicate page" onClick={e => { e.stopPropagation(); duplicatePage() }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                  <button className="mv3-tb-icon-btn" title="Download">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                  </button>
+                  <button className="mv3-tb-icon-btn mv3-tb-icon-btn--danger" title="Delete page" onClick={e => { e.stopPropagation(); deletePage() }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                  </button>
+                </>
+              )
+            })()}
           </div>
           )}
 
@@ -1288,9 +1431,11 @@ export function MatteV3Editor() {
             </div>
           </div>
         </div>
+          </div>{/* end mv3-canvas-row */}
+        </div>{/* end mv3-canvas-zone */}
 
         {/* ── Left side panel: brief + agent ── */}
-        <div className={`mv3-agent-panel-wrap${chatPanelCollapsed ? ' mv3-agent-panel-wrap--collapsed' : ''}`} style={chatPanelCollapsed ? undefined : { width: chatPanelWidth }}>
+        <div className={`mv3-agent-panel-wrap${chatPanelCollapsed || editorTab === 'publishing' ? ' mv3-agent-panel-wrap--collapsed' : ''}`} style={chatPanelCollapsed || editorTab === 'publishing' ? undefined : { width: chatPanelWidth }}>
           <div className="mv3-chat-resize-handle" onMouseDown={onChatResizeStart} />
 
             {/* ── Brief panel — sits above the agent panel ── */}
@@ -1540,19 +1685,123 @@ export function MatteV3Editor() {
                       <>
                         <div className="mv3-attach-backdrop" onClick={() => setShowAttachMenu(false)} />
                         <div className="mv3-attach-menu" style={{ left: attachMenuPos.x, top: attachMenuPos.y - 8, transform: 'translateY(-100%)' }}>
+                          <div className="mv3-attach-header">Chat actions</div>
+
+                          {/* Primary actions — card style */}
                           <button className="mv3-attach-item" onClick={() => setShowAttachMenu(false)}>
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                               <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                             </svg>
-                            Upload File
+                            Upload file
                           </button>
                           <button className="mv3-attach-item" onClick={() => { setShowAttachMenu(false); setSelectedAssets([]); setShowAssetsLibrary(true) }}>
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                               <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                               <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
                             </svg>
-                            Select from Assets Library
+                            Select from Assets
                           </button>
+
+                          {/* Connector rows */}
+                          {[
+                            {
+                              id: 'google-drive',
+                              label: 'Google Drive',
+                              icon: (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M4.5 19.5L8 13.5H22L18.5 19.5H4.5Z" fill="#1FA463"/>
+                                  <path d="M2 19.5L8 9L11.5 15H5.5L2 19.5Z" fill="#4285F4"/>
+                                  <path d="M16 9H8L12 3L20 9L16.5 15H11.5L16 9Z" fill="#FBBC04"/>
+                                </svg>
+                              ),
+                            },
+                            {
+                              id: 'notion',
+                              label: 'Notion',
+                              icon: (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M4.459 4.208c.746.606 1.026.56 2.428.469l13.212-.78c.281 0 .047-.28-.046-.327L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.14c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/>
+                                </svg>
+                              ),
+                            },
+                            {
+                              id: 'microsoft-365',
+                              label: 'Microsoft 365',
+                              icon: (
+                                <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+                                  <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
+                                  <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
+                                  <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+                                </svg>
+                              ),
+                            },
+                            {
+                              id: 'confluence',
+                              label: 'Atlassian (Confluence)',
+                              icon: (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M2.264 14.963c-.275-.44-.55-.936-.165-1.541L10.24 1.155c.33-.55 1.1-.715 1.65-.385.55.33.715 1.1.385 1.65L4.354 14.413c-.495.825-1.705.99-2.09.55z" fill="url(#cg1)"/>
+                                  <path d="M21.736 9.037c.275.44.55.936.165 1.541L13.76 22.845c-.33.55-1.1.715-1.65.385-.55-.33-.715-1.1-.385-1.65l7.921-11.993c.495-.825 1.705-.99 2.09-.55z" fill="url(#cg2)"/>
+                                  <defs>
+                                    <linearGradient id="cg1" x1="10.15" y1="14.09" x2="4.97" y2="1.13" gradientUnits="userSpaceOnUse">
+                                      <stop stopColor="#0052CC"/><stop offset="1" stopColor="#2684FF"/>
+                                    </linearGradient>
+                                    <linearGradient id="cg2" x1="13.85" y1="9.91" x2="19.03" y2="22.87" gradientUnits="userSpaceOnUse">
+                                      <stop stopColor="#0052CC"/><stop offset="1" stopColor="#2684FF"/>
+                                    </linearGradient>
+                                  </defs>
+                                </svg>
+                              ),
+                            },
+                          ].map(({ id, label, icon }) => {
+                            const isConnected = connectedSources.has(id)
+                            const connectorRow = (
+                              <div className={`mv3-attach-connector ${isConnected ? 'mv3-connector-connected' : 'mv3-connector-unavailable'}`}>
+                                <span className="mv3-attach-connector-icon">{icon}</span>
+                                <span className="mv3-attach-connector-label">{label}</span>
+                                {isConnected ? (
+                                  <span className="mv3-attach-connected-badge">Connected</span>
+                                ) : (
+                                  <button
+                                    className="mv3-attach-connect-btn"
+                                    onClick={() => setConnectedSources(prev => new Set([...prev, id]))}
+                                  >
+                                    Connect
+                                  </button>
+                                )}
+                              </div>
+                            )
+                            if (isConnected) {
+                              return (
+                                <div key={id} className="mv3-attach-connector-row">
+                                  {connectorRow}
+                                  <button
+                                    className="mv3-attach-disconnect-btn"
+                                    title="Disconnect"
+                                    onClick={() => setConnectedSources(prev => { const s = new Set(prev); s.delete(id); return s })}
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                      <line x1="4" y1="4" x2="20" y2="20"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              )
+                            }
+                            return <div key={id}>{connectorRow}</div>
+                          })}
+
+                          {/* Footer */}
+                          <div className="mv3-attach-footer-divider" />
+                          <button className="mv3-attach-manage-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/>
+                            </svg>
+                            Manage connectors
+                          </button>
+                          <div className="mv3-attach-size-note">Max local file size: 50.0 MB.</div>
                         </div>
                       </>
                     )}
@@ -1590,6 +1839,994 @@ export function MatteV3Editor() {
           </div>
 
       </div>
+
+      {/* ── Publishing (3-column: select | preview | setup) ── */}
+      {editorTab === 'publishing' && (() => {
+        const handlePublish = () => {
+          setPublishHistory(prev => [{
+            id: Date.now(), title: publishTitle || 'Untitled post',
+            platform: publishPlatform, imageCount: publishSelectedPageIds.size,
+            format: publishFormat,
+            status: publishScheduleType === 'later' ? 'scheduled' : 'published',
+            publishedAt: new Date().toISOString(),
+            scheduledFor: publishScheduleType === 'later' && publishScheduledDate
+              ? `${publishScheduledDate}T${publishScheduledTime}` : undefined,
+          }, ...prev])
+          setEditorTab('preview')
+        }
+
+        const platformColor = PUBLISH_PLATFORMS.find(p => p.id === publishPlatform)?.color ?? '#0077b5'
+        const firstSelId = Array.from(publishSelectedPageIds)[0] ?? pages[0]
+        const firstSelIdx = pages.indexOf(firstSelId)
+
+        // Platform-specific preview rules
+        const platformAspect: Record<string, string> = {
+          instagram: '1 / 1', facebook: '1.91 / 1', twitter: '16 / 9',
+          linkedin: '1.91 / 1', tiktok: '9 / 16', threads: '1 / 1',
+        }
+        const platformSubtext: Record<string, string> = {
+          instagram: '@thuyhuynh', facebook: 'Just now · 🌍 Public',
+          twitter: '@thuyhuynh', linkedin: 'Software Engineer · 1st',
+          tiktok: '@thuyhuynh', threads: '@thuyhuynh',
+        }
+        const iconLike = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+        const iconHeart = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        const iconComment = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        const iconRepost = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        const iconSend = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        const iconShare = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        const iconBookmark = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        const iconReply = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+        const PLATFORM_RECOMMENDED_RATIOS: Record<string, string[]> = {
+          instagram: ['1:1', '4:5', '9:16'],
+          facebook:  ['1.91:1', '1:1'],
+          twitter:   ['16:9', '1:1'],
+          linkedin:  ['1.91:1', '1:1'],
+          tiktok:    ['9:16'],
+          threads:   ['1:1', '4:5'],
+        }
+        const recRatios = PLATFORM_RECOMMENDED_RATIOS[publishPlatform] ?? ['1:1']
+        const firstPageRatio = pageData[firstSelId]?.ratio ?? '1:1'
+        const firstPageFits = recRatios.includes(firstPageRatio)
+
+        const platformActions: Record<string, Array<{ label: string; icon: React.ReactNode }>> = {
+          instagram: [{ label: '', icon: iconHeart }, { label: '', icon: iconComment }, { label: '', icon: iconSend }, { label: '', icon: iconBookmark }],
+          facebook:  [{ label: 'Like', icon: iconLike }, { label: 'Comment', icon: iconComment }, { label: 'Share', icon: iconShare }],
+          twitter:   [{ label: '', icon: iconReply }, { label: '', icon: iconRepost }, { label: '', icon: iconHeart }, { label: '', icon: iconShare }],
+          linkedin:  [{ label: 'Like', icon: iconLike }, { label: 'Comment', icon: iconComment }, { label: 'Repost', icon: iconRepost }, { label: 'Send', icon: iconSend }],
+          tiktok:    [{ label: '', icon: iconHeart }, { label: '', icon: iconComment }, { label: '', icon: iconShare }],
+          threads:   [{ label: '', icon: iconHeart }, { label: '', icon: iconReply }, { label: '', icon: iconRepost }, { label: '', icon: iconShare }],
+        }
+        const platformIcon = (id: string, size = 16) => (
+          <svg width={size} height={size} viewBox="0 0 24 24" fill="white">
+            {id === 'instagram' && <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>}
+            {id === 'facebook' && <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>}
+            {id === 'twitter' && <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>}
+            {id === 'linkedin' && <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>}
+            {id === 'tiktok' && <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>}
+            {id === 'threads' && <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.689-2.045 1.07-1.127 1.679-2.863 1.769-5.233H12.75v-2.09h7.02l.012.56c.071 3.51-.693 6.101-2.396 7.932-1.55 1.67-3.784 2.575-6.2 2.575z"/>}
+          </svg>
+        )
+
+        // ── Per-platform social card renderer ──
+        const renderSocialCard = () => {
+          if (publishSelectedPageIds.size === 0) return (
+            <div className="mv3-pub-empty-state">
+              <div className="mv3-pub-empty-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="m3 9 4-4 4 4 4-4 4 4"/>
+                  <circle cx="8.5" cy="14.5" r="1.5"/>
+                </svg>
+              </div>
+              <p className="mv3-pub-empty-title">No images selected</p>
+              <p className="mv3-pub-empty-sub">Select images from the left panel to preview your post</p>
+            </div>
+          )
+
+          const allIds = Array.from(publishSelectedPageIds)
+
+          // Image area helpers
+          const singleImg = (ar: string) => (
+            <div className="mv3-pub-social-image" style={{ aspectRatio: ar }}>
+              <PostPreview page={pageRenderSlot[firstSelId] ?? firstSelIdx} />
+            </div>
+          )
+
+          const fbGrid = (ids: number[]) => {
+            if (ids.length === 1) return singleImg('1.91 / 1')
+            if (ids.length === 2) return (
+              <div className="mv3-pub-fb-grid mv3-pub-fb-grid--2">
+                {ids.map(pid => <div key={pid} className="mv3-pub-fb-cell"><PostPreview page={pageRenderSlot[pid] ?? 0} /></div>)}
+              </div>
+            )
+            if (ids.length === 3) return (
+              <div className="mv3-pub-fb-grid mv3-pub-fb-grid--3">
+                <div className="mv3-pub-fb-cell mv3-pub-fb-cell--main"><PostPreview page={pageRenderSlot[ids[0]] ?? 0} /></div>
+                <div className="mv3-pub-fb-col">
+                  {ids.slice(1).map(pid => <div key={pid} className="mv3-pub-fb-cell"><PostPreview page={pageRenderSlot[pid] ?? 0} /></div>)}
+                </div>
+              </div>
+            )
+            const vis = ids.slice(0, 4); const ov = ids.length - 4
+            return (
+              <div className="mv3-pub-fb-grid mv3-pub-fb-grid--4">
+                {vis.map((pid, i) => (
+                  <div key={pid} className="mv3-pub-fb-cell" style={{ position: 'relative' }}>
+                    <PostPreview page={pageRenderSlot[pid] ?? 0} />
+                    {i === 3 && ov > 0 && <div className="mv3-pub-carousel-sub-more">+{ov}</div>}
+                  </div>
+                ))}
+              </div>
+            )
+          }
+
+          const xGrid = (ids: number[]) => {
+            if (ids.length === 1) return singleImg('16 / 9')
+            const vis = ids.slice(0, 4); const ov = ids.length - 4
+            if (ids.length === 2) return (
+              <div className="mv3-pub-fb-grid mv3-pub-fb-grid--2">
+                {vis.map(pid => <div key={pid} className="mv3-pub-fb-cell"><PostPreview page={pageRenderSlot[pid] ?? 0} /></div>)}
+              </div>
+            )
+            if (ids.length === 3) return (
+              <div className="mv3-pub-fb-grid mv3-pub-fb-grid--3">
+                <div className="mv3-pub-fb-cell mv3-pub-fb-cell--main"><PostPreview page={pageRenderSlot[vis[0]] ?? 0} /></div>
+                <div className="mv3-pub-fb-col">
+                  {vis.slice(1).map(pid => <div key={pid} className="mv3-pub-fb-cell"><PostPreview page={pageRenderSlot[pid] ?? 0} /></div>)}
+                </div>
+              </div>
+            )
+            return (
+              <div className="mv3-pub-fb-grid mv3-pub-fb-grid--4">
+                {vis.map((pid, i) => (
+                  <div key={pid} className="mv3-pub-fb-cell" style={{ position: 'relative' }}>
+                    <PostPreview page={pageRenderSlot[pid] ?? 0} />
+                    {i === 3 && ov > 0 && <div className="mv3-pub-carousel-sub-more">+{ov}</div>}
+                  </div>
+                ))}
+              </div>
+            )
+          }
+
+          const liGrid = (ids: number[]) => {
+            if (ids.length === 1) return singleImg('1.91 / 1')
+            const rest = ids.slice(1)
+            return (
+              <div className="mv3-pub-carousel-grid">
+                <div className="mv3-pub-carousel-hero">
+                  <PostPreview page={pageRenderSlot[ids[0]] ?? 0} />
+                </div>
+                <div className="mv3-pub-carousel-sub">
+                  {rest.slice(0, 4).map((pid, i) => (
+                    <div key={pid} className="mv3-pub-carousel-sub-item" style={{ position: 'relative' }}>
+                      <PostPreview page={pageRenderSlot[pid] ?? 0} />
+                      {i === 3 && rest.length > 4 && <div className="mv3-pub-carousel-sub-more">+{rest.length - 4}</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          const igImage = (ids: number[]) => (
+            <div className="mv3-pub-social-image" style={{ aspectRatio: '1 / 1', position: 'relative' }}>
+              <PostPreview page={pageRenderSlot[ids[0]] ?? firstSelIdx} />
+              {ids.length > 1 && (
+                <div className="mv3-pub-ig-dots">
+                  {Array.from({ length: Math.min(ids.length, 7) }).map((_, i) => (
+                    <div key={i} className={`mv3-pub-ig-dot${i === 0 ? ' mv3-pub-ig-dot--active' : ''}`} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+
+          const shortCap = publishCaption.length > 180 ? publishCaption.slice(0, 180) + '…' : publishCaption
+
+          // ── Facebook ──
+          if (publishPlatform === 'facebook') return (
+            <div className="mv3-plat-card mv3-plat-fb">
+              <div className="mv3-plat-fb-header">
+                <div className="mv3-plat-fb-avatar">T</div>
+                <div className="mv3-plat-fb-meta">
+                  <span className="mv3-plat-fb-name">Thuy Huynh</span>
+                  <span className="mv3-plat-fb-subtext">Just now · 🌐</span>
+                </div>
+                <button className="mv3-plat-more-btn">···</button>
+              </div>
+              {publishCaption && <p className="mv3-plat-fb-caption">{shortCap}</p>}
+              {fbGrid(allIds)}
+              <div className="mv3-plat-fb-reactions">
+                <span className="mv3-plat-fb-react-left">
+                  <span className="mv3-plat-fb-react-icons">
+                    <span className="mv3-plat-fb-react-icon mv3-plat-fb-react-icon--like">👍</span>
+                    <span className="mv3-plat-fb-react-icon mv3-plat-fb-react-icon--love">❤️</span>
+                    <span className="mv3-plat-fb-react-icon mv3-plat-fb-react-icon--haha">😂</span>
+                  </span>
+                  <span>117</span>
+                </span>
+                <span className="mv3-plat-fb-react-right">23 comments · 14 shares</span>
+              </div>
+              <div className="mv3-plat-fb-divider" />
+              <div className="mv3-plat-fb-actions">
+                <button className="mv3-plat-fb-action">👍 <span>Like</span></button>
+                <div className="mv3-plat-fb-sep" />
+                <button className="mv3-plat-fb-action">💬 <span>Comment</span></button>
+                <div className="mv3-plat-fb-sep" />
+                <button className="mv3-plat-fb-action">↗ <span>Share</span></button>
+              </div>
+            </div>
+          )
+
+          // ── Instagram ──
+          if (publishPlatform === 'instagram') return (
+            <div className="mv3-plat-card mv3-plat-ig">
+              <div className="mv3-plat-ig-header">
+                <div className="mv3-plat-ig-avatar-ring">
+                  <div className="mv3-plat-ig-avatar">T</div>
+                </div>
+                <span className="mv3-plat-ig-username">thuyhuynh</span>
+                <button className="mv3-plat-more-btn mv3-plat-more-btn--dark">···</button>
+              </div>
+              {igImage(allIds)}
+              <div className="mv3-plat-ig-actions">
+                <div className="mv3-plat-ig-actions-left">
+                  <button className="mv3-plat-ig-icon-btn mv3-plat-ig-icon-btn--heart">♡</button>
+                  <button className="mv3-plat-ig-icon-btn">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth={1.8}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  </button>
+                  <button className="mv3-plat-ig-icon-btn">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth={1.8}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </button>
+                </div>
+                <button className="mv3-plat-ig-icon-btn">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth={1.8}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                </button>
+              </div>
+              <p className="mv3-plat-ig-likes">1,234 likes</p>
+              {publishCaption && <p className="mv3-plat-ig-caption"><strong>thuyhuynh</strong> {shortCap}</p>}
+              <p className="mv3-plat-ig-comments-link">View all 23 comments</p>
+              <p className="mv3-plat-ig-time">2 HOURS AGO</p>
+            </div>
+          )
+
+          // ── X (Twitter) ──
+          if (publishPlatform === 'twitter') return (
+            <div className="mv3-plat-card mv3-plat-x">
+              <div className="mv3-plat-x-header">
+                <div className="mv3-plat-x-avatar">T</div>
+                <div className="mv3-plat-x-meta">
+                  <span className="mv3-plat-x-name">Thuy Huynh</span>
+                  <span className="mv3-plat-x-verified">✓</span>
+                  <span className="mv3-plat-x-handle">@thuyhuynh</span>
+                  <span className="mv3-plat-x-sep">·</span>
+                  <span className="mv3-plat-x-time">2h</span>
+                </div>
+                <button className="mv3-plat-more-btn mv3-plat-more-btn--muted">···</button>
+              </div>
+              {publishCaption && <p className="mv3-plat-x-text">{shortCap}</p>}
+              {xGrid(allIds)}
+              <div className="mv3-plat-x-actions">
+                <button className="mv3-plat-x-action">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span>12</span>
+                </button>
+                <button className="mv3-plat-x-action">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                  <span>45</span>
+                </button>
+                <button className="mv3-plat-x-action">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  <span>234</span>
+                </button>
+                <button className="mv3-plat-x-action">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
+              </div>
+            </div>
+          )
+
+          // ── LinkedIn ──
+          if (publishPlatform === 'linkedin') return (
+            <div className="mv3-plat-card mv3-plat-li">
+              <div className="mv3-plat-li-header">
+                <div className="mv3-plat-li-avatar">T</div>
+                <div className="mv3-plat-li-meta">
+                  <span className="mv3-plat-li-name">Thuy Huynh</span>
+                  <span className="mv3-plat-li-title">Product Designer at LayerProof</span>
+                  <span className="mv3-plat-li-time">2h · 🌐</span>
+                </div>
+                <div className="mv3-plat-li-hdr-right">
+                  <button className="mv3-plat-li-follow-btn">Follow</button>
+                  <button className="mv3-plat-more-btn mv3-plat-more-btn--muted">···</button>
+                </div>
+              </div>
+              {publishCaption && (
+                <p className="mv3-plat-li-caption">
+                  {shortCap}
+                  {publishCaption.length > 180 && <button className="mv3-plat-li-seemore">…see more</button>}
+                </p>
+              )}
+              {liGrid(allIds)}
+              <p className="mv3-plat-li-reactions">👍 ❤️ 💡 <span>117 reactions · 23 comments · 14 reposts</span></p>
+              <div className="mv3-plat-li-divider" />
+              <div className="mv3-plat-li-actions">
+                <button className="mv3-plat-li-action">👍 <span>Like</span></button>
+                <button className="mv3-plat-li-action">💬 <span>Comment</span></button>
+                <button className="mv3-plat-li-action">🔁 <span>Repost</span></button>
+                <button className="mv3-plat-li-action">✈️ <span>Send</span></button>
+              </div>
+            </div>
+          )
+
+          // ── TikTok ──
+          if (publishPlatform === 'tiktok') return (
+            <div className="mv3-plat-card mv3-plat-tt">
+              <div className="mv3-plat-tt-inner">
+                <div className="mv3-plat-tt-img">
+                  <PostPreview page={pageRenderSlot[firstSelId] ?? firstSelIdx} />
+                </div>
+                <div className="mv3-plat-tt-overlay" />
+                <div className="mv3-plat-tt-info">
+                  <p className="mv3-plat-tt-username">@thuyhuynh</p>
+                  {publishCaption && (
+                    <p className="mv3-plat-tt-caption">
+                      {publishCaption.length > 100 ? publishCaption.slice(0, 100) + '…' : publishCaption}
+                    </p>
+                  )}
+                  <p className="mv3-plat-tt-music">🎵 Original Sound</p>
+                </div>
+                <div className="mv3-plat-tt-sidebar">
+                  <div className="mv3-plat-tt-sidebar-item">
+                    <div className="mv3-plat-tt-avwrap">
+                      <div className="mv3-plat-tt-avatar">T</div>
+                      <div className="mv3-plat-tt-avplus">+</div>
+                    </div>
+                  </div>
+                  <div className="mv3-plat-tt-sidebar-item">
+                    <span className="mv3-plat-tt-icon">❤️</span>
+                    <span className="mv3-plat-tt-label">45.6K</span>
+                  </div>
+                  <div className="mv3-plat-tt-sidebar-item">
+                    <span className="mv3-plat-tt-icon">💬</span>
+                    <span className="mv3-plat-tt-label">1234</span>
+                  </div>
+                  <div className="mv3-plat-tt-sidebar-item">
+                    <span className="mv3-plat-tt-icon">🔖</span>
+                    <span className="mv3-plat-tt-label">892</span>
+                  </div>
+                  <div className="mv3-plat-tt-sidebar-item">
+                    <span className="mv3-plat-tt-icon">↗️</span>
+                    <span className="mv3-plat-tt-label">Share</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+
+          // ── Threads (default) ──
+          return (
+            <div className="mv3-plat-card mv3-plat-th">
+              <div className="mv3-plat-th-header">
+                <div className="mv3-plat-th-avatar">T</div>
+                <div className="mv3-plat-th-meta">
+                  <span className="mv3-plat-th-username">thuyhuynh</span>
+                  <span className="mv3-plat-th-follow">Follow</span>
+                </div>
+                <span className="mv3-plat-th-time">2h</span>
+              </div>
+              {publishCaption && <p className="mv3-plat-th-caption">{shortCap}</p>}
+              <div className="mv3-pub-social-image" style={{ aspectRatio: '1 / 1' }}>
+                <PostPreview page={pageRenderSlot[firstSelId] ?? firstSelIdx} />
+              </div>
+              <div className="mv3-plat-th-actions">
+                <button className="mv3-plat-th-action mv3-plat-th-action--heart">♡</button>
+                <button className="mv3-plat-th-action">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </button>
+                <button className="mv3-plat-th-action">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                </button>
+                <button className="mv3-plat-th-action">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+              <p className="mv3-plat-th-likes">234 likes</p>
+            </div>
+          )
+        }
+
+        return (
+        <div className="mv3-pub-layout">
+          <div className="mv3-editor-tabs">
+            <div className="mv3-editor-tab-group">
+              <button className="mv3-editor-tab" onClick={() => {
+                if (publishCaption.trim() || publishSelectedPageIds.size > 0) {
+                  setShowDiscardDialog(true)
+                } else {
+                  setEditorTab('preview')
+                }
+              }}>Image preview</button>
+              <button className="mv3-editor-tab mv3-editor-tab--active">Publishing</button>
+            </div>
+          </div>
+
+          <div className="mv3-pub-columns">
+
+            {/* Left: Image selection */}
+            <aside className="mv3-pub-sel-panel">
+              {(() => {
+                const uniqueRatios = Array.from(new Set(pages.map(pid => pageData[pid]?.ratio ?? '1:1')))
+                const filteredPages = pages.filter(pid => sizeFilter === 'all' || (pageData[pid]?.ratio ?? '1:1') === sizeFilter)
+                const allSelected = filteredPages.length > 0 && filteredPages.every(pid => publishSelectedPageIds.has(pid))
+                return (
+                  <div className="mv3-pub-sel-header">
+                    <div className="mv3-pub-sel-title-row">
+                      <span className="mv3-pub-sel-title">Images</span>
+                      <button
+                        className="mv3-pub-sel-all-btn"
+                        onClick={() => {
+                          if (allSelected) {
+                            setPublishSelectedPageIds(prev => { const next = new Set(prev); filteredPages.forEach(pid => next.delete(pid)); return next })
+                          } else {
+                            setPublishSelectedPageIds(prev => new Set([...prev, ...filteredPages]))
+                          }
+                        }}
+                      >
+                        {allSelected ? 'Deselect all' : 'Select all'}
+                      </button>
+                    </div>
+                    <div className="mv3-pub-sel-tools">
+                      <select
+                        className="mv3-pub-size-select"
+                        value={sizeFilter}
+                        onChange={e => setSizeFilter(e.target.value)}
+                      >
+                        <option value="all">All sizes</option>
+                        {uniqueRatios.map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                )
+              })()}
+              <div className="mv3-pub-page-grid mv3-pub-page-grid--left">
+                {pages.filter(pid => sizeFilter === 'all' || (pageData[pid]?.ratio ?? '1:1') === sizeFilter).map((pageId, idx) => {
+                  const isSelected = publishSelectedPageIds.has(pageId)
+                  const pageRatio = pageData[pageId]?.ratio ?? '1:1'
+                  const pageFits = recRatios.includes(pageRatio)
+                  return (
+                    <button
+                      key={pageId}
+                      className={`mv3-pub-page-row${isSelected ? ' mv3-pub-page-row--selected' : ''}`}
+                      onClick={() => setPublishSelectedPageIds(prev => {
+                          const next = new Set(prev)
+                          if (next.has(pageId)) { next.delete(pageId) } else { next.add(pageId) }
+                          return next
+                        })}
+                    >
+                      <div className={`mv3-pub-page-row-cb${isSelected ? ' mv3-pub-page-row-cb--checked' : ''}`}>
+                        {isSelected && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                      </div>
+                      <div className="mv3-pub-page-row-img">
+                        <MiniPostPreview page={pageRenderSlot[pageId] ?? idx} ratio={pageData[pageId]?.ratio ?? '1:1'} />
+                        <span className="mv3-pub-page-thumb-ratio">{pageRatio}</span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+            </aside>
+
+            {/* Center: social post preview card */}
+            <div className="mv3-pub-center mv3-pub-center--preview">
+              {renderSocialCard()}
+            </div>
+
+            {/* ── Step 2/3/4 content removed — consolidated into right panel ── */}
+            {false && <div>
+              {/* ── Step 2: Set Up Post ── */}
+              {publishStep === 'setup' && (
+                <div className="mv3-pub-step-content mv3-pub-step-scroll">
+                  <div className="mv3-pub-step-heading">
+                    <h2 className="mv3-pub-step-title">Set up your post</h2>
+                    <p className="mv3-pub-step-desc">Write your caption and configure platform settings</p>
+                  </div>
+
+                  <div className="mv3-pub-field-group">
+                    <div className="mv3-pub-field-label-row">
+                      <span className="mv3-pub-field-label">Caption</span>
+                      <div className="mv3-pub-ai-btns">
+                        <button
+                          className={`mv3-pub-ai-btn${generatingCaption ? ' mv3-pub-ai-btn--loading' : ''}`}
+                          disabled={generatingCaption || adaptingCaption}
+                          onClick={() => {
+                            setGeneratingCaption(true)
+                            setTimeout(() => {
+                              setPublishCaption('Protect your innovation before someone else does. LayerProof gives Apple developers the IP layer they\'ve always needed — fast, reliable, and built for builders like you.')
+                              setPublishHashtags(['LayerProof', 'AppleDeveloper', 'IPStrategy', 'BuildInPublic', 'TechStartup'])
+                              setGeneratingCaption(false)
+                            }, 1600)
+                          }}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l1.8 5.4L19.2 9l-5.4 1.8L12 16.2l-1.8-5.4L4.8 9l5.4-1.8L12 2z"/></svg>
+                          {generatingCaption ? 'Generating…' : 'Generate with AI'}
+                        </button>
+                        <button
+                          className={`mv3-pub-ai-btn${adaptingCaption ? ' mv3-pub-ai-btn--loading' : ''}`}
+                          disabled={generatingCaption || adaptingCaption}
+                          onClick={() => {
+                            setAdaptingCaption(true)
+                            setTimeout(() => {
+                              const platform = PLATFORM_LABELS[publishPlatform] ?? 'LinkedIn'
+                              const adapted: Record<string, string> = {
+                                LinkedIn: 'Excited to share how LayerProof is helping Apple developers protect their IP. In today\'s competitive landscape, safeguarding your innovation isn\'t optional — it\'s essential.',
+                                Instagram: '🔒 Your code deserves protection. LayerProof gives Apple devs the IP layer they\'ve always needed. ✨',
+                                X: 'Protect your Apple app\'s IP before someone else does. #AppleDev',
+                                Facebook: 'Are you protecting your innovations? LayerProof is the IP layer every Apple developer needs.',
+                                TikTok: '🚀 Did you know your app idea could be stolen? LayerProof protects it.',
+                                Threads: 'Safeguarding your Apple platform innovations with LayerProof.',
+                              }
+                              setPublishCaption(adapted[platform] ?? publishCaption)
+                              setAdaptingCaption(false)
+                            }, 1200)
+                          }}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          {adaptingCaption ? 'Adapting…' : `Adapt for ${PLATFORM_LABELS[publishPlatform] ?? 'LinkedIn'}`}
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      className="mv3-pub-caption-textarea"
+                      value={publishCaption}
+                      onChange={e => setPublishCaption(e.target.value)}
+                      rows={5}
+                      placeholder="Write your caption..."
+                    />
+                    <div className="mv3-pub-char-count">{publishCaption.length} / 3000</div>
+                  </div>
+
+                  {publishPlatform === 'instagram' && (
+                    <div className="mv3-pub-field-group">
+                      <span className="mv3-pub-field-label">Location</span>
+                      <input className="mv3-pub-text-input" placeholder="Add a location tag..." />
+                    </div>
+                  )}
+                  {publishPlatform === 'linkedin' && (
+                    <div className="mv3-pub-field-group">
+                      <span className="mv3-pub-field-label">Audience</span>
+                      <div className="mv3-pub-radio-group">
+                        <label className="mv3-pub-radio"><input type="radio" name="lk-audience" defaultChecked /> Anyone</label>
+                        <label className="mv3-pub-radio"><input type="radio" name="lk-audience" /> Connections only</label>
+                      </div>
+                    </div>
+                  )}
+                  {publishPlatform === 'twitter' && (
+                    <div className="mv3-pub-field-group">
+                      <span className="mv3-pub-field-label">Reply settings</span>
+                      <div className="mv3-pub-radio-group">
+                        <label className="mv3-pub-radio"><input type="radio" name="tw-reply" defaultChecked /> Everyone</label>
+                        <label className="mv3-pub-radio"><input type="radio" name="tw-reply" /> Followers only</label>
+                        <label className="mv3-pub-radio"><input type="radio" name="tw-reply" /> Mentioned only</label>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mv3-pub-field-group">
+                    <span className="mv3-pub-field-label">When to publish</span>
+                    <div className="mv3-pub-schedule-toggle">
+                      <button
+                        className={`mv3-pub-schedule-btn${publishScheduleType === 'now' ? ' mv3-pub-schedule-btn--active' : ''}`}
+                        onClick={() => setPublishScheduleType('now')}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Publish now
+                      </button>
+                      <button
+                        className={`mv3-pub-schedule-btn${publishScheduleType === 'later' ? ' mv3-pub-schedule-btn--active' : ''}`}
+                        onClick={() => setPublishScheduleType('later')}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Schedule
+                      </button>
+                    </div>
+                    {publishScheduleType === 'later' && (
+                      <div className="mv3-pub-datetime-row">
+                        <input type="date" className="mv3-pub-date-input" value={publishScheduledDate} onChange={e => setPublishScheduledDate(e.target.value)} />
+                        <input type="time" className="mv3-pub-date-input" value={publishScheduledTime} onChange={e => setPublishScheduledTime(e.target.value)} />
+                        <p className="mv3-pub-best-time">Best time: Tuesday 9 AM — your audience is most active then.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Step 3: Connect Account ── */}
+              {publishStep === 'connect' && (
+                <div className="mv3-pub-connect-wrap">
+                  {connectedAccounts[publishPlatform] ? (
+                    <div className="mv3-pub-connected-state">
+                      <div className="mv3-pub-connected-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                      </div>
+                      <h2 className="mv3-pub-connect-title">Account connected!</h2>
+                      <p className="mv3-pub-connect-desc">@{connectedAccounts[publishPlatform]} is ready on {PLATFORM_LABELS[publishPlatform]}</p>
+                      <button className="mv3-pub-disconnect-btn" onClick={() => setConnectedAccounts(prev => { const next = {...prev}; delete next[publishPlatform]; return next })}>
+                        Disconnect account
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mv3-pub-connect-state">
+                      <div className="mv3-pub-platform-big" style={{ background: platformColor }}>
+                        {platformIcon(publishPlatform, 32)}
+                      </div>
+                      <h2 className="mv3-pub-connect-title">Connect your {PLATFORM_LABELS[publishPlatform] ?? 'account'}</h2>
+                      <p className="mv3-pub-connect-desc">LayerProof will be able to publish posts on your behalf. You can disconnect at any time.</p>
+                      <ul className="mv3-pub-permissions">
+                        <li>Read your profile information</li>
+                        <li>Publish posts to your feed</li>
+                        <li>Access basic post analytics</li>
+                      </ul>
+                      <button
+                        className="mv3-pub-oauth-btn"
+                        disabled={connectingAccount}
+                        style={{ background: platformColor }}
+                        onClick={() => {
+                          setConnectingAccount(true)
+                          setTimeout(() => {
+                            setConnectedAccounts(prev => ({ ...prev, [publishPlatform]: 'thuyhuynh' }))
+                            setConnectingAccount(false)
+                            setTimeout(() => setPublishStep('review'), 500)
+                          }, 2000)
+                        }}
+                      >
+                        {connectingAccount ? 'Connecting…' : `Connect ${PLATFORM_LABELS[publishPlatform] ?? 'account'}`}
+                      </button>
+                      <button className="mv3-pub-skip-link" onClick={() => setPublishStep('review')}>
+                        Skip for now — save as draft
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Step 4: Review & Publish ── */}
+              {publishStep === 'review' && (
+                <div className="mv3-pub-step-content mv3-pub-step-scroll">
+                  <div className="mv3-pub-step-heading">
+                    <h2 className="mv3-pub-step-title">Review your post</h2>
+                    <p className="mv3-pub-step-desc">Preview how it will look on {PLATFORM_LABELS[publishPlatform]}</p>
+                  </div>
+                  <div className="mv3-pub-social-card">
+                    <div className="mv3-pub-social-header">
+                      <div className="mv3-pub-social-avatar">T</div>
+                      <div className="mv3-pub-social-meta">
+                        <span className="mv3-pub-social-name">Thuy Huynh</span>
+                        <span className="mv3-pub-social-when">Just now · {PLATFORM_LABELS[publishPlatform] ?? 'LinkedIn'}</span>
+                      </div>
+                    </div>
+                    <div className="mv3-pub-social-image">
+                      <PostPreview page={pageRenderSlot[pages[activePage]] ?? activePage} />
+                    </div>
+                    <div className="mv3-pub-social-caption-area">
+                      <textarea
+                        className="mv3-pub-social-caption"
+                        value={publishCaption}
+                        onChange={e => setPublishCaption(e.target.value)}
+                        placeholder="Caption will appear here..."
+                        rows={3}
+                      />
+                      <div className="mv3-pub-social-charcount">{publishCaption.length} / 3000</div>
+                    </div>
+                    <div className="mv3-pub-social-actions">
+                      <button className="mv3-pub-social-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                        Like
+                      </button>
+                      <button className="mv3-pub-social-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Comment
+                      </button>
+                      <button className="mv3-pub-social-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                        Share
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>}
+
+            {/* Right: post setup panel */}
+            <aside className="mv3-pub-right">
+
+              {/* Settings / History tab bar */}
+              <div className="mv3-pub-settings-tabs">
+                <div className="mv3-pub-settings-tab-group">
+                  <button
+                    className={`mv3-pub-settings-tab${settingsTab === 'settings' ? ' mv3-pub-settings-tab--active' : ''}`}
+                    onClick={() => setSettingsTab('settings')}
+                  >Settings</button>
+                  <button
+                    className={`mv3-pub-settings-tab${settingsTab === 'history' ? ' mv3-pub-settings-tab--active' : ''}`}
+                    onClick={() => setSettingsTab('history')}
+                  >History</button>
+                </div>
+              </div>
+
+              {/* History panel */}
+              {settingsTab === 'history' && (
+                <div className="mv3-pub-history">
+                  {publishHistory.length === 0 ? (
+                    <p className="mv3-pub-history-empty">No publish history yet.</p>
+                  ) : (
+                    publishHistory.map(item => (
+                      <div key={item.id} className="mv3-pub-history-item">
+                        <div className="mv3-pub-history-item-icon" style={{ background: PUBLISH_PLATFORMS.find(p => p.id === item.platform)?.color ?? '#888' }}>
+                          {platformIcon(item.platform, 11)}
+                        </div>
+                        <div className="mv3-pub-history-item-meta">
+                          <span className="mv3-pub-history-item-title">{item.title}</span>
+                          <span className="mv3-pub-history-item-sub">
+                            {item.status === 'scheduled' && item.scheduledFor
+                              ? `Scheduled · ${new Date(item.scheduledFor).toLocaleDateString()}`
+                              : 'Published'}
+                          </span>
+                        </div>
+                        <span className={`mv3-pub-history-badge mv3-pub-history-badge--${item.status}`}>
+                          {item.status === 'scheduled' ? 'Scheduled' : 'Published'}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {settingsTab === 'settings' && (<>
+
+              {/* Platform — collapsed header + overlay dropdown */}
+              <div className="mv3-pub-platform-wrap">
+                <button
+                  className="mv3-pub-platform-header"
+                  onClick={() => setPublishPlatformExpanded(v => !v)}
+                >
+                  <div className="mv3-pub-platform-pill-icon" style={{ background: platformColor }}>
+                    {platformIcon(publishPlatform, 13)}
+                  </div>
+                  <div className="mv3-pub-platform-header-info">
+                    <span className="mv3-pub-platform-header-label">{PLATFORM_LABELS[publishPlatform]}</span>
+                    {connectedAccounts[publishPlatform] ? (
+                      <span className="mv3-pub-platform-header-handle">@{connectedAccounts[publishPlatform]}</span>
+                    ) : (
+                      <span className="mv3-pub-platform-header-no-account">No account connected</span>
+                    )}
+                  </div>
+                  {connectedAccounts[publishPlatform] && (
+                    <span className="mv3-pub-platform-header-connected">Connected</span>
+                  )}
+                  <svg className={`mv3-pub-platform-header-chevron${publishPlatformExpanded ? ' mv3-pub-platform-header-chevron--open' : ''}`} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                {publishPlatformExpanded && (
+                  <>
+                    <div className="mv3-pub-platform-overlay-backdrop" onClick={() => setPublishPlatformExpanded(false)} />
+                    <div className="mv3-pub-platform-overlay">
+                      {PUBLISH_PLATFORMS.map(p => {
+                        const isConnected = !!connectedAccounts[p.id]
+                        return (
+                          <button
+                            key={p.id}
+                            className={`mv3-pub-platform-overlay-item${publishPlatform === p.id ? ' mv3-pub-platform-overlay-item--active' : ''}`}
+                            onClick={() => { setPublishPlatform(p.id); setPublishPlatformExpanded(false) }}
+                          >
+                            <div className="mv3-pub-overlay-avatar-wrap">
+                              {isConnected ? (
+                                <div className="mv3-pub-overlay-avatar">T</div>
+                              ) : (
+                                <div className="mv3-pub-overlay-avatar-empty">
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                </div>
+                              )}
+                              <div className="mv3-pub-overlay-avatar-badge" style={{ background: p.color }}>
+                                {platformIcon(p.id, 8)}
+                              </div>
+                            </div>
+                            <div className="mv3-pub-overlay-item-meta">
+                              {isConnected && <span className="mv3-pub-platform-overlay-label">Thuy Huynh</span>}
+                              <span className="mv3-pub-overlay-item-handle">{p.label}</span>
+                            </div>
+                            {publishPlatform === p.id && (
+                              <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Account */}
+              <div className="mv3-pub-section-label">Account</div>
+              {connectedAccounts[publishPlatform] ? (
+                <div className="mv3-pub-account-row">
+                  <div className="mv3-pub-account-avatar">T</div>
+                  <div className="mv3-pub-account-info">
+                    <span className="mv3-pub-account-name">Thuy Huynh</span>
+                    <span className="mv3-pub-account-handle">@{connectedAccounts[publishPlatform]}</span>
+                  </div>
+                  <button
+                    className="mv3-pub-account-disconnect"
+                    title="Disconnect account"
+                    onClick={() => setConnectedAccounts(prev => { const next = { ...prev }; delete next[publishPlatform]; return next })}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                  </button>
+                </div>
+              ) : (
+                <div className="mv3-pub-account-empty">
+                  <span className="mv3-pub-account-empty-text">No {PLATFORM_LABELS[publishPlatform]} account connected</span>
+                  <button
+                    className="mv3-pub-account-connect-btn"
+                    disabled={connectingAccount}
+                    onClick={() => {
+                      if (!connectingAccount) {
+                        setConnectingAccount(true)
+                        setTimeout(() => {
+                          setConnectedAccounts(prev => ({ ...prev, [publishPlatform]: 'thuyhuynh' }))
+                          setConnectingAccount(false)
+                        }, 2000)
+                      }
+                    }}
+                  >
+                    {connectingAccount ? 'Connecting…' : `Connect ${PLATFORM_LABELS[publishPlatform]}`}
+                  </button>
+                </div>
+              )}
+
+              {/* Caption */}
+              <div className="mv3-pub-section-label">Caption</div>
+              <div className="mv3-pub-caption-box">
+                <textarea
+                  className="mv3-pub-right-caption"
+                  value={publishCaption}
+                  onChange={e => setPublishCaption(e.target.value)}
+                  placeholder="Write a caption..."
+                  rows={5}
+                />
+                <div className="mv3-pub-caption-footer">
+                  {publishCaption.trim() ? (
+                    <button
+                      className={`mv3-pub-gen-btn${adaptingCaption ? ' mv3-pub-gen-btn--loading' : ''}`}
+                      disabled={adaptingCaption}
+                      onClick={() => {
+                        setAdaptingCaption(true)
+                        setTimeout(() => {
+                          const platform = PLATFORM_LABELS[publishPlatform] ?? 'LinkedIn'
+                          const adapted: Record<string, string> = {
+                            LinkedIn: 'Excited to share how LayerProof is helping Apple developers protect their IP. In today\'s competitive landscape, safeguarding your innovation isn\'t optional — it\'s essential.',
+                            Instagram: '🔒 Your code deserves protection. LayerProof gives Apple devs the IP layer they\'ve always needed. ✨',
+                            X: 'Protect your Apple app\'s IP before someone else does. #AppleDev',
+                            Facebook: 'Are you protecting your innovations? LayerProof is the IP layer every Apple developer needs.',
+                            TikTok: '🚀 Did you know your app idea could be stolen? LayerProof protects it.',
+                            Threads: 'Safeguarding your Apple platform innovations with LayerProof.',
+                          }
+                          setPublishCaption(adapted[platform] ?? publishCaption)
+                          setAdaptingCaption(false)
+                        }, 1200)
+                      }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      {adaptingCaption ? 'Adapting…' : `Adapt to ${PLATFORM_LABELS[publishPlatform] ?? 'LinkedIn'}`}
+                    </button>
+                  ) : (
+                    <button
+                      className={`mv3-pub-gen-btn${generatingCaption ? ' mv3-pub-gen-btn--loading' : ''}`}
+                      disabled={generatingCaption}
+                      onClick={() => {
+                        setGeneratingCaption(true)
+                        setTimeout(() => {
+                          setPublishCaption('Protect your innovation before someone else does. LayerProof gives developers the IP layer they\'ve always needed — fast, reliable, and built for builders like you.')
+                          setPublishHashtags(['LayerProof', 'IPStrategy', 'BuildInPublic', 'TechStartup'])
+                          setGeneratingCaption(false)
+                        }, 1600)
+                      }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                      {generatingCaption ? 'Generating…' : 'Generate caption'}
+                    </button>
+                  )}
+                  <span className="mv3-pub-caption-count">{publishCaption.length}/2200</span>
+                </div>
+              </div>
+
+              {/* Hashtags */}
+              <div className="mv3-pub-section-label">Hashtags</div>
+              <div className="mv3-publish-hashtag-list">
+                {publishHashtags.map(h => (
+                  <span key={h} className="mv3-publish-hashtag-chip">
+                    #{h}
+                    <button onClick={() => setPublishHashtags(prev => prev.filter(x => x !== h))}>×</button>
+                  </span>
+                ))}
+                <button className="mv3-publish-hashtag-add" onClick={() => {
+                  const tag = window.prompt('Add hashtag')
+                  if (tag) setPublishHashtags(prev => [...prev, tag.replace(/^#/, '')])
+                }}>+ Add</button>
+              </div>
+
+              {/* Schedule */}
+              <div className="mv3-pub-section-label">Schedule</div>
+              <div className="mv3-pub-schedule-toggle">
+                <button
+                  className={`mv3-pub-schedule-btn${publishScheduleType === 'now' ? ' mv3-pub-schedule-btn--active' : ''}`}
+                  onClick={() => setPublishScheduleType('now')}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Publish now
+                </button>
+                <button
+                  className={`mv3-pub-schedule-btn${publishScheduleType === 'later' ? ' mv3-pub-schedule-btn--active' : ''}`}
+                  onClick={() => setPublishScheduleType('later')}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Schedule
+                </button>
+              </div>
+              {publishScheduleType === 'later' && (
+                <input
+                  type="datetime-local"
+                  className="mv3-pub-datetime-input"
+                  value={publishScheduledDate && publishScheduledTime ? `${publishScheduledDate}T${publishScheduledTime}` : ''}
+                  onChange={e => {
+                    const [d, t] = e.target.value.split('T')
+                    setPublishScheduledDate(d ?? '')
+                    setPublishScheduledTime(t ?? '')
+                  }}
+                />
+              )}
+
+              {/* CTA stack */}
+              <div className="mv3-pub-cta-stack">
+                <button
+                  className="mv3-pub-connect-cta"
+                  style={!connectedAccounts[publishPlatform] ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
+                  disabled={!connectedAccounts[publishPlatform]}
+                  onClick={() => { if (connectedAccounts[publishPlatform]) handlePublish() }}
+                >
+                  Publish now!
+                </button>
+              </div>
+
+              </>)}
+
+            </aside>
+          </div>{/* end mv3-pub-columns */}
+
+          <EditorDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+            <EditorDialogContent size="sm" hideClose>
+              <EditorDialogHeader>
+                <EditorDialogTitle>Discard draft?</EditorDialogTitle>
+              </EditorDialogHeader>
+              <EditorDialogBody>
+                <p className="mv3-discard-body">Your caption, selected images, and settings will be discarded.</p>
+              </EditorDialogBody>
+              <EditorDialogFooter>
+                <EditorDialogClose asChild>
+                  <button className="mv3-discard-keep-btn">Keep editing</button>
+                </EditorDialogClose>
+                <button className="mv3-discard-confirm-btn" onClick={() => {
+                  setShowDiscardDialog(false)
+                  setEditorTab('preview')
+                  setPublishSelectedPageIds(new Set())
+                }}>Discard</button>
+              </EditorDialogFooter>
+            </EditorDialogContent>
+          </EditorDialog>
+        </div>
+        )
+      })()}
 
       {/* ── Outline modal ── */}
       {showOutline && (() => {
@@ -1881,32 +3118,50 @@ export function MatteV3Editor() {
 
       {/* ── Assets Library modal ── */}
       {showAssetsLibrary && (() => {
-        const brandKitAssets = [
-          { id: 'bk-logo',    label: 'LayerProof Logo',    bg: '#0f0f10', preview: 'logo' },
-          { id: 'bk-logo-wh', label: 'Logo White',          bg: '#1a1a2e', preview: 'logo-wh' },
-          { id: 'bk-icon',    label: 'App Icon',            bg: '#ffde42', preview: 'icon' },
-          { id: 'bk-pattern', label: 'Brand Pattern',       bg: '#18181b', preview: 'pattern' },
-          { id: 'bk-hero',    label: 'Hero Background',     bg: 'linear-gradient(135deg,#1a1a2e,#16213e)', preview: 'hero' },
-        ]
-        const libraryAssets = [
-          { id: 'lib-p1', label: 'Western Woman Portrait', bg: '#c9b89a', preview: 'p1' },
-          { id: 'lib-p2', label: 'Western Man Portrait',   bg: '#8ca8c4', preview: 'p2' },
-          { id: 'lib-p3', label: 'Chinese Woman Portrait', bg: '#b8c4b0', preview: 'p3' },
-          { id: 'lib-p4', label: 'Chinese Man Portrait',   bg: '#a8b4c0', preview: 'p4' },
-          { id: 'lib-s1', label: 'Office Interior',        bg: 'linear-gradient(135deg,#e8e0d8,#d0c8c0)', preview: 's1' },
-          { id: 'lib-s2', label: 'Tech Abstract',          bg: 'linear-gradient(135deg,#1a1a3e,#2a2a5e)', preview: 's2' },
-          { id: 'lib-s3', label: 'Product Flat Lay',       bg: 'linear-gradient(135deg,#f0ece8,#e0dcd8)', preview: 's3' },
-          { id: 'lib-s4', label: 'City Skyline',           bg: 'linear-gradient(135deg,#1c2b3a,#2c3b4a)', preview: 's4' },
+        const generatedAssets = [
+          { id: 'gen-p1', label: 'Western Woman Portrait', bg: '#c9b89a', preview: 'p1' },
+          { id: 'gen-p2', label: 'Western Man Portrait',   bg: '#8ca8c4', preview: 'p2' },
+          { id: 'gen-p3', label: 'Chinese Woman Portrait', bg: '#b8c4b0', preview: 'p3' },
+          { id: 'gen-p4', label: 'Chinese Man Portrait',   bg: '#a8b4c0', preview: 'p4' },
+          { id: 'gen-s1', label: 'Office Interior',        bg: 'linear-gradient(135deg,#e8e0d8,#d0c8c0)', preview: 's1' },
+          { id: 'gen-s2', label: 'Tech Abstract',          bg: 'linear-gradient(135deg,#1a1a3e,#2a2a5e)', preview: 's2' },
+          { id: 'gen-s3', label: 'Product Flat Lay',       bg: 'linear-gradient(135deg,#f0ece8,#e0dcd8)', preview: 's3' },
+          { id: 'gen-s4', label: 'City Skyline',           bg: 'linear-gradient(135deg,#1c2b3a,#2c3b4a)', preview: 's4' },
         ]
         const toggleAsset = (id: string) => setSelectedAssets(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id])
-        const allAssets = [...brandKitAssets, ...libraryAssets]
 
         return (
           <div className="mv3-assets-overlay" onClick={() => setShowAssetsLibrary(false)}>
             <div className="mv3-assets-modal" onClick={e => e.stopPropagation()}>
-              {/* Header */}
-              <div className="mv3-assets-header">
-                <span className="mv3-assets-title">Select from Assets Library</span>
+
+              {/* Tab bar + search */}
+              <div className="mv3-assets-topbar">
+                <div className="mv3-assets-tabs">
+                  <button
+                    className={`mv3-assets-tab${assetsTab === 'uploads' ? ' mv3-assets-tab--active' : ''}`}
+                    onClick={() => setAssetsTab('uploads')}
+                  >
+                    My Uploads
+                    <span className="mv3-assets-tab-badge mv3-assets-tab-badge--beta">BETA</span>
+                  </button>
+                  <button
+                    className={`mv3-assets-tab${assetsTab === 'generated' ? ' mv3-assets-tab--active' : ''}`}
+                    onClick={() => setAssetsTab('generated')}
+                  >
+                    Generated
+                    <span className="mv3-assets-tab-badge">99+</span>
+                  </button>
+                </div>
+                <div className="mv3-assets-search">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <input
+                    className="mv3-assets-search-input"
+                    placeholder={assetsTab === 'uploads' ? 'Search your uploads' : 'Search generated'}
+                    readOnly
+                  />
+                </div>
                 <button className="mv3-assets-close" onClick={() => setShowAssetsLibrary(false)}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -1914,71 +3169,74 @@ export function MatteV3Editor() {
                 </button>
               </div>
 
-              {/* Body */}
-              <div className="mv3-assets-body">
-                {/* Brand Kit section */}
-                <div className="mv3-assets-section-label">Brand Kit</div>
-                <div className="mv3-assets-grid">
-                  {brandKitAssets.map(a => (
-                    <button
-                      key={a.id}
-                      className={`mv3-asset-card${selectedAssets.includes(a.id) ? ' mv3-asset-card--selected' : ''}`}
-                      onClick={() => toggleAsset(a.id)}
-                    >
-                      <div className="mv3-asset-thumb" style={{ background: a.bg }}>
-                        {a.preview === 'logo' && <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#ffde42"/><text x="16" y="22" textAnchor="middle" fontSize="13" fontWeight="800" fill="#1a1600">LP</text></svg>}
-                        {a.preview === 'logo-wh' && <svg width="32" height="32" viewBox="0 0 32 32"><text x="16" y="22" textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff">LP</text></svg>}
-                        {a.preview === 'icon' && <svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="14" rx="3" fill="#1a1600"/><path d="M10 14v-4a6 6 0 0 1 12 0v4" fill="none" stroke="#1a1600" strokeWidth="2.5"/><circle cx="16" cy="20" r="2" fill="#ffde42"/></svg>}
-                        {a.preview === 'pattern' && <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#18181b"/>{Array.from({length:9}).map((_,i) => <circle key={i} cx={(i%3)*20+10} cy={Math.floor(i/3)*20+10} r="3" fill="#ffde42" opacity=".4"/>)}</svg>}
-                        {a.preview === 'hero' && <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#1a1a2e,#16213e)',display:'flex',alignItems:'center',justifyContent:'center'}}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffde42" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>}
-                        {selectedAssets.includes(a.id) && (
-                          <div className="mv3-asset-check">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      <span className="mv3-asset-label">{a.label}</span>
-                    </button>
-                  ))}
-                  <button className="mv3-asset-card mv3-asset-card--add">
-                    <div className="mv3-asset-thumb mv3-asset-thumb--add">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                      </svg>
-                    </div>
-                    <span className="mv3-asset-label">Upload</span>
+              {/* Two-pane body */}
+              <div className="mv3-assets-panes">
+
+                {/* Left sidebar */}
+                <div className="mv3-assets-sidebar">
+                  <button className="mv3-assets-sidebar-item mv3-assets-sidebar-item--active">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    {assetsTab === 'uploads' ? 'My Uploads' : 'All Generated'}
                   </button>
                 </div>
 
-                {/* Assets Library section */}
-                <div className="mv3-assets-section-label" style={{ marginTop: 24 }}>Assets Library</div>
-                <div className="mv3-assets-grid">
-                  {libraryAssets.map(a => (
-                    <button
-                      key={a.id}
-                      className={`mv3-asset-card${selectedAssets.includes(a.id) ? ' mv3-asset-card--selected' : ''}`}
-                      onClick={() => toggleAsset(a.id)}
-                    >
-                      <div className="mv3-asset-thumb" style={{ background: a.bg }}>
-                        {(a.preview === 'p1' || a.preview === 'p2' || a.preview === 'p3' || a.preview === 'p4') && (
-                          <svg width="40" height="40" viewBox="0 0 40 40" style={{opacity:.6}}><circle cx="20" cy="15" r="8" fill="rgba(0,0,0,.25)"/><ellipse cx="20" cy="34" rx="14" ry="10" fill="rgba(0,0,0,.2)"/></svg>
-                        )}
-                        {(a.preview === 's1'||a.preview==='s2'||a.preview==='s3'||a.preview==='s4') && (
-                          <svg width="40" height="40" viewBox="0 0 40 40" style={{opacity:.5}}><rect x="4" y="10" width="32" height="20" rx="2" fill="rgba(0,0,0,.2)"/><rect x="8" y="14" width="10" height="12" rx="1" fill="rgba(0,0,0,.2)"/></svg>
-                        )}
-                        {selectedAssets.includes(a.id) && (
-                          <div className="mv3-asset-check">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                          </div>
-                        )}
+                {/* Main content */}
+                <div className="mv3-assets-content">
+                  {assetsTab === 'uploads' ? (
+                    <>
+                      <div className="mv3-assets-content-title">My Uploads</div>
+                      {/* Drop zone */}
+                      <div className="mv3-assets-dropzone">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--t3)' }}>
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="17 8 12 3 7 8"/>
+                          <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span className="mv3-assets-dropzone-main">Drop images here or click to select</span>
+                        <span className="mv3-assets-dropzone-sub">Max size: 20.0 MB per file</span>
+                        <span className="mv3-assets-dropzone-sub">Supported: Images, Text, PDF, CSV, Excel, Word, PowerPoint</span>
                       </div>
-                      <span className="mv3-asset-label">{a.label}</span>
-                    </button>
-                  ))}
+                      {/* Empty state */}
+                      <div className="mv3-assets-empty">
+                        You haven't uploaded anything yet — drop images above to get started.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="mv3-assets-content-title">All Generated</div>
+                      <div className="mv3-assets-grid">
+                        {generatedAssets.map(a => (
+                          <button
+                            key={a.id}
+                            className={`mv3-asset-card${selectedAssets.includes(a.id) ? ' mv3-asset-card--selected' : ''}`}
+                            onClick={() => toggleAsset(a.id)}
+                          >
+                            <div className="mv3-asset-thumb" style={{ background: a.bg }}>
+                              {(a.preview === 'p1' || a.preview === 'p2' || a.preview === 'p3' || a.preview === 'p4') && (
+                                <svg width="40" height="40" viewBox="0 0 40 40" style={{opacity:.6}}><circle cx="20" cy="15" r="8" fill="rgba(0,0,0,.25)"/><ellipse cx="20" cy="34" rx="14" ry="10" fill="rgba(0,0,0,.2)"/></svg>
+                              )}
+                              {(a.preview === 's1'||a.preview==='s2'||a.preview==='s3'||a.preview==='s4') && (
+                                <svg width="40" height="40" viewBox="0 0 40 40" style={{opacity:.5}}><rect x="4" y="10" width="32" height="20" rx="2" fill="rgba(0,0,0,.2)"/><rect x="8" y="14" width="10" height="12" rx="1" fill="rgba(0,0,0,.2)"/></svg>
+                              )}
+                              {selectedAssets.includes(a.id) && (
+                                <div className="mv3-asset-check">
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            <span className="mv3-asset-label">{a.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -1993,6 +3251,7 @@ export function MatteV3Editor() {
                     className="mv3-assets-apply"
                     disabled={selectedAssets.length === 0}
                     onClick={() => {
+                      const allAssets = generatedAssets
                       const picked = selectedAssets.map(id => {
                         const asset = allAssets.find(a => a.id === id)
                         return { id, label: asset?.label ?? id, bg: asset?.bg ?? '#333' }
@@ -2018,225 +3277,54 @@ export function MatteV3Editor() {
       {/* ── Share modal ── */}
       {showShareMenu && (
         <div className="mv3-share-overlay" onClick={() => setShowShareMenu(false)}>
-          <div className={`mv3-share-modal${shareTab === 'publish' ? ' mv3-share-modal--publish' : ''}`} onClick={e => e.stopPropagation()} style={{ maxHeight: 'calc(100vh - 48px)', overflowY: shareTab === 'publish' ? 'hidden' : 'auto' }}>
+          <div className="mv3-share-modal" onClick={e => e.stopPropagation()}>
             {/* Tab switcher */}
             <div className="mv3-share-tabs">
-              {(['link', 'publish', 'download'] as const).map(tab => (
-                <button key={tab} className={`mv3-share-tab${shareTab === tab ? ' mv3-share-tab--active' : ''}`} onClick={() => setShareTab(tab)}>
-                  {tab === 'link' ? 'Share Link' : tab === 'publish' ? 'Publish' : 'Download'}
+              {([
+                { id: 'link',     label: 'Share Link' },
+                { id: 'download', label: 'Download' },
+              ] as const).map(tab => (
+                <button key={tab.id} className={`mv3-share-tab${shareTab === tab.id ? ' mv3-share-tab--active' : ''}`} onClick={() => setShareTab(tab.id)}>
+                  {tab.label}
                 </button>
               ))}
             </div>
 
-            {shareTab === 'publish' ? (
-              /* ── Two-column publish layout ── */
-              <div className="mv3-publish-body">
-                {/* Left — preview + caption editor */}
-                <div className="mv3-publish-left">
-                  {/* Post card preview */}
-                  <div className="mv3-share-preview-card">
-                    <div className="mv3-share-preview-header">
-                      <div className="mv3-share-avatar">T</div>
-                      <div className="mv3-share-preview-meta">
-                        <span className="mv3-share-preview-name">Thuy Huynh</span>
-                        <span className="mv3-share-preview-when">Just now · {pageData[pages[activePage]]?.label ?? 'LinkedIn'}</span>
-                      </div>
-                      <div className="mv3-share-nav" style={{ marginLeft: 'auto' }}>
-                        <button className="mv3-share-nav-btn" onClick={() => setActivePage(i => Math.max(i - 1, 0))} disabled={activePage === 0}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                        </button>
-                        <span className="mv3-share-nav-label">{activePage + 1} / {pages.length}</span>
-                        <button className="mv3-share-nav-btn" onClick={() => setActivePage(i => Math.min(i + 1, pages.length - 1))} disabled={activePage === pages.length - 1}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mv3-share-preview-image">
-                      <PostPreview page={pageRenderSlot[pages[activePage]] ?? activePage} />
-                    </div>
-                    <p className="mv3-share-preview-caption">{publishCaption.slice(0, 120)}{publishCaption.length > 120 ? '…' : ''}</p>
-                    <div className="mv3-share-preview-hashtags">
-                      {publishHashtags.map(h => <span key={h} className="mv3-share-hashtag">#{h}</span>)}
-                    </div>
-                  </div>
-
-                  {/* Edit content section */}
-                  <div className="mv3-publish-edit-section">
-                    <div className="mv3-publish-edit-header">
-                      <span className="mv3-publish-edit-title">Edit Content</span>
-                      <button
-                        className={`mv3-publish-generate-btn${generatingCaption ? ' mv3-publish-generate-btn--loading' : ''}`}
-                        onClick={() => {
-                          setGeneratingCaption(true)
-                          setTimeout(() => {
-                            setPublishCaption('Protect your innovation before someone else does. LayerProof gives Apple developers the IP layer they\'ve always needed — fast, reliable, and built for builders like you.')
-                            setPublishHashtags(['LayerProof', 'AppleDeveloper', 'IPStrategy', 'BuildInPublic', 'TechStartup'])
-                            setGeneratingCaption(false)
-                          }, 1600)
-                        }}
-                        disabled={generatingCaption}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                          <path d="M12 2l1.8 5.4L19.2 9l-5.4 1.8L12 16.2l-1.8-5.4L4.8 9l5.4-1.8L12 2z"/>
-                          <path d="M19 14l.9 2.7 2.7.9-2.7.9L19 21l-.9-2.7-2.7-.9 2.7-.9L19 14z" opacity=".6"/>
-                        </svg>
-                        {generatingCaption ? 'Generating…' : `Generate caption for ${publishPlatform === 'linkedin' ? 'LinkedIn' : publishPlatform === 'instagram' ? 'Instagram' : publishPlatform === 'twitter' ? 'X' : publishPlatform === 'facebook' ? 'Facebook' : publishPlatform === 'tiktok' ? 'TikTok' : 'Threads'}`}
-                      </button>
-                    </div>
-                    <div className="mv3-publish-field">
-                      <div className="mv3-publish-field-label">
-                        Caption
-                        <button className="mv3-publish-copy-btn" onClick={() => navigator.clipboard?.writeText(publishCaption)}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                          </svg>
-                          Copy
-                        </button>
-                      </div>
-                      <textarea
-                        className="mv3-publish-caption-input"
-                        value={publishCaption}
-                        onChange={e => setPublishCaption(e.target.value)}
-                        rows={4}
-                      />
-                      <span className="mv3-publish-char-count">{publishCaption.length} / 3000</span>
-                    </div>
-                    <div className="mv3-publish-field">
-                      <div className="mv3-publish-field-label">
-                        Hashtags
-                        <button className="mv3-publish-copy-btn" onClick={() => navigator.clipboard?.writeText(publishHashtags.map(h => '#' + h).join(' '))}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                          </svg>
-                          Copy
-                        </button>
-                      </div>
-                      <div className="mv3-publish-hashtag-list">
-                        {publishHashtags.map(h => (
-                          <span key={h} className="mv3-publish-hashtag-chip">
-                            # {h}
-                            <button onClick={() => setPublishHashtags(prev => prev.filter(x => x !== h))}>×</button>
-                          </span>
-                        ))}
-                        <button className="mv3-publish-hashtag-add" onClick={() => {
-                          const tag = window.prompt('Add hashtag')
-                          if (tag) setPublishHashtags(prev => [...prev, tag.replace(/^#/, '')])
-                        }}>+ Add</button>
-                      </div>
-                    </div>
+            {/* ── Share Link / Download ── */}
+            <>
+              <div className="mv3-share-preview-card">
+                <div className="mv3-share-preview-header">
+                  <div className="mv3-share-avatar">T</div>
+                  <div className="mv3-share-preview-meta">
+                    <span className="mv3-share-preview-name">Thuy Huynh</span>
+                    <span className="mv3-share-preview-when">Just now · {pageData[pages[activePage]]?.label ?? 'LinkedIn'}</span>
                   </div>
                 </div>
-
-                {/* Right — settings panel */}
-                <div className="mv3-publish-right">
-                  <div className="mv3-publish-section-label">Platform</div>
-                  <div className="mv3-publish-platforms">
-                    {[
-                      { id: 'instagram', label: 'Instagram', color: '#e1306c' },
-                      { id: 'facebook',  label: 'Facebook',  color: '#1877f2' },
-                      { id: 'twitter',   label: 'X',         color: '#fff' },
-                      { id: 'linkedin',  label: 'LinkedIn',  color: '#0a66c2' },
-                      { id: 'tiktok',    label: 'TikTok',    color: '#010101' },
-                      { id: 'threads',   label: 'Threads',   color: '#101010' },
-                    ].map(p => (
-                      <button
-                        key={p.id}
-                        className={`mv3-publish-platform-btn${publishPlatform === p.id ? ' mv3-publish-platform-btn--active' : ''}`}
-                        onClick={() => setPublishPlatform(p.id)}
-                        title={p.label}
-                      >
-                        <div className="mv3-publish-platform-icon" style={{ background: p.color }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-                            {p.id === 'instagram' && <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>}
-                            {p.id === 'facebook' && <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>}
-                            {p.id === 'twitter' && <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>}
-                            {p.id === 'linkedin' && <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>}
-                            {p.id === 'tiktok' && <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>}
-                            {p.id === 'threads' && <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.689-2.045 1.07-1.127 1.679-2.863 1.769-5.233H12.75v-2.09h7.02l.012.56c.071 3.51-.693 6.101-2.396 7.932-1.55 1.67-3.784 2.575-6.2 2.575z"/>}
-                          </svg>
-                        </div>
-                        <span className="mv3-publish-platform-label">{p.label}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="mv3-publish-divider" />
-
-                  <div className="mv3-publish-section-label">Connected account</div>
-                  <p className="mv3-publish-connected-none">No accounts connected for this platform.</p>
-                  <button className="mv3-publish-connect-btn">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
-                    </svg>
-                    Connect account
-                  </button>
-
-                  <div className="mv3-publish-divider" />
-
-                  <div className="mv3-publish-section-label">Title</div>
-                  <input
-                    className="mv3-publish-input"
-                    value={publishTitle}
-                    onChange={e => setPublishTitle(e.target.value)}
-                  />
-
-                  <div className="mv3-publish-section-label" style={{ marginTop: 14 }}>Publishing Time</div>
-                  <div className="mv3-publish-time-row">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    <span>Now · 2:41 PM (Tue, Jun 30)</span>
-                  </div>
-
-                  <div className="mv3-publish-divider" />
-
-                  <p className="mv3-publish-count-note">1 of {pages.length} images selected for this platform.</p>
-
-                  <button className="mv3-publish-now-btn" onClick={() => setShowShareMenu(false)}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                    </svg>
-                    Publish now!
-                  </button>
+                <div className="mv3-share-preview-image">
+                  <PostPreview page={pageRenderSlot[pages[activePage]] ?? activePage} />
                 </div>
               </div>
-            ) : (
-              /* ── Download / Link tabs (unchanged) ── */
-              <>
-                <div className="mv3-share-preview-card">
-                  <div className="mv3-share-preview-header">
-                    <div className="mv3-share-avatar">T</div>
-                    <div className="mv3-share-preview-meta">
-                      <span className="mv3-share-preview-name">Thuy Huynh</span>
-                      <span className="mv3-share-preview-when">Just now · {pageData[pages[activePage]]?.label ?? 'LinkedIn'}</span>
-                    </div>
+              <div className="mv3-share-ratio-row">
+                <span className="mv3-share-ratio-label">ASPECT RATIO</span>
+                <span className="mv3-share-ratio-badge">{pageData[pages[activePage]]?.ratio ?? '1:1'}</span>
+              </div>
+              <div className="mv3-share-action-row">
+                {shareTab === 'download' && (
+                  <button className="mv3-share-action-btn mv3-share-action-btn--accent" onClick={() => setShowShareMenu(false)}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download PNG
+                  </button>
+                )}
+                {shareTab === 'link' && (
+                  <div className="mv3-share-link-row">
+                    <div className="mv3-share-link-input">https://layerproof.app/share/abc123</div>
+                    <button className="mv3-share-action-btn mv3-share-action-btn--accent" onClick={() => setShowShareMenu(false)}>Copy link</button>
                   </div>
-                  <div className="mv3-share-preview-image">
-                    <PostPreview page={pageRenderSlot[pages[activePage]] ?? activePage} />
-                  </div>
-                </div>
-                <div className="mv3-share-ratio-row">
-                  <span className="mv3-share-ratio-label">ASPECT RATIO</span>
-                  <span className="mv3-share-ratio-badge">{pageData[pages[activePage]]?.ratio ?? '1:1'}</span>
-                </div>
-                <div className="mv3-share-action-row">
-                  {shareTab === 'download' && (
-                    <button className="mv3-share-action-btn mv3-share-action-btn--accent" onClick={() => setShowShareMenu(false)}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                      </svg>
-                      Download PNG
-                    </button>
-                  )}
-                  {shareTab === 'link' && (
-                    <div className="mv3-share-link-row">
-                      <div className="mv3-share-link-input">https://layerproof.app/share/abc123</div>
-                      <button className="mv3-share-action-btn mv3-share-action-btn--accent" onClick={() => setShowShareMenu(false)}>Copy link</button>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+                )}
+              </div>
+            </>
 
             <button className="mv3-share-modal-close" onClick={() => setShowShareMenu(false)}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
@@ -2307,79 +3395,23 @@ export function MatteV3Editor() {
 }
 
 const PAGE_CONFIGS = [
-  {
-    bg: '#f5f5f0',
-    accent: '#22c55e',
-    label: 'Awareness',
-  },
-  {
-    bg: '#0f172a',
-    accent: '#3b82f6',
-    label: 'Benefits',
-  },
-  {
-    bg: '#faf5ff',
-    accent: '#7c3aed',
-    label: 'Call to Action',
-  },
+  { bg: '#f5f5f0', accent: '#22c55e', label: 'Awareness' },
+  { bg: '#0f172a', accent: '#3b82f6', label: 'Benefits' },
+  { bg: '#faf5ff', accent: '#7c3aed', label: 'Call to Action' },
+  { bg: '#fff7ed', accent: '#f97316', label: 'Social Proof' },
+  { bg: '#0d1117', accent: '#14b8a6', label: 'Stats' },
 ]
 
 function PostPreview({ page }: { page: number }) {
-  if (page === -1) {
-    return <div className="mv3-post-preview" style={{ background: '#f5f4f0' }} />
-  }
-
+  if (page === -1) return <div className="mv3-post-preview" style={{ background: '#f5f4f0' }} />
   const cfg = PAGE_CONFIGS[page % PAGE_CONFIGS.length]
+  const slot = page % 5
 
-  if (page % 3 === 1) {
-    return (
-      <div className="mv3-post-preview" style={{ background: cfg.bg }}>
-        <div className="mv3-post-content" style={{ gap: 24 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: cfg.accent, margin: 0 }}>3 Ways to Protect Your IP</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, width: '100%' }}>
-            {[
-              { n: '01', title: 'Register Early', sub: 'File patents and trademarks before going public' },
-              { n: '02', title: 'Document Everything', sub: 'Timestamped records are your strongest defence' },
-              { n: '03', title: 'Monitor Actively', sub: 'Set alerts and audit your competitive landscape' },
-            ].map(item => (
-              <div key={item.n} style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                <span style={{ fontSize: 28, fontWeight: 900, color: cfg.accent, lineHeight: 1, flex: 'none', width: 48 }}>{item.n}</span>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#e2e8f0', marginBottom: 4 }}>{item.title}</div>
-                  <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>{item.sub}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button className="mv3-post-cta" style={{ background: cfg.accent, color: '#fff', border: 'none', marginTop: 8 }}>Learn the 3 Steps</button>
-        </div>
-      </div>
-    )
-  }
-
-  if (page % 3 === 2) {
-    return (
-      <div className="mv3-post-preview" style={{ background: cfg.bg }}>
-        <div style={{ position: 'absolute', top: 0, right: 0, width: '55%', height: '100%', background: cfg.accent, opacity: .08, borderRadius: '0 14px 14px 0' }} />
-        <div className="mv3-post-content">
-          <div style={{ fontSize: 48, lineHeight: 1 }}>🚀</div>
-          <h2 className="mv3-post-headline" style={{ color: '#1e1b4b', fontSize: 28 }}>Ready to Secure Your Innovation?</h2>
-          <p className="mv3-post-subhead" style={{ color: '#6d28d9' }}>Join 500+ developers who protect their work with LayerProof</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', alignItems: 'center' }}>
-            <button className="mv3-post-cta" style={{ background: cfg.accent, color: '#fff', border: 'none', fontSize: 15, padding: '12px 32px' }}>Get Started Free</button>
-            <span style={{ fontSize: 11, color: '#a78bfa' }}>No credit card required · Cancel anytime</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
+  // Slide 0 — Hero / Awareness
+  if (slot === 0) return (
     <div className="mv3-post-preview" style={{ background: cfg.bg }}>
       <div className="mv3-post-bg-pattern">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div key={i} className="mv3-pattern-block" />
-        ))}
+        {Array.from({ length: 20 }).map((_, i) => <div key={i} className="mv3-pattern-block" />)}
       </div>
       <div className="mv3-post-content">
         <h2 className="mv3-post-headline">Safeguarding Your Innovation on Apple Platforms</h2>
@@ -2395,61 +3427,161 @@ function PostPreview({ page }: { page: number }) {
       </div>
     </div>
   )
+
+  // Slide 1 — Benefits / List
+  if (slot === 1) return (
+    <div className="mv3-post-preview" style={{ background: cfg.bg }}>
+      <div className="mv3-post-content" style={{ gap: 24 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: cfg.accent, margin: 0 }}>3 Ways to Protect Your IP</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18, width: '100%' }}>
+          {[
+            { n: '01', title: 'Register Early', sub: 'File patents and trademarks before going public' },
+            { n: '02', title: 'Document Everything', sub: 'Timestamped records are your strongest defence' },
+            { n: '03', title: 'Monitor Actively', sub: 'Set alerts and audit your competitive landscape' },
+          ].map(item => (
+            <div key={item.n} style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+              <span style={{ fontSize: 28, fontWeight: 900, color: cfg.accent, lineHeight: 1, flex: 'none', width: 48 }}>{item.n}</span>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#e2e8f0', marginBottom: 4 }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>{item.sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button className="mv3-post-cta" style={{ background: cfg.accent, color: '#fff', border: 'none', marginTop: 8 }}>Learn the 3 Steps</button>
+      </div>
+    </div>
+  )
+
+  // Slide 2 — CTA
+  if (slot === 2) return (
+    <div className="mv3-post-preview" style={{ background: cfg.bg }}>
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '55%', height: '100%', background: cfg.accent, opacity: .08, borderRadius: '0 14px 14px 0' }} />
+      <div className="mv3-post-content">
+        <div style={{ fontSize: 48, lineHeight: 1 }}>🚀</div>
+        <h2 className="mv3-post-headline" style={{ color: '#1e1b4b', fontSize: 28 }}>Ready to Secure Your Innovation?</h2>
+        <p className="mv3-post-subhead" style={{ color: '#6d28d9' }}>Join 500+ developers who protect their work with LayerProof</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', alignItems: 'center' }}>
+          <button className="mv3-post-cta" style={{ background: cfg.accent, color: '#fff', border: 'none', fontSize: 15, padding: '12px 32px' }}>Get Started Free</button>
+          <span style={{ fontSize: 11, color: '#a78bfa' }}>No credit card required · Cancel anytime</span>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Slide 3 — Testimonial / Social Proof
+  if (slot === 3) return (
+    <div className="mv3-post-preview" style={{ background: cfg.bg }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: cfg.accent }} />
+      <div className="mv3-post-content" style={{ gap: 20 }}>
+        <svg width="32" height="24" viewBox="0 0 32 24" fill={cfg.accent} opacity={0.4}><path d="M0 24V14.4C0 6.4 4.267 1.6 12.8 0l1.6 2.4C10.133 3.6 7.733 6.267 7.2 10.4H13.6V24H0zm18.4 0V14.4C18.4 6.4 22.667 1.6 31.2 0l1.6 2.4c-4.267 1.2-6.667 3.867-7.2 8H32V24H18.4z"/></svg>
+        <p style={{ fontSize: 16, fontWeight: 600, color: '#1c1917', lineHeight: 1.6, fontStyle: 'italic', margin: 0, textAlign: 'center', maxWidth: 320 }}>
+          "LayerProof saved us months of legal back-and-forth. Our IP was protected before we even launched."
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: cfg.accent, display: 'grid', placeItems: 'center', fontSize: 16, fontWeight: 700, color: '#fff' }}>M</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#1c1917' }}>Marcus Chen</div>
+          <div style={{ fontSize: 12, color: '#78716c' }}>Founder, SwiftKit · YC W24</div>
+        </div>
+        <div style={{ display: 'flex', gap: 2 }}>
+          {[1,2,3,4,5].map(i => <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill={cfg.accent}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}
+        </div>
+      </div>
+    </div>
+  )
+
+  // Slide 4 — Stats
+  return (
+    <div className="mv3-post-preview" style={{ background: cfg.bg }}>
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(circle at 70% 30%, ${cfg.accent}18 0%, transparent 60%)`, pointerEvents: 'none' }} />
+      <div className="mv3-post-content" style={{ gap: 28 }}>
+        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: cfg.accent, margin: 0 }}>LayerProof by the Numbers</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, width: '100%' }}>
+          {[
+            { value: '10K+', label: 'Patents Filed' },
+            { value: '98%', label: 'Success Rate' },
+            { value: '3×', label: 'Faster Process' },
+            { value: '$2M+', label: 'IP Protected' },
+          ].map(s => (
+            <div key={s.value} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '16px 8px', borderRadius: 12, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
+              <span style={{ fontSize: 30, fontWeight: 900, color: cfg.accent, lineHeight: 1 }}>{s.value}</span>
+              <span style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>{s.label}</span>
+            </div>
+          ))}
+        </div>
+        <button className="mv3-post-cta" style={{ background: cfg.accent, color: '#fff', border: 'none' }}>See How It Works</button>
+      </div>
+    </div>
+  )
 }
 
-function MiniPostPreview({ page }: { page: number }) {
-  if (page === -1) {
-    return (
-      <div style={{ aspectRatio: '1', height: '100%', maxWidth: '100%', background: '#f5f4f0', borderRadius: 6 }} />
-    )
-  }
-
+function MiniPostPreview({ page, ratio = '1:1' }: { page: number; ratio?: string }) {
+  const ar = ratio.replace(':', '/')
+  if (page === -1) return <div style={{ aspectRatio: ar, maxWidth: '100%', maxHeight: '100%', background: '#f5f4f0', borderRadius: 6 }} />
   const cfg = PAGE_CONFIGS[page % PAGE_CONFIGS.length]
-  const isDark = page % 3 === 1
+  const slot = page % 5
+  const base: React.CSSProperties = { aspectRatio: ar, maxWidth: '100%', maxHeight: '100%', background: cfg.bg, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 6 }
 
-  if (page % 3 === 1) {
-    return (
-      <div style={{ aspectRatio: '1', height: '100%', maxWidth: '100%', background: cfg.bg, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 6, padding: '6px 8px', boxSizing: 'border-box' }}>
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 5 }}>
-          <div style={{ fontSize: 4, fontWeight: 800, color: cfg.accent, letterSpacing: '.08em', textTransform: 'uppercase' }}>3 Ways to Protect</div>
-          {['01 Register Early', '02 Document Everything', '03 Monitor Actively'].map(t => (
-            <div key={t} style={{ fontSize: 4, color: '#94a3b8', paddingLeft: 2 }}>{t}</div>
-          ))}
-          <div style={{ marginTop: 3, padding: '2px 5px', borderRadius: 3, background: cfg.accent, color: '#fff', fontSize: 3.5, fontWeight: 700, width: 'fit-content' }}>Learn More</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (page % 3 === 2) {
-    return (
-      <div style={{ aspectRatio: '1', height: '100%', maxWidth: '100%', background: cfg.bg, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 6 }}>
-        <div style={{ position: 'absolute', top: 0, right: 0, width: '50%', height: '100%', background: cfg.accent, opacity: .1 }} />
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '8px 6px', gap: 4 }}>
-          <div style={{ fontSize: 10 }}>🚀</div>
-          <div style={{ fontSize: 5, fontWeight: 800, color: '#1e1b4b', lineHeight: 1.2, maxWidth: 80 }}>Ready to Secure Your Innovation?</div>
-          <div style={{ padding: '2px 6px', borderRadius: 4, background: cfg.accent, color: '#fff', fontSize: 3.5, fontWeight: 700, marginTop: 2 }}>Get Started Free</div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ aspectRatio: '1', height: '100%', maxWidth: '100%', background: cfg.bg, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 6 }}>
+  if (slot === 0) return (
+    <div style={base}>
       <div style={{ position: 'absolute', inset: 0, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', opacity: .07, pointerEvents: 'none' }}>
-        {Array.from({ length: 16 }).map((_, i) => (
-          <div key={i} style={{ border: '1px solid #999', borderRadius: 3, margin: 3, background: '#aaa' }} />
-        ))}
+        {Array.from({ length: 16 }).map((_, i) => <div key={i} style={{ border: '1px solid #999', borderRadius: 3, margin: 3, background: '#aaa' }} />)}
       </div>
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '8px 6px', gap: 4 }}>
         <div style={{ fontSize: 6, fontWeight: 800, color: '#111', lineHeight: 1.2, maxWidth: 100 }}>Safeguarding Your Innovation</div>
-        <div style={{ fontSize: 4, color: '#555', lineHeight: 1.3, maxWidth: 90 }}>Mastering IP Strategy</div>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill={cfg.accent} stroke="none" style={{ margin: '2px 0' }}>
-          <rect x="3" y="11" width="18" height="11" rx="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke={cfg.accent} strokeWidth={2} strokeLinecap="round"/>
-          <circle cx="12" cy="16" r="1.5" fill="white"/>
-        </svg>
-        <div style={{ fontSize: 4, fontWeight: 700, padding: '2px 6px', borderRadius: 8, border: '0.5px solid #111', color: '#111', background: '#fff' }}>Explore IP Best Practices</div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill={cfg.accent} stroke="none" style={{ margin: '2px 0' }}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke={cfg.accent} strokeWidth={2} strokeLinecap="round"/><circle cx="12" cy="16" r="1.5" fill="white"/></svg>
+        <div style={{ fontSize: 3.5, fontWeight: 700, padding: '2px 5px', borderRadius: 8, border: '0.5px solid #111', color: '#111' }}>Explore IP Best Practices</div>
+      </div>
+    </div>
+  )
+
+  if (slot === 1) return (
+    <div style={{ ...base, padding: '6px 8px', boxSizing: 'border-box' as const }}>
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ fontSize: 4, fontWeight: 800, color: cfg.accent, letterSpacing: '.08em', textTransform: 'uppercase' as const }}>3 Ways to Protect</div>
+        {['01 Register Early', '02 Document Everything', '03 Monitor Actively'].map(t => (
+          <div key={t} style={{ fontSize: 3.5, color: '#94a3b8', paddingLeft: 2 }}>{t}</div>
+        ))}
+        <div style={{ marginTop: 3, padding: '2px 5px', borderRadius: 3, background: cfg.accent, color: '#fff', fontSize: 3.5, fontWeight: 700, width: 'fit-content' }}>Learn More</div>
+      </div>
+    </div>
+  )
+
+  if (slot === 2) return (
+    <div style={base}>
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '50%', height: '100%', background: cfg.accent, opacity: .1 }} />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '8px 6px', gap: 3 }}>
+        <div style={{ fontSize: 10 }}>🚀</div>
+        <div style={{ fontSize: 4.5, fontWeight: 800, color: '#1e1b4b', lineHeight: 1.2 }}>Ready to Secure?</div>
+        <div style={{ padding: '2px 5px', borderRadius: 4, background: cfg.accent, color: '#fff', fontSize: 3.5, fontWeight: 700 }}>Get Started Free</div>
+      </div>
+    </div>
+  )
+
+  if (slot === 3) return (
+    <div style={base}>
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '3px', background: cfg.accent }} />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '8px 6px', gap: 4 }}>
+        <div style={{ fontSize: 4.5, fontWeight: 600, color: '#1c1917', fontStyle: 'italic', lineHeight: 1.4, maxWidth: 90 }}>"LayerProof saved us months of legal back-and-forth."</div>
+        <div style={{ width: 16, height: 16, borderRadius: '50%', background: cfg.accent, display: 'grid', placeItems: 'center', fontSize: 7, fontWeight: 700, color: '#fff' }}>M</div>
+        <div style={{ fontSize: 4, fontWeight: 700, color: '#1c1917' }}>Marcus Chen · YC W24</div>
+        <div style={{ display: 'flex', gap: 1 }}>
+          {[1,2,3,4,5].map(i => <svg key={i} width="5" height="5" viewBox="0 0 24 24" fill={cfg.accent}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={base}>
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(circle at 70% 30%, ${cfg.accent}25 0%, transparent 60%)`, pointerEvents: 'none' }} />
+      <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: '8px 6px', width: '100%', boxSizing: 'border-box' as const }}>
+        {[{ v: '10K+', l: 'Patents' }, { v: '98%', l: 'Success' }, { v: '3×', l: 'Faster' }, { v: '$2M+', l: 'Protected' }].map(s => (
+          <div key={s.v} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, padding: '4px 2px', borderRadius: 4, background: 'rgba(255,255,255,.05)', border: '0.5px solid rgba(255,255,255,.1)' }}>
+            <span style={{ fontSize: 8, fontWeight: 900, color: cfg.accent, lineHeight: 1 }}>{s.v}</span>
+            <span style={{ fontSize: 3, color: '#94a3b8' }}>{s.l}</span>
+          </div>
+        ))}
       </div>
     </div>
   )

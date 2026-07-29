@@ -9,6 +9,12 @@
       "autoPort": false
     },
     {
+      "name": "layerproof-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview", "--", "--port", "4173"],
+      "port": 4173
+    },
+    {
       "name": "prd-docs",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "docs", "-p", "5174", "--no-clipboard"],

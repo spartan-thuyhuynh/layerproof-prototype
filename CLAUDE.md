@@ -165,6 +165,14 @@ HashRouter (GitHub Pages compatible). Base: `/layerproof-prototype/`. Routes in 
 ```
 src/
   features/        # Feature-first (brand-kit, create, onboarding, landing, motion-editor)
+    create/
+      components/
+        matte-v3/  # Matte editor sub-components + editor UI primitives
+          editor-ui.ts           # Barrel export for all four editor UI components
+          EditorContextMenu.tsx  # Dropdown/context menus (wraps @radix-ui/react-dropdown-menu)
+          EditorDialog.tsx       # Modal overlays (wraps @radix-ui/react-dialog)
+          EditorTooltip.tsx      # Icon-button tooltips (wraps @radix-ui/react-tooltip)
+          EditorTabs.tsx         # Tab groups (wraps @radix-ui/react-tabs)
     <feature>/components/ store/ hooks/ types/
   pages/           # Thin page-level wrappers (one per route)
   shared/
@@ -228,6 +236,38 @@ Three stores — do not add more without discussion:
 ## TypeScript
 `noUnusedLocals` and `noUnusedParameters` are intentionally `false` (prototype). `erasableSyntaxOnly: true` — no legacy decorators or enum patterns.
 
+## Matte Editor UI Components
+
+Four purpose-built primitives live in `src/features/create/components/matte-v3/`. They wrap shadcn/Radix UI under the hood (accessibility, keyboard nav, focus management) and are styled with the `mv3-*` CSS tokens. **Always use these instead of raw HTML when working in the Matte editor.** If a pattern isn't covered, extend one of these or add a new component to the same folder — never reach for raw HTML.
+
+Import everything from the barrel:
+```tsx
+import {
+  EditorContextMenu, EditorContextMenuTrigger, EditorContextMenuContent,
+  EditorContextMenuItem, EditorContextMenuSeparator, EditorContextMenuLabel,
+  EditorContextMenuSub, EditorContextMenuSubTrigger, EditorContextMenuSubContent,
+  EditorDialog, EditorDialogTrigger, EditorDialogContent, EditorDialogClose,
+  EditorDialogHeader, EditorDialogTitle, EditorDialogBody, EditorDialogFooter,
+  EditorTooltip, EditorTooltipProvider,
+  EditorTabs, EditorTabsList, EditorTabsTrigger, EditorTabsContent, EditorTabGroup,
+} from '@/features/create/components/matte-v3/editor-ui'
+```
+
+| Component | Use for | Key props |
+|---|---|---|
+| `EditorContextMenu` | Page thumbnail menu, attach menu, section menu, any right-click/overflow menu | `side`, `align` on Content; `danger`, `icon` on Item; `EditorContextMenuSub` for sub-menus |
+| `EditorDialog` | Share overlay, version history, add page picker, outline panel, assets library | `size` (`sm`/`md`/`lg`/`xl`), `hideClose` |
+| `EditorTooltip` | Any icon-only button that currently has a native `title` attribute | `label`, `side` (`top`/`right`/`bottom`/`left`), `delayDuration` |
+| `EditorTabGroup` | Editor tab bar (`Image preview` / `Publishing`), share tabs, settings tabs | `tabs`, `value`, `onValueChange` |
+
+CSS for all four lives at the bottom of `src/styles/features/create/editor.css` under the "Editor UI Components" section. Add new variants there — never inline styles on Radix primitives.
+
+When adding a **new** editor UI pattern not covered above (e.g. a popover, a toast, a combobox):
+1. Check `src/shared/components/ui/` for an existing shadcn primitive first.
+2. If one exists, create a new `Editor<Name>.tsx` in `matte-v3/`, wrap it with `mv3-*` CSS classes, and export from `editor-ui.ts`.
+3. Add its CSS to the "Editor UI Components" section of `editor.css`.
+4. Never implement it with raw HTML + a manual backdrop/state pattern.
+
 ## What to Avoid
 - Never use `dark:` Tailwind prefix — use `html.light` CSS overrides
 - Never hardcode colors — use CSS custom property vars or Tailwind tokens
@@ -236,6 +276,7 @@ Three stores — do not add more without discussion:
 - Never edit `dist/` manually — always rebuild via `npm run build`
 - Never use `mcp__Claude_Preview__*` tools
 - Never connect to any analytics platform when working on this project — tracking specs are design documents only
+- **Never implement context menus, dropdowns, modal overlays, tooltips, or tab groups with raw HTML in the Matte editor** — use the `editor-ui` components above or create a new one following the pattern
 
 ## Skills for Common Tasks
 | Task | Skill |
