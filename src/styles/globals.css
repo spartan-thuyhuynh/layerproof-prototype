@@ -37,6 +37,7 @@
 
 /* Landing */
 @import "./features/landing/landing.css";
+@import "./features/landing/marketing.css";
 
 /* Onboarding feature */
 @import "./features/onboarding/onboarding.css";

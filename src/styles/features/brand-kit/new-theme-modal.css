@@ -47,245 +47,164 @@
   gap: 8px;
 }
 
-/* ── Guide phase ──────────────────────────────────────────────── */
-.ntm-guide {
+/* ── Welcome screen ──────────────────────────────────────────── */
+.ntm-welcome {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-}
-
-.ntm-progress-track {
-  height: 2px;
-  background: var(--line);
-  flex-shrink: 0;
-}
-
-.ntm-progress-fill {
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.4s cubic-bezier(.4, 0, .2, 1);
-}
-
-.ntm-guide-split {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* Left: question context */
-.ntm-guide-left {
-  width: 320px;
-  flex-shrink: 0;
-  padding: 48px 36px 36px;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--line);
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 28px 56px;
   overflow-y: auto;
-  background: var(--panel);
 }
 
-.ntm-guide-step {
+.ntm-welcome-inner {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ntm-welcome-what {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ntm-welcome-theme-pillars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.ntm-welcome-pillar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+}
+html.light .ntm-welcome-pillar { background: rgba(0, 0, 0, 0.025); }
+
+.ntm-welcome-pillar-icon {
+  font-size: 15px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.06);
+  font-style: normal;
+}
+html.light .ntm-welcome-pillar-icon { background: rgba(0, 0, 0, 0.05); }
+
+.ntm-welcome-pillar-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--t1);
+  line-height: 1.3;
+}
+
+.ntm-welcome-pillar-sub {
+  font-size: 11.5px;
+  color: var(--t3);
+  line-height: 1.3;
+}
+
+.ntm-welcome-kit-header {
+  padding-bottom: 8px;
+}
+
+.ntm-welcome-eyebrow {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .14em;
+  letter-spacing: .13em;
   text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 22px;
-}
-html.light .ntm-guide-step { color: #7a6600; }
-
-.ntm-guide-heading {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1.18;
-  color: var(--t1);
-  letter-spacing: -.025em;
-  margin: 0 0 18px;
-  text-wrap: balance;
-}
-
-.ntm-guide-sub {
-  font-size: 13.5px;
-  line-height: 1.7;
-  color: var(--t2);
-  margin: 0;
-}
-
-.ntm-guide-kit-tag {
-  margin-top: auto;
-  padding-top: 36px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.ntm-kit-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  flex-shrink: 0;
-  opacity: 0.7;
-}
-
-.ntm-kit-name {
-  font-size: 12px;
-  font-weight: 500;
   color: var(--t3);
+  margin-bottom: 6px;
 }
 
-/* Right: answer controls */
-.ntm-guide-right {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 48px 48px 36px;
-  gap: 24px;
-  background: var(--panel);
-}
-
-/* Asset picker trigger */
-.ntm-asset-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 16px 18px;
-  border-radius: 12px;
-  border: 1px solid var(--line-2);
-  background: var(--card);
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color .15s, background .15s;
-}
-.ntm-asset-btn:hover {
-  border-color: var(--line-2);
-  background: var(--card-2);
-}
-
-/* Purpose card grid */
-.ntm-purpose-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.ntm-purpose-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 16px 14px;
-  border-radius: 12px;
-  border: 1.5px solid var(--line-2);
-  background: var(--card);
-  cursor: pointer;
-  text-align: left;
-  transition: border-color .15s, background .15s;
-  font-family: inherit;
-}
-.ntm-purpose-card:hover {
-  border-color: var(--line-2);
-  background: var(--card-2);
-}
-.ntm-purpose-card.active {
-  border-color: rgba(255, 222, 66, 0.4);
-  background: rgba(255, 222, 66, 0.06);
-}
-
-.ntm-purpose-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: var(--card-2);
-  color: var(--t3);
-  flex-shrink: 0;
-  transition: color .15s, background .15s;
-}
-.ntm-purpose-card.active .ntm-purpose-icon {
-  background: rgba(255, 222, 66, 0.14);
-  color: var(--accent);
-}
-html.light .ntm-purpose-card.active .ntm-purpose-icon { color: #7a6600; }
-
-.ntm-purpose-label {
-  font-size: 12.5px;
+.ntm-welcome-title {
+  font-size: 22px;
   font-weight: 700;
-  color: var(--t2);
-  line-height: 1.25;
-  transition: color .15s;
-}
-.ntm-purpose-card.active .ntm-purpose-label { color: var(--t1); }
-
-/* Custom input */
-.ntm-custom-input {
-  width: 100%;
-  background: transparent;
-  border: 1px solid var(--line-2);
-  border-radius: 10px;
   color: var(--t1);
-  font-family: inherit;
-  font-size: 13px;
-  padding: 11px 14px;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color .15s;
+  margin-bottom: 8px;
+  line-height: 1.2;
 }
-.ntm-custom-input:focus { border-color: var(--accent-line); }
-.ntm-custom-input::placeholder { color: var(--t3); }
 
-/* Optional expander */
-.ntm-optional-toggle {
+.ntm-welcome-desc {
+  font-size: 13.5px;
+  color: var(--t2);
+  line-height: 1.65;
+}
+
+.ntm-welcome-kit {
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  overflow: hidden;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
+  flex-direction: column;
+}
+
+.ntm-welcome-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ntm-welcome-section:last-child { border-bottom: none; }
+
+.ntm-welcome-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
   color: var(--t3);
-  cursor: pointer;
-  font-family: inherit;
+}
+
+.ntm-welcome-voice-chip {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line-2);
   font-size: 12px;
-  padding: 0;
-  transition: color .15s;
-}
-.ntm-optional-toggle:hover { color: var(--t2); }
-
-/* Nav row */
-.ntm-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 8px;
-}
-
-.ntm-back-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  color: var(--t3);
-  cursor: pointer;
+  color: var(--t2);
   font-family: inherit;
-  font-size: 13px;
-  padding: 6px 0;
-  transition: color .15s;
 }
-.ntm-back-btn:hover { color: var(--t2); }
+html.light .ntm-welcome-voice-chip { background: rgba(0, 0, 0, 0.04); }
 
-/* ── Chat phase ───────────────────────────────────────────────── */
-.ntm-chat-layout {
-  flex: 1;
+/* ── Section divider in chat thread ─────────────────────────── */
+.ntm-section-divider {
   display: flex;
-  min-height: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 2px;
 }
 
+.ntm-section-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.ntm-section-divider-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--t3);
+  white-space: nowrap;
+}
+
+/* ── Chat layout ─────────────────────────────────────────────── */
 .ntm-chat-main {
   flex: 1;
   display: flex;
@@ -297,17 +216,17 @@ html.light .ntm-purpose-card.active .ntm-purpose-icon { color: #7a6600; }
 .ntm-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 32px max(28px, calc((100% - 600px) / 2));
+  padding: 32px max(28px, calc((100% - 580px) / 2));
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .ntm-bot-row {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  max-width: 560px;
+  max-width: 520px;
 }
 
 .ntm-bot-avatar {
@@ -325,27 +244,35 @@ html.light .ntm-purpose-card.active .ntm-purpose-icon { color: #7a6600; }
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 4px 14px 14px 14px;
-  font-size: 14.5px;
+  font-size: 14px;
   line-height: 1.65;
   color: var(--t2);
+}
+
+.ntm-bot-sub {
+  margin: 7px 0 0;
+  font-size: 12.5px;
+  color: var(--t3);
+  line-height: 1.55;
 }
 
 .ntm-user-row {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 6px;
   align-self: flex-end;
   max-width: 75%;
 }
 
 .ntm-user-bubble {
-  padding: 11px 16px;
+  padding: 10px 16px;
   background: rgba(255, 255, 255, 0.09);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px 4px 14px 14px;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
 }
 html.light .ntm-user-bubble {
   background: rgba(0, 0, 0, 0.05);
@@ -406,11 +333,198 @@ html.light .ntm-user-bubble {
   40% { transform: translateY(-5px); opacity: 1; }
 }
 
-/* Input bar */
+/* ── Summary card ────────────────────────────────────────────── */
+.ntm-summary-card {
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 480px;
+}
+
+.ntm-summary-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ntm-summary-label-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.ntm-summary-sparkle {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.ntm-summary-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--t3);
+}
+
+.ntm-summary-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--t1);
+}
+
+.ntm-summary-section {
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.ntm-summary-section:last-child { border-bottom: none; }
+
+.ntm-summary-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 3px;
+}
+
+.ntm-summary-section-value {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+/* ── Messages with bottom card ───────────────────────────────── */
+.ntm-messages--has-sheet {
+  padding-bottom: 300px;
+}
+
+/* ── Bottom card wrapper (positions the ac2-bac card) ─────────── */
+.ntm-bac-wrap {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+/* Purpose chip strip */
+.ntm-purpose-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ntm-purpose-chip {
+  padding: 7px 15px;
+  border-radius: 20px;
+  border: 1.5px solid var(--line-2);
+  background: transparent;
+  color: var(--t2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.ntm-purpose-chip:hover:not(.active) {
+  border-color: var(--line-2);
+  color: var(--t1);
+  background: var(--card);
+}
+.ntm-purpose-chip.active {
+  border-color: rgba(255, 222, 66, 0.5);
+  background: rgba(255, 222, 66, 0.08);
+  color: var(--accent);
+  font-weight: 600;
+}
+html.light .ntm-purpose-chip.active { color: #7a6600; }
+
+/* Text input in answer zone */
+.ntm-az-text-input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  color: var(--t1);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+.ntm-az-text-input::placeholder { color: var(--t3); }
+.ntm-az-text-input:focus { border-color: var(--accent-line); }
+
+/* Asset picker trigger button */
+.ntm-az-asset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color .15s, background .15s;
+}
+.ntm-az-asset-btn:hover {
+  border-color: var(--accent-line);
+  background: var(--card-2);
+}
+
+/* Upload button */
+.ntm-az-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--t2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: border-color .15s, color .15s;
+}
+.ntm-az-upload-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--t1);
+}
+
+/* Textarea in answer zone */
+.ntm-az-textarea {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  color: var(--t1);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 14px;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+.ntm-az-textarea::placeholder { color: var(--t3); }
+.ntm-az-textarea:focus { border-color: var(--accent-line); }
+
+
+/* ── Chat input bar (refining phase) ─────────────────────────── */
 .ntm-input-bar {
   flex-shrink: 0;
   border-top: 1px solid var(--line);
-  padding: 12px max(16px, calc((100% - 600px) / 2));
+  padding: 12px max(16px, calc((100% - 580px) / 2));
   background: var(--panel);
 }
 
@@ -497,16 +611,16 @@ html.light .ntm-user-bubble {
   line-height: 1;
 }
 
-/* ── Preview panel ────────────────────────────────────────────── */
+/* ── Preview panel ───────────────────────────────────────────── */
 .ntm-preview-panel {
-  width: 340px;
+  width: 300px;
   flex-shrink: 0;
   border-left: 1px solid var(--line);
   background: var(--panel);
   display: flex;
   flex-direction: column;
   padding: 20px;
-  gap: 12px;
+  gap: 14px;
   overflow-y: auto;
 }
 

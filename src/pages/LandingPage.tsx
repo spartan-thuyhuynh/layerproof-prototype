@@ -4,6 +4,18 @@ const base = import.meta.env.BASE_URL
 
 const PROTOS = [
   {
+    title: 'Marketing Landing',
+    status: 'live' as const,
+    thumbnail: undefined,
+    to: '/marketing',
+    flows: [
+      'Hero with animated brand marquee',
+      'Case study cards with testimonials',
+      'Why LayerProof feature grid',
+      'Pricing, CTA, and footer',
+    ],
+  },
+  {
     title: 'Motion Editor',
     status: 'live' as const,
     thumbnail: undefined,

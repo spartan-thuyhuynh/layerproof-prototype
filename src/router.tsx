@@ -10,11 +10,13 @@ import { MotionEditorPage } from '@/pages/MotionEditorPage'
 import { AllProjectsPage } from '@/pages/AllProjectsPage'
 import { TrashPage } from '@/pages/TrashPage'
 import { CommunityPage } from '@/pages/CommunityPage'
+import { MarketingPage } from '@/pages/MarketingPage'
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/marketing" element={<MarketingPage />} />
       <Route path="/matte-v3" element={<MatteV3Page />} />
       <Route path="/motion-editor" element={<MotionEditorPage />} />
       <Route path="/home" element={<HomePage />} />

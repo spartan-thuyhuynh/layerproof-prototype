@@ -190,6 +190,38 @@
     margin-right: auto;
     width: 100%;
   }
+
+  /* marketing landing — clamp() caps out below this width, so scale explicitly */
+  .ml-hero-inner,
+  .ml-cases-inner,
+  .ml-pillars-inner,
+  .ml-industries-inner,
+  .ml-ugc-inner,
+  .ml-ugc-scroller,
+  .ml-deepdives-inner,
+  .ml-soon-inner,
+  .ml-compare-inner,
+  .ml-pricing-inner,
+  .ml-footer-top,
+  .ml-footer-big-wrap { max-width: 1480px; }
+  .ml-hero-h1 { font-size: 68px; }
+  .ml-hero-sub { font-size: 20px; }
+  .ml-brand-item { font-size: 24px; }
+  .ml-section-h2 { font-size: 50px; }
+  .ml-section-sub { font-size: 18px; }
+  .ml-cases-h2 { font-size: 40px; }
+  .ml-case-num { font-size: 38px; }
+  .ml-stat-num { font-size: 52px; }
+  .ml-pillar-h { font-size: 19px; }
+  .ml-deepdive-h { font-size: 32px; }
+  .ml-deepdive-body { font-size: 17px; }
+  .ml-why-h2 { font-size: 64px; }
+  .ml-why-card-h { font-size: 24px; }
+  .ml-price-name { font-size: 20px; }
+  .ml-price-num { font-size: 40px; }
+  .ml-cta-h2 { font-size: 54px; }
+  .ml-cta-sub { font-size: 18px; }
+  .ml-footer-big { font-size: 240px; }
 }
 
 /* ── Extra large / 4K: 1800px ───────────────────────────────────── */
@@ -355,4 +387,36 @@
     margin-right: auto;
     width: 100%;
   }
+
+  /* marketing landing — clamp() caps out below this width, so scale explicitly */
+  .ml-hero-inner,
+  .ml-cases-inner,
+  .ml-pillars-inner,
+  .ml-industries-inner,
+  .ml-ugc-inner,
+  .ml-ugc-scroller,
+  .ml-deepdives-inner,
+  .ml-soon-inner,
+  .ml-compare-inner,
+  .ml-pricing-inner,
+  .ml-footer-top,
+  .ml-footer-big-wrap { max-width: 1640px; }
+  .ml-hero-h1 { font-size: 78px; }
+  .ml-hero-sub { font-size: 22px; }
+  .ml-brand-item { font-size: 26px; }
+  .ml-section-h2 { font-size: 56px; }
+  .ml-section-sub { font-size: 19px; }
+  .ml-cases-h2 { font-size: 44px; }
+  .ml-case-num { font-size: 42px; }
+  .ml-stat-num { font-size: 58px; }
+  .ml-pillar-h { font-size: 21px; }
+  .ml-deepdive-h { font-size: 36px; }
+  .ml-deepdive-body { font-size: 18px; }
+  .ml-why-h2 { font-size: 72px; }
+  .ml-why-card-h { font-size: 26px; }
+  .ml-price-name { font-size: 22px; }
+  .ml-price-num { font-size: 44px; }
+  .ml-cta-h2 { font-size: 60px; }
+  .ml-cta-sub { font-size: 19px; }
+  .ml-footer-big { font-size: 260px; }
 }
