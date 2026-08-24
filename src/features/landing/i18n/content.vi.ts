@@ -134,7 +134,7 @@ export const vi: LandingContent = {
       {
         numeral: '03',
         tag: 'Vellum',
-        headline: 'Bộ Ảnh Từ Một Tấm',
+        headline: 'Từ một ảnh, cả bộ hình chuyên nghiệp.',
         body: 'Vellum lấy một tấm ảnh sản phẩm và tự động tạo ra nền mới, góc chụp mới, và crop mới — cả một bộ catalog từ một lần chụp.',
         illustLabel: 'Quy trình tạo ảnh',
         illustNote: 'Một ảnh vào → cả bộ catalog ra',
@@ -216,7 +216,7 @@ export const vi: LandingContent = {
     ],
   },
   deepdives: {
-    h2: 'Mọi việc một đội marketing sẽ làm — nếu bạn có một đội',
+    h2: 'Mọi thứ một đội ngũ marketing có thể làm. Giờ bạn có thể tự mình làm được.',
     sub: 'Dành cho chủ shop tự vận hành toàn bộ sự hiện diện online một mình.',
     items: [
       {
@@ -315,7 +315,7 @@ export const vi: LandingContent = {
     ],
   },
   pricing: {
-    h2: 'Bảng giá hợp lý cho một chủ shop, không phải cho cả đội',
+    h2: 'Không cần ngân sách của cả team. Vẫn có đủ công cụ để làm marketing.',
     sub: 'Không dùng chung gói credit, không phải đoán một "chiến dịch" tốn bao nhiêu — bắt đầu miễn phí, nâng cấp khi bạn sẵn sàng.',
     popularBadge: 'Phổ biến nhất',
     tiers: [

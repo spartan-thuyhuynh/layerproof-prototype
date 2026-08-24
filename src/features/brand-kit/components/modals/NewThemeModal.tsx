@@ -135,10 +135,20 @@ function SectionDivider({ label }: { label: string }) {
 }
 
 function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void }) {
-  const wordsUse   = kit.tone.use?.slice(0, 4) ?? []
-  const wordsAvoid = kit.tone.avoid?.slice(0, 3) ?? []
-  const hasLogo    = kit.logos?.variants?.some((v: { src?: string }) => v.src)
-  const imageCount = kit.imagery?.assets?.length ?? 0
+  const wordsUse    = kit.tone.use?.slice(0, 4) ?? []
+  const wordsAvoid  = kit.tone.avoid?.slice(0, 3) ?? []
+  const logoVariants = (kit.logos?.variants ?? []) as Array<{ src?: string }>
+  const hasLogo     = logoVariants.some(v => v.src)
+  const imageryAssets = (kit.imagery?.assets ?? []) as Array<{ name: string; preview?: string }>
+  const imageCount  = imageryAssets.length
+
+  const MAX_VISIBLE = 5
+  const [showAllLogos,  setShowAllLogos]  = useState(false)
+  const [showAllImages, setShowAllImages] = useState(false)
+  const visibleLogos  = showAllLogos  ? logoVariants.filter(v => v.src)  : logoVariants.filter(v => v.src).slice(0, MAX_VISIBLE)
+  const visibleImages = showAllImages ? imageryAssets : imageryAssets.slice(0, MAX_VISIBLE)
+  const hiddenLogos   = logoVariants.filter(v => v.src).length - MAX_VISIBLE
+  const hiddenImages  = imageryAssets.length - MAX_VISIBLE
 
   return (
     <div className="ntm-welcome">
@@ -260,22 +270,46 @@ function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void })
             </div>
           )}
 
-          <div className="ntm-welcome-section" style={{ flexDirection: 'row', gap: 24 }}>
-            <div>
-              <div className="ntm-welcome-section-label">Brand images</div>
-              <div style={{ fontSize: 13, color: 'var(--t2)' }}>
-                {imageCount > 0 ? `${imageCount} asset${imageCount !== 1 ? 's' : ''} available` : 'No assets yet'}
-              </div>
-            </div>
-            {hasLogo && (
-              <div>
-                <div className="ntm-welcome-section-label">Logo</div>
-                <div style={{ fontSize: 13, color: 'var(--t2)' }}>
-                  {kit.logos?.variants?.length ?? 0} variant{(kit.logos?.variants?.length ?? 0) !== 1 ? 's' : ''} included
+          {(hasLogo || imageCount > 0) && (
+            <div className="ntm-welcome-section">
+              {hasLogo && (
+                <div style={{ marginBottom: imageCount > 0 ? 14 : 0 }}>
+                  <div className="ntm-welcome-section-label">Logo</div>
+                  <div className="ntm-welcome-asset-grid">
+                    {visibleLogos.map((v, i) => (
+                      <div key={i} className="ntm-welcome-asset-thumb ntm-welcome-asset-thumb--logo">
+                        <img src={v.src} alt={`Logo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                      </div>
+                    ))}
+                    {hiddenLogos > 0 && (
+                      <button className="ntm-welcome-show-more" onClick={() => setShowAllLogos(s => !s)}>
+                        {showAllLogos ? 'Show less' : `+${hiddenLogos} more`}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+              {imageCount > 0 && (
+                <div>
+                  <div className="ntm-welcome-section-label">Brand images</div>
+                  <div className="ntm-welcome-asset-grid">
+                    {visibleImages.map((a, i) => (
+                      <div key={i} className="ntm-welcome-asset-thumb" title={a.name}
+                        style={{ background: a.preview ?? 'var(--card-2)' }} />
+                    ))}
+                    {hiddenImages > 0 && (
+                      <button className="ntm-welcome-show-more" onClick={() => setShowAllImages(s => !s)}>
+                        {showAllImages ? 'Show less' : `+${hiddenImages} more`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+              {imageCount === 0 && !hasLogo && (
+                <div style={{ fontSize: 13, color: 'var(--t3)' }}>No assets yet</div>
+              )}
+            </div>
+          )}
         </div>
 
         <button className="btn primary" style={{ alignSelf: 'flex-start' }} onClick={onStart}>

@@ -62,9 +62,9 @@ function SkeletonScreen() {
 }
 
 /* ─── Illustration frame ───────────────────────────────────────── */
-function IllustrationFrame({ label, ratio = '16/9', note }: { label: string; ratio?: string; note?: string }) {
+function IllustrationFrame({ label, ratio, note }: { label: string; ratio?: string; note?: string }) {
   return (
-    <div className="ml-illus-frame" style={{ aspectRatio: ratio }}>
+    <div className="ml-illus-frame" style={ratio ? { aspectRatio: ratio } : undefined}>
       <ImageSquare size={26} weight="thin" className="ml-illus-icon" aria-hidden />
       <span className="ml-illus-label">{label}</span>
       {note && <span className="ml-illus-note">{note}</span>}
@@ -520,7 +520,7 @@ export function MarketingLanding() {
               >
                 <span className="ml-pillar-numeral" aria-hidden>{p.numeral}</span>
                 <div className="ml-pillar-illus">
-                  <IllustrationFrame label={p.illustLabel} note={p.illustNote} ratio={p.illustRatio} />
+                  <IllustrationFrame label={p.illustLabel} note={p.illustNote} />
                 </div>
                 <div className="ml-pillar-copy">
                   <span className={`ml-pillar-badge ml-pillar-badge--${p.status}`}>
