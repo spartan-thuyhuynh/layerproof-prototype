@@ -400,7 +400,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   const [previewGradient, setPreviewGradient] = useState<string | null>(null)
 
   /* conversational flow */
-  const [phase,    setPhase]    = useState<Phase>('q-background')
+  const [phase,    setPhase]    = useState<Phase>('q-purpose-ref')
   const [thread,   setThread]   = useState<ThreadItem[]>([])
   const [answers,  setAnswers]  = useState<Answers>({ backgroundColor: '', backgroundColorName: '', mainElement: '', logoUsage: '', purpose: '', referenceImage: '', promptRefinement: '' })
   const [thinking, setThinking] = useState(false)
@@ -429,10 +429,10 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
     const t = setTimeout(() => {
       setThread([
         { id: 'greeting', type: 'bot', text: `Let's build a theme for **${kit.name}**. I'll ask a few quick questions about how you want it to look.` },
-        { id: 's1', type: 'section', label: 'Visual setup' },
-        { id: 'q-bg', type: 'bot', text: "What's the background color for this theme?", sub: 'Pick from your brand palette — sets the dominant tone: dark, light, or brand-saturated.' },
+        { id: 's1', type: 'section', label: 'Purpose' },
+        { id: 'q-pur', type: 'bot', text: "What's this theme for?", sub: 'Pick a purpose to get a layout preset — or add a reference image. You can do both.' },
       ])
-      setPhase('q-background')
+      setPhase('q-purpose-ref')
     }, 180)
     return () => clearTimeout(t)
   }, [welcomeDone, kit.name])
@@ -450,7 +450,23 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
     const t = Date.now()
     const userMsg = { id: `u-dfm-${t}`, type: 'user' as const, text: 'Decide for me' }
 
-    if (phase === 'q-background') {
+    if (phase === 'q-purpose-ref') {
+      setAnswers(prev => ({ ...prev, purpose: '', referenceImage: '' }))
+      append([userMsg])
+      setThinking(true)
+      setTimeout(() => {
+        setThinking(false)
+        append([
+          { id: `b-pur-${t}`, type: 'bot', text: "I'll choose the best layout approach automatically." },
+          { id: `s2-${t}`, type: 'section', label: 'Visual setup' },
+          { id: `q-bg-${t}`, type: 'bot', text: "What's the background color?", sub: 'Pick from your brand palette — sets the dominant tone.' },
+        ])
+        setPhase('q-background')
+        setSelectedBgHex('')
+        setSelectedBgName('')
+      }, 700)
+
+    } else if (phase === 'q-background') {
       setAnswers(prev => ({ ...prev, backgroundColor: '', backgroundColorName: '' }))
       append([userMsg])
       setThinking(true)
@@ -473,24 +489,8 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
       setThinking(true)
       setTimeout(() => {
         setThinking(false)
-        append([
-          { id: `b-logo-${t}`, type: 'bot', text: "I'll handle logo placement automatically." },
-          { id: `s2-${t}`, type: 'section', label: 'Layout & purpose' },
-          { id: `q-pur-${t}`, type: 'bot', text: "What's this theme for?", sub: 'Pick a purpose preset, paste a reference image, or both.' },
-        ])
-        setPhase('q-purpose-ref')
-        setSelectedPurpose('')
-        setReferenceImageData('')
-      }, 700)
-
-    } else if (phase === 'q-purpose-ref') {
-      const updatedAnswers = { ...answers, purpose: '', referenceImage: '' }
-      setAnswers(updatedAnswers)
-      append([userMsg])
-      setThinking(true)
-      setTimeout(() => {
-        setThinking(false)
-        append([{ id: `b-pur-${t}`, type: 'bot', text: "Here's the theme ruleset I've assembled. Review it and make any adjustments before generating." }])
+        append([{ id: `b-logo-${t}`, type: 'bot', text: "I'll handle logo placement automatically." }])
+        append([{ id: `b-rev-${t}`, type: 'bot', text: "Here's the theme ruleset I've assembled. Review it and make any adjustments before generating." }])
         setPhase('prompt-preview')
         setPromptRefinementInput('')
       }, 700)
@@ -540,12 +540,10 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
       setThinking(false)
       append([
         { id: `b-logo-${Date.now()}`, type: 'bot', text: selectedLogoUsage === 'none' ? 'No logo — the design will stand on its own.' : `Logo ${label.toLowerCase()} — noted.` },
-        { id: `s2-${Date.now()}`, type: 'section', label: 'Layout & purpose' },
-        { id: `q-pur-${Date.now()}`, type: 'bot', text: "What's this theme for?", sub: 'Pick a purpose to get a layout preset — or paste your own reference image. You can do both.' },
+        { id: `b-rev-${Date.now()}`, type: 'bot', text: "Here's the theme ruleset I've assembled. Review it and make any adjustments before generating." },
       ])
-      setPhase('q-purpose-ref')
-      setSelectedPurpose('')
-      setReferenceImageData('')
+      setPhase('prompt-preview')
+      setPromptRefinementInput('')
     }, 700)
   }
 
@@ -561,10 +559,13 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
     setTimeout(() => {
       setThinking(false)
       append([
-        { id: `b-pur-${Date.now()}`, type: 'bot', text: "Here's the theme ruleset I've assembled. Review it and make any adjustments before generating." },
+        { id: `b-pur-${Date.now()}`, type: 'bot', text: purpose ? `**${purpose}** — great choice.` : "Reference image noted." },
+        { id: `s2-${Date.now()}`, type: 'section', label: 'Visual setup' },
+        { id: `q-bg-${Date.now()}`, type: 'bot', text: "What's the background color?", sub: 'Pick from your brand palette — sets the dominant tone.' },
       ])
-      setPhase('prompt-preview')
-      setPromptRefinementInput('')
+      setPhase('q-background')
+      setSelectedBgHex('')
+      setSelectedBgName('')
     }, 700)
   }
 
