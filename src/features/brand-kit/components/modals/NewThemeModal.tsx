@@ -47,20 +47,19 @@ interface Answers {
 const DECIDE_FOR_ME = '__decide__'
 
 const LOGO_OPTIONS = [
-  { value: 'top-left',   label: 'Top left',            sub: 'Standard, professional placement' },
-  { value: 'top-center', label: 'Top center',           sub: 'Centered, editorial feel' },
-  { value: 'bottom',     label: 'Bottom',               sub: 'Subtle; used in full-bleed designs' },
-  { value: 'floating',   label: 'Floating / Watermark', sub: 'Light opacity when visuals take priority' },
-  { value: 'none',       label: 'No logo',              sub: 'Omit the brand mark from this theme' },
+  { value: 'top-left',     label: 'Top left',            sub: 'Standard, professional placement' },
+  { value: 'top-center',   label: 'Top center',           sub: 'Centered, editorial feel' },
+  { value: 'bottom-left',  label: 'Bottom left',          sub: 'Grounded; common in print and editorial' },
+  { value: 'bottom-right', label: 'Bottom right',         sub: 'Subtle signature placement' },
+  { value: 'floating',     label: 'Floating / Watermark', sub: 'Light opacity when visuals take priority' },
+  { value: 'none',         label: 'No logo',              sub: 'Omit the brand mark from this theme' },
 ]
 
 const PURPOSE_OPTIONS = [
-  { value: 'Product Launch',     sub: 'Bold CTAs, high contrast, urgency-driven layouts' },
-  { value: 'Social Posts',       sub: 'Square/portrait-optimized, thumb-stopping visuals, minimal text' },
-  { value: 'Email Newsletter',   sub: 'Single-column, readable body text, clear section dividers' },
-  { value: 'Pitch Deck',         sub: 'Structured slides, data-forward, confident professional tone' },
-  { value: 'Event Announcement', sub: 'Date-prominent, venue detail blocks, excitement-building energy' },
-  { value: 'Seasonal Promotion', sub: 'Seasonal color shifts, limited-time messaging, festive energy' },
+  { value: 'Launch / New Arrival', sub: 'Goal: Drive awareness and first purchases for something new. Full-bleed hero image, large bold headline, single prominent CTA. High contrast layout — the new product, service, or collection takes center stage.' },
+  { value: 'Brand & Social Content', sub: 'Goal: Build brand recognition and keep the audience engaged between campaigns. Square or portrait format (1:1 / 4:5), brand visual dominates the frame, short punchy headline. Consistent look and feel — not tied to any specific offer.' },
+  { value: 'Event Announcement', sub: 'Goal: Get people to show up or register. Event name and date are the visual hero. Supporting info blocks for location, time, and key details. Clear hierarchy that makes it easy to act — RSVP, register, or save the date.' },
+  { value: 'Promotion / Sale', sub: 'Goal: Drive conversions on a specific offer or time-limited campaign. The discount, deal, or offer headline is the focal point. Urgency-focused copy, strong CTA, works across feed posts, stories, and banners.' },
 ]
 
 /* ── helpers ────────────────────────────────────────────────── */
@@ -280,21 +279,6 @@ function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void })
             </div>
           )}
 
-          {(kit.imagery?.desc || kit.imagery?.styleDesc) && (
-            <div className="ntm-welcome-section">
-              <div className="ntm-welcome-section-label">Imagery style</div>
-              <div style={{ fontSize: 12.5, color: 'var(--t2)', lineHeight: 1.55 }}>
-                {kit.imagery.desc || kit.imagery.styleDesc}
-              </div>
-              {kit.imagery.tags && kit.imagery.tags.length > 0 && (
-                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 6 }}>
-                  {kit.imagery.tags.map((tag: { t: string; c: string }, i: number) => (
-                    <span key={i} className="ntm-welcome-voice-chip">{tag.t}</span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
           {(hasLogo || imageCount > 0) && (
             <div className="ntm-welcome-section">
@@ -965,7 +949,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                       <span className="ac2-bac-checkbox">{active && <Check size={10} strokeWidth={3} />}</span>
                       <div style={{ flex: 1 }}>
                         <span className="ac2-bac-option-label">{opt.label}</span>
-                        <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 1 }}>{opt.sub}</div>
+                        <div style={{ fontSize: 13, color: 'var(--t3)', marginTop: 3, lineHeight: 1.55 }}>{opt.sub}</div>
                       </div>
                     </button>
                   )
@@ -988,7 +972,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                         <span className="ac2-bac-checkbox">{active && <Check size={10} strokeWidth={3} />}</span>
                         <div style={{ flex: 1 }}>
                           <span className="ac2-bac-option-label">{opt.value}</span>
-                          <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 1 }}>{opt.sub}</div>
+                          <div style={{ fontSize: 13, color: 'var(--t3)', marginTop: 3, lineHeight: 1.55 }}>{opt.sub}</div>
                         </div>
                       </button>
                     )

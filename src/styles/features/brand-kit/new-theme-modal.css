@@ -710,7 +710,11 @@ html.light .ntm-welcome-asset-thumb { border-color: rgba(0, 0, 0, 0.08); }
 .ntm-bac-wrap .ac2-bac-body     { padding: 0 20px 8px; gap: 10px; }
 .ntm-bac-wrap .ac2-bac-option   { font-size: 15px; padding: 12px 14px; }
 .ntm-bac-wrap .ac2-bac-option-sub,
-.ntm-bac-wrap .ac2-bac-option > div > div { font-size: 12.5px; }
+.ntm-bac-wrap .ac2-bac-option > div > div {
+  font-size: 13px;
+  line-height: 1.55;
+  margin-top: 3px;
+}
 .ntm-bac-wrap .ac2-bac-count    { font-size: 13.5px; }
 .ntm-bac-wrap .ac2-bac-step     { font-size: 13px; }
 
