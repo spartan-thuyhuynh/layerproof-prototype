@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronRight, Check, X } from 'lucide-react'
+import { ChevronRight, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Portal } from '@/shared/lib/Portal'
 import { Tip } from '@/shared/components/ui/Tip'
@@ -20,11 +20,11 @@ function pickGradient(seed: string) { return pickG(seed, G0) }
 
 /* ── types ─────────────────────────────────────────────────── */
 type Phase =
-  | 'q-purpose'
-  | 'q-assets'
-  | 'q-style-images'
-  | 'q-style-text'
-  | 'summary'
+  | 'q-background'
+  | 'q-element'
+  | 'q-logo'
+  | 'q-purpose-ref'
+  | 'prompt-preview'
   | 'generating'
   | 'refining'
 
@@ -32,52 +32,69 @@ type ThreadItem =
   | { id: string; type: 'section'; label: string }
   | { id: string; type: 'bot'; text: string; sub?: string; suggestions?: string[] }
   | { id: string; type: 'user'; text?: string; images?: string[] }
-  | { id: string; type: 'summary' }
 
 interface Answers {
+  backgroundColor: string
+  backgroundColorName: string
+  mainElement: string
+  logoUsage: string
   purpose: string
-  assetLabels: string[]
-  styleImages: string[]
-  instructions: string
+  referenceImage: string
+  promptRefinement: string
 }
 
-/* ── helpers ───────────────────────────────────────────────── */
-function buildThemePrompt(kit: BrandKit, userInput: string, answers: Answers): string {
-  const palette = kit.colors.palettes[0]
-  const primaryColor = palette?.colors[0]?.name || palette?.colors[0]?.hex || 'the primary brand color'
-  const accentColor = palette?.colors[1]?.name || palette?.colors[1]?.hex || 'an accent color'
+/* ── data ───────────────────────────────────────────────────── */
+const LOGO_OPTIONS = [
+  { value: 'top-left',  label: 'Top left',            sub: 'Standard, professional placement' },
+  { value: 'top-center',label: 'Top center',           sub: 'Centered, editorial feel' },
+  { value: 'bottom',    label: 'Bottom',               sub: 'Subtle; used in full-bleed designs' },
+  { value: 'floating',  label: 'Floating / Watermark', sub: 'Light opacity when visuals take priority' },
+  { value: 'none',      label: 'No logo',              sub: 'Omit the brand mark from this theme' },
+]
+
+const PURPOSE_OPTIONS = [
+  { value: 'Product Launch',      sub: 'Bold CTAs, high contrast, urgency-driven layouts' },
+  { value: 'Social Posts',        sub: 'Square/portrait-optimized, thumb-stopping visuals, minimal text' },
+  { value: 'Email Newsletter',    sub: 'Single-column, readable body text, clear section dividers' },
+  { value: 'Pitch Deck',          sub: 'Structured slides, data-forward, confident professional tone' },
+  { value: 'Event Announcement',  sub: 'Date-prominent, venue detail blocks, excitement-building energy' },
+  { value: 'Seasonal Promotion',  sub: 'Seasonal color shifts, limited-time messaging, festive energy' },
+]
+
+/* ── helpers ────────────────────────────────────────────────── */
+function buildThemePrompt(kit: BrandKit, answers: Answers): string {
+  const { backgroundColor, backgroundColorName, mainElement, logoUsage, purpose, referenceImage, promptRefinement } = answers
   const displayFont = kit.type.display.family || 'the brand display font'
-  const bodyFont = kit.type.body.family || 'the brand body font'
-  const voice = kit.tone.attrs.slice(0, 3).map((a) => a.vs ? `${a.t} (${a.vs})` : a.t).filter(Boolean).join(', ') || 'on-brand'
-  const wordsUse = kit.tone.use?.slice(0, 4).join(', ')
-  const wordsAvoid = kit.tone.avoid?.slice(0, 4).join(', ')
-  const density = kit.tone.textDensity
-  const customTone = kit.tone.customInstruction
+  const bodyFont    = kit.type.body.family    || 'the brand body font'
+  const voice       = kit.tone.attrs.slice(0, 3).map(a => (a as { t: string; vs?: string }).vs ? `${(a as { t: string; vs?: string }).t} (${(a as { t: string; vs?: string }).vs})` : (a as { t: string }).t).filter(Boolean).join(', ') || 'on-brand'
+  const wordsUse    = kit.tone.use?.slice(0, 4).join(', ')
+  const wordsAvoid  = kit.tone.avoid?.slice(0, 4).join(', ')
+  const density     = kit.tone.textDensity
 
-  return `Use ${primaryColor} as the primary background with ${accentColor} for CTAs and highlights. Apply ${displayFont} for headlines and ${bodyFont} for body text at comfortable reading sizes.
-
-Brand personality: ${voice}. Imagery should feel authentic and purposeful — avoid stock-photo clichés.${wordsUse ? `\n\nPrefer words like: ${wordsUse}.` : ''}${wordsAvoid ? ` Avoid: ${wordsAvoid}.` : ''}${density ? `\n\nText density: ${density} — keep copy ${density === 'minimal' ? 'extremely brief, visuals lead' : density === 'concise' ? 'clear and purposeful, no filler' : 'thorough with enough context to inform'}.` : ''}${customTone ? `\n\nAdditional tone guidance: ${customTone}` : ''}${answers.instructions.trim() ? `\n\nTheme rules: ${answers.instructions.trim()}` : ''}
-
-This theme is designed for ${userInput.trim()}. Keep layouts well-structured with generous whitespace. All elements should reinforce brand trust and clarity of message.`
-}
-
-function purposeAck(p: string): string {
-  if (p === 'Product Launch')     return "Product launch — I'll design the theme to build excitement and drive action."
-  if (p === 'Social Posts')       return "Social posts — I'll optimise for visual impact and thumb-stopping energy."
-  if (p === 'Email Newsletter')   return "Email newsletter — I'll keep things clean and scannable with a clear reading hierarchy."
-  if (p === 'Pitch Deck')         return "Pitch deck — I'll go polished and authoritative. Clarity and credibility above all."
-  if (p === 'Event Announcement') return "Event announcement — I'll build in energy and urgency to get people excited."
-  if (p === 'Seasonal Promotion') return "Seasonal promotion — I'll make it feel timely and festive without being overdone."
-  return `Got it — I'll tailor the theme for ${p}.`
-}
-
-const THEME_PURPOSES = ['Product Launch', 'Social Posts', 'Email Newsletter', 'Pitch Deck', 'Event Announcement', 'Seasonal Promotion'] as const
-
-const SHEET_QUESTIONS: Record<string, string> = {
-  'q-purpose': "What's this theme for?",
-  'q-assets': 'Any brand image assets to include?',
-  'q-style-images': 'Any visual references or inspiration?',
-  'q-style-text': 'Any custom instructions for this theme?',
+  const lines: string[] = []
+  if (backgroundColorName || backgroundColor)
+    lines.push(`Background: Use ${backgroundColorName}${backgroundColor ? ` (${backgroundColor})` : ''} as the primary background.`)
+  lines.push(mainElement
+    ? `Key visual: ${mainElement} is the dominant element — it should appear consistently as the visual anchor.`
+    : 'Key visual: AI decides the dominant visual per layout.')
+  if (logoUsage === 'none')
+    lines.push('Logo: Omit the brand mark entirely.')
+  else if (logoUsage) {
+    const logoLabel = LOGO_OPTIONS.find(o => o.value === logoUsage)?.label ?? logoUsage
+    lines.push(`Logo: Positioned ${logoLabel.toLowerCase()}.`)
+  }
+  if (purpose) lines.push(`Purpose: This theme is designed for ${purpose}.`)
+  if (referenceImage) lines.push('Layout reference: Match the composition style and decorative treatment from the provided reference image.')
+  lines.push('')
+  lines.push(`Typography: ${displayFont} for headlines, ${bodyFont} for body text.`)
+  lines.push(`Brand personality: ${voice}.`)
+  if (wordsUse)   lines.push(`Prefer words like: ${wordsUse}.`)
+  if (wordsAvoid) lines.push(`Avoid: ${wordsAvoid}.`)
+  if (density === 'minimal')  lines.push('Text density: minimal — visuals lead, keep copy extremely brief.')
+  if (density === 'concise')  lines.push('Text density: concise — clear and purposeful, no filler.')
+  if (density && density !== 'minimal' && density !== 'concise') lines.push('Text density: thorough — include enough context to inform.')
+  if (promptRefinement) lines.push(`\nAdjustments: ${promptRefinement}`)
+  return lines.join('\n')
 }
 
 /* ── sub-components ────────────────────────────────────────── */
@@ -117,47 +134,11 @@ function SectionDivider({ label }: { label: string }) {
   )
 }
 
-function SummaryCard({ answers }: { answers: Answers }) {
-  return (
-    <div className="ntm-summary-card">
-      <div className="ntm-summary-header">
-        <div className="ntm-summary-label-row">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="ntm-summary-sparkle">
-            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-          </svg>
-          <span className="ntm-summary-eyebrow">Theme summary</span>
-        </div>
-        <div className="ntm-summary-title">{answers.purpose}</div>
-      </div>
-      <div className="ntm-summary-section">
-        <div className="ntm-summary-section-label">Brand assets</div>
-        <div className="ntm-summary-section-value">
-          {answers.assetLabels.length > 0
-            ? `${answers.assetLabels.length} image asset${answers.assetLabels.length !== 1 ? 's' : ''} selected — placed directly in your designs`
-            : 'AI picks from the full brand library'}
-        </div>
-      </div>
-      <div className="ntm-summary-section">
-        <div className="ntm-summary-section-label">Style direction</div>
-        <div className="ntm-summary-section-value">
-          {[
-            answers.styleImages.length > 0
-              ? `${answers.styleImages.length} reference image${answers.styleImages.length !== 1 ? 's' : ''} — shapes visual tone only, won't appear in content`
-              : null,
-            answers.instructions.trim() ? `"${answers.instructions.trim()}"` : null,
-          ].filter(Boolean).join('\n') || 'No additional style guidance'}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void }) {
-  const allColors = kit.colors.palettes.flatMap(p => p.colors).slice(0, 8)
-  const hasLogo = kit.logos?.variants?.some((v: { src?: string }) => v.src)
-  const imageCount = kit.imagery?.assets?.length ?? 0
-  const wordsUse = kit.tone.use?.slice(0, 4) ?? []
+  const wordsUse   = kit.tone.use?.slice(0, 4) ?? []
   const wordsAvoid = kit.tone.avoid?.slice(0, 3) ?? []
+  const hasLogo    = kit.logos?.variants?.some((v: { src?: string }) => v.src)
+  const imageCount = kit.imagery?.assets?.length ?? 0
 
   return (
     <div className="ntm-welcome">
@@ -167,13 +148,13 @@ function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void })
           <div className="ntm-welcome-eyebrow">New Brand Theme</div>
           <div className="ntm-welcome-title">{kit.name}</div>
           <div className="ntm-welcome-desc">
-            A theme tailors your brand kit for a specific use case — like a pitch deck, product launch, or social campaign. It applies your existing colors, typography, and voice with layout and style rules optimized for the job.
+            A brand theme defines the <strong>rules</strong> for how your brand kit elements are applied — background treatment, dominant visual, logo placement, and color hierarchy. It's not a finished design; it's a ruleset your AI follows every time it creates content for this theme.
           </div>
           <div className="ntm-welcome-theme-pillars">
             {[
-              { icon: '🎨', label: 'Colors & gradients', sub: 'From your brand palette' },
-              { icon: 'Aa', label: 'Type & hierarchy', sub: 'Scale tuned for the format' },
-              { icon: '✦', label: 'Voice & tone', sub: 'Copy rules & density' },
+              { icon: '🎨', label: 'Color rules',  sub: 'Background, accent, and CTA hierarchy' },
+              { icon: '🖼', label: 'Layout rules', sub: 'Dominant visual and logo placement' },
+              { icon: '✦',  label: 'Voice rules',  sub: 'Copy density, tone, and word choices' },
             ].map(p => (
               <div key={p.label} className="ntm-welcome-pillar">
                 <span className="ntm-welcome-pillar-icon">{p.icon}</span>
@@ -191,7 +172,7 @@ function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void })
         </div>
 
         <div className="ntm-welcome-kit">
-          {allColors.length > 0 && (
+          {kit.colors.palettes.length > 0 && (
             <div className="ntm-welcome-section">
               <div className="ntm-welcome-section-label">Colors</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -241,7 +222,7 @@ function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void })
                 <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                   {kit.tone.attrs.map((a, i) => (
                     <span key={i} className="ntm-welcome-voice-chip">
-                      {a.t}{a.vs ? ` (${a.vs})` : ''}
+                      {(a as { t: string; vs?: string }).t}{(a as { t: string; vs?: string }).vs ? ` (${(a as { t: string; vs?: string }).vs})` : ''}
                     </span>
                   ))}
                 </div>
@@ -249,14 +230,12 @@ function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void })
                   <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                     {wordsUse.length > 0 && (
                       <div style={{ fontSize: 11.5, color: 'var(--t3)' }}>
-                        <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Use: </span>
-                        {wordsUse.join(', ')}
+                        <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Use: </span>{wordsUse.join(', ')}
                       </div>
                     )}
                     {wordsAvoid.length > 0 && (
                       <div style={{ fontSize: 11.5, color: 'var(--t3)' }}>
-                        <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Avoid: </span>
-                        {wordsAvoid.join(', ')}
+                        <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Avoid: </span>{wordsAvoid.join(', ')}
                       </div>
                     )}
                   </div>
@@ -372,48 +351,43 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   const [welcomeDone, setWelcomeDone] = useState(false)
 
   /* preview */
-  const [themeName, setThemeName]             = useState('')
-  const [themePrompt, setThemePrompt]         = useState('')
+  const [themeName,       setThemeName]       = useState('')
+  const [themePrompt,     setThemePrompt]     = useState('')
   const [previewGradient, setPreviewGradient] = useState<string | null>(null)
 
   /* conversational flow */
-  const [phase, setPhase]     = useState<Phase>('q-purpose')
-  const [thread, setThread]   = useState<ThreadItem[]>([])
-  const [answers, setAnswers] = useState<Answers>({ purpose: '', assetLabels: [], styleImages: [], instructions: '' })
+  const [phase,    setPhase]    = useState<Phase>('q-background')
+  const [thread,   setThread]   = useState<ThreadItem[]>([])
+  const [answers,  setAnswers]  = useState<Answers>({ backgroundColor: '', backgroundColorName: '', mainElement: '', logoUsage: '', purpose: '', referenceImage: '', promptRefinement: '' })
   const [thinking, setThinking] = useState(false)
 
-  /* purpose phase */
-  const [selectedPurpose, setSelectedPurpose] = useState('')
-  const [purposeInput, setPurposeInput]       = useState('')
-
-  /* assets phase */
-  const [assetPickerOpen, setAssetPickerOpen]         = useState(false)
-  const [selectedImageAssets, setSelectedImageAssets] = useState<Set<string>>(new Set())
-
-  /* style-images phase */
-  const [styleImages, setStyleImages] = useState<string[]>([])
-  const styleImageInputRef = useRef<HTMLInputElement>(null)
-
-  /* style-text phase */
-  const [instructionsInput, setInstructionsInput] = useState('')
+  /* per-phase selection state */
+  const [selectedBgHex,       setSelectedBgHex]       = useState('')
+  const [selectedBgName,      setSelectedBgName]       = useState('')
+  const [selectedElement,     setSelectedElement]      = useState('')
+  const [selectedLogoUsage,   setSelectedLogoUsage]    = useState('')
+  const [selectedPurpose,     setSelectedPurpose]      = useState('')
+  const [referenceImageData,  setReferenceImageData]   = useState('')
+  const [promptRefinementInput, setPromptRefinementInput] = useState('')
 
   /* refining chat */
-  const [chatInput, setChatInput]             = useState('')
-  const [chatAttachments, setChatAttachments] = useState<string[]>([])
+  const [chatInput,        setChatInput]        = useState('')
+  const [chatAttachments,  setChatAttachments]  = useState<string[]>([])
   const [chatInputFocused, setChatInputFocused] = useState(false)
-  const chatImageInputRef = useRef<HTMLInputElement>(null)
+  const chatImageInputRef  = useRef<HTMLInputElement>(null)
+  const referenceInputRef  = useRef<HTMLInputElement>(null)
+  const messagesEndRef     = useRef<HTMLDivElement>(null)
 
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  /* seed thread when welcome is dismissed */
+  /* seed thread on welcome dismiss */
   useEffect(() => {
     if (!welcomeDone) return
     const t = setTimeout(() => {
       setThread([
-        { id: 'greeting', type: 'bot', text: `Let's build a new theme for **${kit.name}**. I'll ask a few quick questions to tailor it to your brand.` },
-        { id: 's1', type: 'section', label: 'Theme purpose' },
-        { id: 'q-purpose', type: 'bot', text: "What's this theme for? Pick a content type or describe your own." },
+        { id: 'greeting', type: 'bot', text: `Let's build a theme for **${kit.name}**. I'll ask a few quick questions about how you want it to look.` },
+        { id: 's1', type: 'section', label: 'Visual setup' },
+        { id: 'q-bg', type: 'bot', text: "What's the background color for this theme?", sub: 'Pick from your brand palette — sets the dominant tone: dark, light, or brand-saturated.' },
       ])
+      setPhase('q-background')
     }, 180)
     return () => clearTimeout(t)
   }, [welcomeDone, kit.name])
@@ -426,99 +400,91 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
     setThread(prev => [...prev, ...items])
   }
 
-  /* ── answer handlers ── */
-  function handlePurposeAnswer() {
-    const answer = selectedPurpose || purposeInput.trim()
-    if (!answer) return
-    const ack = purposeAck(answer)
-    setAnswers(prev => ({ ...prev, purpose: answer }))
-    append([{ id: `u-pur-${Date.now()}`, type: 'user', text: answer }])
+  /* ── answer handlers ─────────────────────────────────────── */
+  function handleBgAnswer() {
+    if (!selectedBgHex) return
+    setAnswers(prev => ({ ...prev, backgroundColor: selectedBgHex, backgroundColorName: selectedBgName }))
+    append([{ id: `u-bg-${Date.now()}`, type: 'user', text: `${selectedBgName} · ${selectedBgHex}` }])
     setThinking(true)
     setTimeout(() => {
       setThinking(false)
       append([
-        { id: `b-pur-${Date.now()}`, type: 'bot', text: ack },
-        { id: `s2-${Date.now()}`, type: 'section', label: 'Brand assets' },
-        {
-          id: `q-assets-${Date.now()}`, type: 'bot',
-          text: 'Any brand image assets to include?',
-          sub: 'These are the actual images AI will place inside your content — product shots, lifestyle photos, and branded graphics from your library.',
-        },
+        { id: `b-bg-${Date.now()}`, type: 'bot', text: `**${selectedBgName}** — that sets the tone.` },
+        { id: `q-el-${Date.now()}`, type: 'bot', text: "What's the key visual for this theme?", sub: 'The main element that appears consistently — a mascot, product shot, or hero image. Leave blank to let AI decide.' },
       ])
-      setPhase('q-assets')
+      setPhase('q-element')
+      setSelectedElement('')
     }, 700)
   }
 
-  function handleAssetsAnswer(skipped: boolean) {
-    const assetLabels = skipped ? [] : Array.from(selectedImageAssets)
-    setAnswers(prev => ({ ...prev, assetLabels }))
-    const userText = skipped
-      ? 'Skip — use full brand library'
-      : `${assetLabels.length} image asset${assetLabels.length !== 1 ? 's' : ''} selected`
-    const ack = skipped
-      ? "No problem — I'll draw from the full brand image library when generating."
-      : `Got it — I'll place those ${assetLabels.length} asset${assetLabels.length !== 1 ? 's' : ''} directly in your designs.`
-    append([{ id: `u-assets-${Date.now()}`, type: 'user', text: userText }])
+  function handleElementAnswer(elementName: string) {
+    setAnswers(prev => ({ ...prev, mainElement: elementName }))
+    const userText = elementName || 'AI decides — no key visual specified'
+    append([{ id: `u-el-${Date.now()}`, type: 'user', text: userText }])
     setThinking(true)
     setTimeout(() => {
       setThinking(false)
       append([
-        { id: `b-assets-${Date.now()}`, type: 'bot', text: ack },
-        { id: `s3-${Date.now()}`, type: 'section', label: 'Style direction' },
-        {
-          id: `q-refs-${Date.now()}`, type: 'bot',
-          text: 'Any visual references or inspiration?',
-          sub: "Upload designs, mood boards, or screenshots. These won't appear in your content — they guide the visual style, layout, and tone of the theme.",
-        },
+        { id: `b-el-${Date.now()}`, type: 'bot', text: elementName ? `**${elementName}** will anchor every layout.` : "No key visual — I'll decide per layout." },
+        { id: `q-logo-${Date.now()}`, type: 'bot', text: 'How should the logo appear?' },
       ])
-      setPhase('q-style-images')
+      setPhase('q-logo')
+      setSelectedLogoUsage('')
     }, 700)
   }
 
-  function handleStyleImagesAnswer(skipped: boolean) {
-    const imgs = skipped ? [] : styleImages
-    setAnswers(prev => ({ ...prev, styleImages: imgs }))
-    const userText = skipped
-      ? 'Skip — no references'
-      : `${imgs.length} reference image${imgs.length !== 1 ? 's' : ''} added`
-    append([
-      { id: `u-refs-${Date.now()}`, type: 'user', text: userText, images: imgs.length > 0 ? imgs : undefined },
-      {
-        id: `q-txt-${Date.now()}`, type: 'bot',
-        text: 'Any custom instructions for this theme?',
-        sub: 'Rules the AI should always follow — e.g. always dark backgrounds, avoid sans-serif for headlines, keep copy under 10 words.',
-      },
-    ])
-    setPhase('q-style-text')
+  function handleLogoAnswer() {
+    if (!selectedLogoUsage) return
+    setAnswers(prev => ({ ...prev, logoUsage: selectedLogoUsage }))
+    const label = LOGO_OPTIONS.find(o => o.value === selectedLogoUsage)?.label ?? selectedLogoUsage
+    append([{ id: `u-logo-${Date.now()}`, type: 'user', text: label }])
+    setThinking(true)
+    setTimeout(() => {
+      setThinking(false)
+      append([
+        { id: `b-logo-${Date.now()}`, type: 'bot', text: selectedLogoUsage === 'none' ? 'No logo — the design will stand on its own.' : `Logo ${label.toLowerCase()} — noted.` },
+        { id: `s2-${Date.now()}`, type: 'section', label: 'Layout & purpose' },
+        { id: `q-pur-${Date.now()}`, type: 'bot', text: "What's this theme for?", sub: 'Pick a purpose to get a layout preset — or paste your own reference image. You can do both.' },
+      ])
+      setPhase('q-purpose-ref')
+      setSelectedPurpose('')
+      setReferenceImageData('')
+    }, 700)
   }
 
-  function handleStyleTextAnswer(skipped: boolean) {
-    const instructions = skipped ? '' : instructionsInput.trim()
-    setAnswers(prev => ({ ...prev, instructions }))
-    const userText = skipped ? 'Skip — no custom instructions' : instructions
-    const ack = instructions
-      ? "Noted — I'll bake those rules into the theme so every generation follows them."
-      : "No extra rules — I'll stay true to your brand kit defaults."
-    append([
-      { id: `u-txt-${Date.now()}`, type: 'user', text: userText },
-      { id: `b-txt-${Date.now()}`, type: 'bot', text: ack },
-      { id: `summary-${Date.now()}`, type: 'summary' },
-    ])
-    setPhase('summary')
+  function handlePurposeRefAnswer() {
+    const purpose  = selectedPurpose
+    const refImage = referenceImageData
+    if (!purpose && !refImage) return
+    const updatedAnswers = { ...answers, purpose, referenceImage: refImage }
+    setAnswers(updatedAnswers)
+    const parts = [purpose || null, refImage ? 'layout reference attached' : null].filter(Boolean)
+    append([{ id: `u-pur-${Date.now()}`, type: 'user', text: parts.join(' · '), images: refImage ? [refImage] : undefined }])
+    setThinking(true)
+    setTimeout(() => {
+      setThinking(false)
+      append([
+        { id: `b-pur-${Date.now()}`, type: 'bot', text: "Here's the theme ruleset I've assembled. Review it and make any adjustments before generating." },
+      ])
+      setPhase('prompt-preview')
+      setPromptRefinementInput('')
+    }, 700)
   }
 
-  function handleGenerate() {
-    const snap = { ...answers }
-    append([{ id: `u-gen-${Date.now()}`, type: 'user', text: 'Generate theme' }])
+  function handlePromptPreviewNext() {
+    const refinement = promptRefinementInput.trim()
+    const snap = { ...answers, promptRefinement: refinement }
+    const prompt = buildThemePrompt(kit, snap)
+    setAnswers(snap)
+    append([{ id: `u-gen-${Date.now()}`, type: 'user', text: refinement ? `Generate · ${refinement}` : 'Generate theme' }])
     setPhase('generating')
     setThinking(true)
     setTimeout(() => {
       setThinking(false)
-      const name = snap.purpose
-      const prompt = buildThemePrompt(kit, snap.purpose, snap)
+      const name = snap.purpose || `${kit.name} Theme`
       setThemeName(name)
       setThemePrompt(prompt)
-      setPreviewGradient(pickGradient(snap.purpose + kit.name))
+      setPreviewGradient(pickGradient(name + kit.name))
       append([{
         id: `b-gen-${Date.now()}`, type: 'bot',
         text: `Your **${name}** theme is ready! Preview is on the right.\n\nWould you like to refine anything — tone, layout, imagery style, or colour emphasis?`,
@@ -562,14 +528,26 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
     e.target.value = ''
   }
 
-  function handleStyleImageAttach(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? [])
-    files.forEach(f => {
-      const reader = new FileReader()
-      reader.onload = (ev) => setStyleImages(prev => [...prev, ev.target?.result as string])
-      reader.readAsDataURL(f)
-    })
+  function handleReferenceImageAttach(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => setReferenceImageData(ev.target?.result as string)
+    reader.readAsDataURL(file)
     e.target.value = ''
+  }
+
+  function handleReferencePaste(e: React.ClipboardEvent) {
+    const items = Array.from(e.clipboardData.items)
+    const imageItem = items.find(item => item.type.startsWith('image/'))
+    if (imageItem) {
+      const file = imageItem.getAsFile()
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (ev) => setReferenceImageData(ev.target?.result as string)
+        reader.readAsDataURL(file)
+      }
+    }
   }
 
   /* build + save */
@@ -602,14 +580,24 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   }
 
   const canCreate = themeName.trim().length > 0
-  const imageryAssets = kit.imagery.assets ?? []
-  const showSheet = ['q-purpose', 'q-assets', 'q-style-images', 'q-style-text', 'summary'].includes(phase)
+  const showSheet = ['q-background', 'q-element', 'q-logo', 'q-purpose-ref', 'prompt-preview'].includes(phase)
 
-  /* ── render thread item ── */
+  /* ── kit assets for q-element ─────────────────────────────── */
+  const logoVariants = (kit.logos?.variants ?? []).filter((v: { src?: string }) => v.src)
+  const imageryAssets = kit.imagery?.assets ?? []
+  type KitAsset = { name: string; preview: string; isImage: boolean }
+  const kitAssets: KitAsset[] = [
+    ...logoVariants.map((v: { src?: string }) => ({ name: 'Logo', preview: v.src ?? '', isImage: true })),
+    ...imageryAssets.map((a: { name: string; preview?: string }) => ({
+      name: a.name.replace(/\.[^.]+$/, '').replace(/_/g, ' '),
+      preview: a.preview ?? '',
+      isImage: false,
+    })),
+  ]
+
+  /* ── render thread item ────────────────────────────────────── */
   function renderItem(item: ThreadItem) {
     if (item.type === 'section') return <SectionDivider key={item.id} label={item.label} />
-
-    if (item.type === 'summary') return <SummaryCard key={item.id} answers={answers} />
 
     if (item.type === 'bot') return (
       <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -646,37 +634,11 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
     return null
   }
 
-  /* ── bottom sheet ── */
-  const PHASE_ORDER: Phase[] = ['q-purpose', 'q-assets', 'q-style-images', 'q-style-text']
+  /* ── bottom sheet ──────────────────────────────────────────── */
+  const PHASE_ORDER: Phase[] = ['q-background', 'q-element', 'q-logo', 'q-purpose-ref']
   const stepNum = PHASE_ORDER.indexOf(phase as Phase) + 1
-  const isPurposeReady = !!(selectedPurpose || purposeInput.trim())
-
-  function handleSheetSkip() {
-    if (phase === 'q-assets') handleAssetsAnswer(true)
-    else if (phase === 'q-style-images') handleStyleImagesAnswer(true)
-    else if (phase === 'q-style-text') handleStyleTextAnswer(true)
-  }
-
-  function handleSheetNext() {
-    if (phase === 'q-purpose') handlePurposeAnswer()
-    else if (phase === 'q-assets') handleAssetsAnswer(selectedImageAssets.size === 0)
-    else if (phase === 'q-style-images') handleStyleImagesAnswer(styleImages.length === 0)
-    else if (phase === 'q-style-text') handleStyleTextAnswer(!instructionsInput.trim())
-  }
-
-  function getCountLabel(): string {
-    if (phase === 'q-purpose') {
-      const p = selectedPurpose || purposeInput.trim()
-      return p ? '1 selected' : '0 selected'
-    }
-    if (phase === 'q-assets') return selectedImageAssets.size > 0 ? `${selectedImageAssets.size} selected` : '0 selected'
-    if (phase === 'q-style-images') return styleImages.length > 0 ? `${styleImages.length} uploaded` : 'optional'
-    if (phase === 'q-style-text') return instructionsInput.trim() ? `${instructionsInput.trim().length} chars` : 'optional'
-    return ''
-  }
 
   function renderBottomSheet() {
-    /* refining: full chat input bar, normal flow */
     if (phase === 'refining') return (
       <div className="ntm-input-bar">
         <input ref={chatImageInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleChatImageAttach} />
@@ -730,142 +692,210 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
       </div>
     )
 
-    /* generating: no bottom UI */
     if (phase === 'generating') return null
 
-    /* summary: same ac2-bac card style, just with generate button */
-    if (phase === 'summary') return (
-      <div className="ntm-bac-wrap">
-        <div className="ac2-bac" style={{ '--bac-color': 'var(--accent)' } as React.CSSProperties}>
-          <div className="ac2-bac-header">
-            <span className="ac2-bac-q">Ready to generate your theme</span>
-          </div>
-          <div className="ac2-bac-footer">
-            <span className="ac2-bac-count">All questions answered</span>
-            <div className="ac2-bac-actions">
-              <button className="ac2-bac-next" onClick={handleGenerate}>
-                <ChevronRight size={15} />
-              </button>
+    if (phase === 'prompt-preview') {
+      const previewText = buildThemePrompt(kit, { ...answers, promptRefinement: promptRefinementInput })
+      return (
+        <div className="ntm-bac-wrap">
+          <div className="ac2-bac" style={{ '--bac-color': 'var(--accent)' } as React.CSSProperties}>
+            <div className="ac2-bac-header">
+              <span className="ac2-bac-q">Review your theme ruleset</span>
+            </div>
+            <div className="ac2-bac-body">
+              <div className="ntm-preview-prompt-wrap">
+                <div className="ntm-preview-prompt-text">{previewText}</div>
+              </div>
+              <div className="ac2-bac-note-wrap" style={{ marginTop: 8 }}>
+                <textarea
+                  className="ac2-bac-input"
+                  placeholder="Want to adjust anything? Describe changes (optional)…"
+                  value={promptRefinementInput}
+                  onChange={e => setPromptRefinementInput(e.target.value)}
+                  rows={2}
+                  style={{ resize: 'none' }}
+                />
+              </div>
+            </div>
+            <div className="ac2-bac-footer">
+              <span className="ac2-bac-count">Ready to generate</span>
+              <div className="ac2-bac-actions">
+                <button className="ac2-bac-next" onClick={handlePromptPreviewNext}>
+                  <ChevronRight size={15} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    )
+      )
+    }
 
-    /* q-* phases: ac2-bac style card */
-    const canNext = phase === 'q-purpose' ? isPurposeReady : true
+    /* q-* phases */
+    const allSwatches = kit.colors.palettes.flatMap(p => p.colors)
+    const canNext = phase === 'q-background' ? !!selectedBgHex
+      : phase === 'q-logo' ? !!selectedLogoUsage
+      : phase === 'q-purpose-ref' ? !!(selectedPurpose || referenceImageData)
+      : true
 
     return (
       <div className="ntm-bac-wrap">
         <div className="ac2-bac" style={{ '--bac-color': 'var(--accent)' } as React.CSSProperties}>
+
           {/* Header */}
           <div className="ac2-bac-header">
-            <span className="ac2-bac-q">{SHEET_QUESTIONS[phase]}</span>
+            <span className="ac2-bac-q">
+              {phase === 'q-background' && 'Background color'}
+              {phase === 'q-element'    && 'Key visual'}
+              {phase === 'q-logo'       && 'Logo placement'}
+              {phase === 'q-purpose-ref'&& 'Purpose & layout'}
+            </span>
             <div className="ac2-bac-nav">
               <span className="ac2-bac-step">{stepNum} of {PHASE_ORDER.length}</span>
-              {phase !== 'q-purpose' && (
-                <X size={14} onClick={handleSheetSkip} style={{ cursor: 'pointer', color: 'var(--t3)' }} />
-              )}
             </div>
           </div>
 
           {/* Body */}
           <div className="ac2-bac-body">
-            {phase === 'q-purpose' && (
-              <>
+
+            {/* Q1: Background color swatches */}
+            {phase === 'q-background' && (
+              <div className="ntm-swatch-grid">
+                {allSwatches.map(c => (
+                  <button
+                    key={c.hex}
+                    className={`ntm-swatch-btn${selectedBgHex === c.hex ? ' selected' : ''}`}
+                    onClick={() => { setSelectedBgHex(c.hex); setSelectedBgName(c.name) }}
+                  >
+                    <div className="ntm-swatch-color" style={{ background: c.hex }} />
+                    <span className="ntm-swatch-name">{c.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Q2: Key visual (kit assets) */}
+            {phase === 'q-element' && (
+              kitAssets.length === 0 ? (
+                <div style={{ fontSize: 12.5, color: 'var(--t3)', padding: '6px 0', lineHeight: 1.55 }}>
+                  No brand assets in this kit — AI will decide the dominant visual.
+                </div>
+              ) : (
                 <div className="ac2-bac-options">
-                  {THEME_PURPOSES.map(p => {
-                    const active = selectedPurpose === p
+                  {kitAssets.map((asset, i) => {
+                    const active = selectedElement === asset.name
                     return (
                       <button
-                        key={p}
+                        key={i}
                         className={`ac2-bac-option${active ? ' selected' : ''}`}
-                        onClick={() => { setSelectedPurpose(p === selectedPurpose ? '' : p); setPurposeInput('') }}
+                        onClick={() => setSelectedElement(active ? '' : asset.name)}
                       >
                         <span className="ac2-bac-checkbox">{active && <Check size={10} strokeWidth={3} />}</span>
-                        <span className="ac2-bac-option-label">{p}</span>
+                        <span className="ac2-bac-option-label" style={{ flex: 1 }}>{asset.name}</span>
+                        {asset.isImage
+                          ? <img src={asset.preview} alt="" style={{ width: 28, height: 20, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />
+                          : <div style={{ width: 28, height: 20, borderRadius: 4, background: asset.preview, flexShrink: 0, border: '1px solid rgba(255,255,255,0.08)' }} />
+                        }
                       </button>
                     )
                   })}
                 </div>
-                <div className="ac2-bac-note-wrap">
-                  <input
-                    className="ac2-bac-note-input"
-                    type="text"
-                    value={selectedPurpose ? '' : purposeInput}
-                    onChange={e => { setPurposeInput(e.target.value); setSelectedPurpose('') }}
-                    placeholder="Or describe your own… (optional)"
-                  />
-                </div>
-              </>
+              )
             )}
 
-            {phase === 'q-assets' && (
-              <button className="ntm-az-asset-btn" onClick={() => setAssetPickerOpen(true)}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="var(--t3)" strokeWidth="1.5" strokeLinecap="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
-                    <rect x="2" y="2" width="12" height="12" rx="2" /><circle cx="5.5" cy="5.5" r="1" /><path d="M2 10l3-3 3 3 2-2 4 4" />
-                  </svg>
-                  <span style={{ fontSize: 13, color: selectedImageAssets.size > 0 ? 'var(--t1)' : 'var(--t2)' }}>
-                    {selectedImageAssets.size > 0
-                      ? `${selectedImageAssets.size} asset${selectedImageAssets.size !== 1 ? 's' : ''} selected`
-                      : 'Choose from brand image assets'}
-                  </span>
-                </span>
-                <svg viewBox="0 0 16 16" fill="none" stroke="var(--t3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-                  <path d="M6 4l4 4-4 4" />
-                </svg>
-              </button>
-            )}
-
-            {phase === 'q-style-images' && (
-              <>
-                <input ref={styleImageInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleStyleImageAttach} />
-                {styleImages.length > 0 && (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                    {styleImages.map((src, i) => (
-                      <div key={i} style={{ position: 'relative' }}>
-                        <img src={src} alt="" style={{ height: 60, borderRadius: 7, objectFit: 'cover', border: '1px solid var(--line-2)', display: 'block' }} />
-                        <button
-                          onClick={() => setStyleImages(prev => prev.filter((_, j) => j !== i))}
-                          style={{ position: 'absolute', top: -5, right: -5, width: 16, height: 16, borderRadius: '50%', background: '#333', border: '1px solid var(--line-2)', color: 'var(--t2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 10, lineHeight: 1 }}
-                        >×</button>
+            {/* Q3: Logo placement */}
+            {phase === 'q-logo' && (
+              <div className="ac2-bac-options">
+                {LOGO_OPTIONS.map(opt => {
+                  const active = selectedLogoUsage === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      className={`ac2-bac-option${active ? ' selected' : ''}`}
+                      onClick={() => setSelectedLogoUsage(active ? '' : opt.value)}
+                    >
+                      <span className="ac2-bac-checkbox">{active && <Check size={10} strokeWidth={3} />}</span>
+                      <div style={{ flex: 1 }}>
+                        <span className="ac2-bac-option-label">{opt.label}</span>
+                        <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 1 }}>{opt.sub}</div>
                       </div>
-                    ))}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Q4: Purpose + reference image */}
+            {phase === 'q-purpose-ref' && (
+              <>
+                <div className="ac2-bac-options">
+                  {PURPOSE_OPTIONS.map(opt => {
+                    const active = selectedPurpose === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        className={`ac2-bac-option${active ? ' selected' : ''}`}
+                        onClick={() => setSelectedPurpose(active ? '' : opt.value)}
+                      >
+                        <span className="ac2-bac-checkbox">{active && <Check size={10} strokeWidth={3} />}</span>
+                        <div style={{ flex: 1 }}>
+                          <span className="ac2-bac-option-label">{opt.value}</span>
+                          <div style={{ fontSize: 11, color: 'var(--t3)', marginTop: 1 }}>{opt.sub}</div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Reference image section */}
+                <div className="ntm-ref-divider">
+                  <div className="ntm-ref-divider-line" />
+                  <span className="ntm-ref-divider-label">Or paste a layout reference</span>
+                  <div className="ntm-ref-divider-line" />
+                </div>
+                <input ref={referenceInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleReferenceImageAttach} />
+                {referenceImageData ? (
+                  <div className="ntm-ref-preview">
+                    <img src={referenceImageData} alt="Layout reference" className="ntm-ref-thumb" />
+                    <button className="ntm-ref-remove" onClick={() => setReferenceImageData('')}>Remove</button>
+                  </div>
+                ) : (
+                  <div
+                    className="ntm-ref-dropzone"
+                    onClick={() => referenceInputRef.current?.click()}
+                    onPaste={handleReferencePaste}
+                    tabIndex={0}
+                  >
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ width: 14, height: 14, color: 'var(--t3)' }}>
+                      <rect x="2" y="2" width="12" height="12" rx="2" /><circle cx="5.5" cy="5.5" r="1" /><path d="M2 10l3-3 3 3 2-2 4 4" />
+                    </svg>
+                    <span>Click to browse or paste an image</span>
                   </div>
                 )}
-                <button className="ntm-az-upload-btn" onClick={() => styleImageInputRef.current?.click()}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ width: 13, height: 13 }}>
-                    <path d="M8 2v12M2 8h12" />
-                  </svg>
-                  Upload reference images
-                </button>
               </>
-            )}
-
-            {phase === 'q-style-text' && (
-              <textarea
-                value={instructionsInput}
-                onChange={e => setInstructionsInput(e.target.value)}
-                placeholder="e.g. Always use dark backgrounds, avoid sans-serif for headlines, keep copy under 10 words…"
-                rows={3}
-                className="ac2-bac-input"
-                style={{ resize: 'none' }}
-              />
             )}
           </div>
 
           {/* Footer */}
           <div className="ac2-bac-footer">
-            <span className="ac2-bac-count">{getCountLabel()}</span>
+            <span className="ac2-bac-count">
+              {phase === 'q-background' && (selectedBgHex ? selectedBgName : '0 selected')}
+              {phase === 'q-element'    && (selectedElement ? selectedElement : kitAssets.length === 0 ? 'No assets' : '0 selected')}
+              {phase === 'q-logo'       && (selectedLogoUsage ? LOGO_OPTIONS.find(o => o.value === selectedLogoUsage)?.label ?? '' : '0 selected')}
+              {phase === 'q-purpose-ref'&& ([selectedPurpose, referenceImageData ? 'reference attached' : null].filter(Boolean).join(' · ') || '0 selected')}
+            </span>
             <div className="ac2-bac-actions">
-              {phase !== 'q-purpose' && (
-                <button className="ac2-bac-skip" onClick={handleSheetSkip}>Skip</button>
+              {phase === 'q-element' && (
+                <button className="ac2-bac-skip" onClick={() => handleElementAnswer('')}>Leave blank</button>
               )}
               <button
                 className="ac2-bac-next"
                 disabled={!canNext}
-                onClick={handleSheetNext}
+                onClick={() => {
+                  if (phase === 'q-background')  handleBgAnswer()
+                  else if (phase === 'q-element') handleElementAnswer(selectedElement)
+                  else if (phase === 'q-logo')    handleLogoAnswer()
+                  else if (phase === 'q-purpose-ref') handlePurposeRefAnswer()
+                }}
               >
                 <ChevronRight size={15} />
               </button>
@@ -899,33 +929,20 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
         {/* Body */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'row-reverse', minHeight: 0 }}>
 
-          {/* Right: preview panel — hidden until theme is generated */}
+          {/* Right: preview panel — hidden until generated */}
           <div className="ntm-preview-panel" style={{ display: previewGradient ? 'flex' : 'none' }}>
             <PromptSidebar themeName={themeName} themePrompt={themePrompt} onNameChange={setThemeName} />
             <div className="ntm-preview-tiles">
-              {previewGradient ? (
-                [
-                  { g: previewGradient, label: 'Preview' },
-                  { g: pickG(previewGradient + '1', G1), label: 'Social' },
-                  { g: pickG(previewGradient + '2', G2), label: 'Campaign' },
-                ].map((p, i) => (
-                  <div key={i} className="ntm-preview-tile" style={{ background: p.g }}>
-                    <div className="ntm-preview-tile-label">{p.label}</div>
-                    <div style={{ position: 'absolute', bottom: 6, right: 8, background: 'rgba(0,0,0,0.45)', borderRadius: 3, padding: '1px 5px', fontSize: 8, color: 'rgba(255,255,255,0.4)' }}>{i + 1}</div>
-                  </div>
-                ))
-              ) : (
-                ['Preview', 'Social', 'Campaign'].map((label) => (
-                  <div key={label} className="ntm-preview-empty-tile">
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="var(--line-2)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}>
-                        <rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M3 15l5-5 4 4 3-3 6 6" />
-                      </svg>
-                      <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--t3)' }}>{label}</span>
-                    </div>
-                  </div>
-                ))
-              )}
+              {[
+                { g: previewGradient!, label: 'Preview' },
+                { g: pickG(previewGradient! + '1', G1), label: 'Social' },
+                { g: pickG(previewGradient! + '2', G2), label: 'Campaign' },
+              ].map((p, i) => (
+                <div key={i} className="ntm-preview-tile" style={{ background: p.g }}>
+                  <div className="ntm-preview-tile-label">{p.label}</div>
+                  <div style={{ position: 'absolute', bottom: 6, right: 8, background: 'rgba(0,0,0,0.45)', borderRadius: 3, padding: '1px 5px', fontSize: 8, color: 'rgba(255,255,255,0.4)' }}>{i + 1}</div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -937,7 +954,6 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
               <>
                 <div className={`ntm-messages${showSheet ? ' ntm-messages--has-sheet' : ''}`}>
                   {thread.map(item => renderItem(item))}
-
                   {thinking && (
                     <div className="ntm-thinking">
                       <BotAvatar />
@@ -948,75 +964,14 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
                       </div>
                     </div>
                   )}
-
                   <div ref={messagesEndRef} />
                 </div>
-
                 {renderBottomSheet()}
               </>
             )}
           </div>
         </div>
       </div>
-
-      {/* Asset picker modal */}
-      {assetPickerOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div onClick={() => setAssetPickerOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
-          <div style={{ position: 'relative', width: 560, maxWidth: '90vw', background: 'var(--card)', borderRadius: 16, border: '1px solid var(--line-2)', padding: 28, display: 'flex', flexDirection: 'column', gap: 20, boxShadow: 'var(--shadow)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--t1)' }}>Brand image assets</div>
-                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 3 }}>Select assets to place directly in your designs.</div>
-              </div>
-              <button onClick={() => setAssetPickerOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', padding: 4, display: 'grid', placeItems: 'center' }}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ width: 16, height: 16 }}>
-                  <path d="M4 4l8 8M12 4l-8 8" />
-                </svg>
-              </button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
-              {imageryAssets.map(asset => {
-                const selected = selectedImageAssets.has(asset.name)
-                return (
-                  <button
-                    key={asset.name}
-                    onClick={() => setSelectedImageAssets(prev => {
-                      const next = new Set(prev)
-                      selected ? next.delete(asset.name) : next.add(asset.name)
-                      return next
-                    })}
-                    style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: `2px solid ${selected ? 'var(--accent)' : 'var(--line)'}`, cursor: 'pointer', padding: 0, background: 'none', transition: 'border-color .15s' }}
-                  >
-                    <div style={{ width: '100%', aspectRatio: '4/3', background: asset.preview }} />
-                    <div style={{ padding: '6px 8px', background: 'rgba(0,0,0,0.6)', fontSize: 11, color: 'rgba(255,255,255,0.8)', textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {asset.name.replace(/\.[^.]+$/, '').replace(/_/g, ' ')}
-                    </div>
-                    {selected && (
-                      <div style={{ position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: '50%', background: 'var(--accent)', display: 'grid', placeItems: 'center' }}>
-                        <svg viewBox="0 0 10 10" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
-                          <path d="M2 5l2.5 2.5L8 3" />
-                        </svg>
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--line)', paddingTop: 16 }}>
-              <button
-                onClick={() => setSelectedImageAssets(selectedImageAssets.size === imageryAssets.length ? new Set() : new Set(imageryAssets.map(a => a.name)))}
-                style={{ fontSize: 12, color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline', padding: 0 }}
-              >
-                {selectedImageAssets.size === imageryAssets.length ? 'Deselect all' : 'Select all'}
-              </button>
-              <button className="btn primary" onClick={() => setAssetPickerOpen(false)}>
-                Done{selectedImageAssets.size > 0 ? ` · ${selectedImageAssets.size} selected` : ''}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </Portal>
   )
 }

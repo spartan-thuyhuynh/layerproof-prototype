@@ -118,6 +118,7 @@ export const en: LandingContent = {
         body: "Matte builds each post in a real canvas, sized to each platform's exact dimensions — Facebook, Instagram, TikTok, and Zalo each get their own layout, not one image stretched to fit.",
         illustLabel: 'Social post grid',
         illustNote: 'Post editor + calendar view',
+        illustRatio: '3/4',
         status: 'live',
       },
       {
@@ -127,6 +128,7 @@ export const en: LandingContent = {
         body: 'Mylar turns a link, a script, or a rough idea into a short vertical video with natural-sounding Vietnamese narration, ready to export.',
         illustLabel: 'Motion editor',
         illustNote: 'Timeline + narration + export',
+        illustRatio: '16/9',
         status: 'live',
       },
       {
@@ -136,6 +138,7 @@ export const en: LandingContent = {
         body: "Vellum takes a single product photo and outputs new backgrounds, angles, and crops automatically — a full catalog from one shot.",
         illustLabel: 'Image creation workflow',
         illustNote: 'One photo in → a full catalog set out',
+        illustRatio: '4/3',
         status: 'live',
       },
       {
@@ -145,6 +148,7 @@ export const en: LandingContent = {
         body: 'Turns a product brief into a short video with an AI-generated voice and face, formatted for TikTok Shop and Reels.',
         illustLabel: 'UGC-style video preview',
         illustNote: 'Short-form video output',
+        illustRatio: '9/16',
         status: 'soon',
       },
     ],

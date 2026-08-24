@@ -11,8 +11,8 @@ export const vi: LandingContent = {
     cta: 'Bắt đầu ngay',
   },
   hero: {
-    h1Line1: 'Toàn bộ sự hiện diện online của shop bạn',
-    h1Line2: 'Xong trong một buổi.',
+    h1Line1: 'Giải pháp social marketing',
+    h1Line2: 'Đơn giản hơn, hiệu quả hơn.',
     sub: 'LayerProof xây dựng thương hiệu, viết bài đăng, và làm video cho bạn — bằng ngôn ngữ của bạn, với ngân sách của bạn. Dành cho chủ shop tự quản lý Facebook, Zalo và TikTok của mình.',
     ctaStart: 'Bắt đầu ngay',
     ctaDemo: 'Đặt lịch demo',
@@ -118,6 +118,7 @@ export const vi: LandingContent = {
         body: 'Matte dựng từng bài đăng trên canvas thật, đúng kích thước riêng của từng nền tảng — Facebook, Instagram, TikTok và Zalo đều có bố cục riêng, không phải một ảnh bị kéo giãn cho vừa.',
         illustLabel: 'Lưới bài đăng mạng xã hội',
         illustNote: 'Trình chỉnh sửa bài đăng + lịch',
+        illustRatio: '3/4',
         status: 'live',
       },
       {
@@ -127,6 +128,7 @@ export const vi: LandingContent = {
         body: 'Mylar biến một đường link, một kịch bản, hoặc một ý tưởng thô thành video dọc ngắn với giọng đọc tiếng Việt tự nhiên, sẵn sàng xuất file.',
         illustLabel: 'Trình chỉnh sửa video',
         illustNote: 'Timeline + giọng đọc + xuất video',
+        illustRatio: '16/9',
         status: 'live',
       },
       {
@@ -136,6 +138,7 @@ export const vi: LandingContent = {
         body: 'Vellum lấy một tấm ảnh sản phẩm và tự động tạo ra nền mới, góc chụp mới, và crop mới — cả một bộ catalog từ một lần chụp.',
         illustLabel: 'Quy trình tạo ảnh',
         illustNote: 'Một ảnh vào → cả bộ catalog ra',
+        illustRatio: '4/3',
         status: 'live',
       },
       {
@@ -145,6 +148,7 @@ export const vi: LandingContent = {
         body: 'Biến một brief sản phẩm thành video ngắn với giọng nói và gương mặt do AI tạo ra, đúng định dạng cho TikTok Shop và Reels.',
         illustLabel: 'Xem trước video kiểu UGC',
         illustNote: 'Video ngắn đầu ra',
+        illustRatio: '9/16',
         status: 'soon',
       },
     ],

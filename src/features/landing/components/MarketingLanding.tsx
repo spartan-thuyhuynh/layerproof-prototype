@@ -249,8 +249,11 @@ export function MarketingLanding() {
   const { locale, setLocale, content } = useLocale()
   const [loaded, setLoaded] = useState(false)
   const [activeInd, setActiveInd] = useState('fnb')
-  const [revealed, setRevealed] = useState<Set<string>>(new Set())
   const casesRef = useRef<HTMLDivElement>(null)
+  const scrollCases = (dir: 'prev' | 'next') => {
+    casesRef.current?.scrollBy({ left: dir === 'next' ? 356 : -356, behavior: 'smooth' })
+  }
+  const [revealed, setRevealed] = useState<Set<string>>(new Set())
   const industryRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const revealRefs = useRef<Record<string, HTMLElement | null>>({})
   const hookSectionRef = useRef<HTMLElement>(null)
@@ -320,9 +323,6 @@ export function MarketingLanding() {
 
   const activeIndustry = content.industries.items.find((ind) => ind.id === activeInd) ?? content.industries.items[0]
 
-  const scrollCases = (dir: 'prev' | 'next') => {
-    casesRef.current?.scrollBy({ left: dir === 'next' ? 356 : -356, behavior: 'smooth' })
-  }
 
   const switchLocale = (next: Locale) => {
     if (next !== locale) setLocale(next)
@@ -520,7 +520,7 @@ export function MarketingLanding() {
               >
                 <span className="ml-pillar-numeral" aria-hidden>{p.numeral}</span>
                 <div className="ml-pillar-illus">
-                  <IllustrationFrame label={p.illustLabel} note={p.illustNote} ratio="16/9" />
+                  <IllustrationFrame label={p.illustLabel} note={p.illustNote} ratio={p.illustRatio} />
                 </div>
                 <div className="ml-pillar-copy">
                   <span className={`ml-pillar-badge ml-pillar-badge--${p.status}`}>

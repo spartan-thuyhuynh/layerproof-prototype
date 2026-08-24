@@ -16,6 +16,7 @@ export interface PillarCopy {
   body: string
   illustLabel: string
   illustNote: string
+  illustRatio: string
   status: 'live' | 'soon'
 }
 

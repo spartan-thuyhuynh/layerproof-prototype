@@ -661,3 +661,126 @@ html.light .ntm-purpose-chip.active { color: #7a6600; }
   justify-content: center;
   flex-shrink: 0;
 }
+
+/* ── Background color swatch grid ─────────────────────────────── */
+.ntm-swatch-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.ntm-swatch-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 5px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.ntm-swatch-btn.selected { border-color: var(--accent); }
+.ntm-swatch-btn:hover:not(.selected) { border-color: var(--line-2); }
+
+.ntm-swatch-color {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+html.light .ntm-swatch-color { border-color: rgba(0, 0, 0, 0.08); }
+
+.ntm-swatch-name {
+  font-size: 9.5px;
+  color: var(--t3);
+  text-align: center;
+  max-width: 52px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.ntm-swatch-btn.selected .ntm-swatch-name { color: var(--t1); }
+
+/* ── Prompt preview block ─────────────────────────────────────── */
+.ntm-preview-prompt-wrap { padding: 2px 0 4px; }
+
+.ntm-preview-prompt-text {
+  font-size: 11.5px;
+  color: var(--t2);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  max-height: 130px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+}
+html.light .ntm-preview-prompt-text { background: rgba(0, 0, 0, 0.03); }
+
+/* ── Reference image section ──────────────────────────────────── */
+.ntm-ref-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+.ntm-ref-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.ntm-ref-divider-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--t3);
+  white-space: nowrap;
+}
+
+.ntm-ref-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px dashed var(--line);
+  color: var(--t3);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+  outline: none;
+  background: none;
+}
+.ntm-ref-dropzone:hover,
+.ntm-ref-dropzone:focus { border-color: var(--accent-line); color: var(--t2); }
+
+.ntm-ref-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ntm-ref-thumb {
+  height: 52px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--line-2);
+  display: block;
+}
+.ntm-ref-remove {
+  font-size: 12px;
+  color: var(--t3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 4px 0;
+  transition: color .15s;
+}
+.ntm-ref-remove:hover { color: var(--t1); }

@@ -791,7 +791,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
   gap: 24px;
 }
 
@@ -804,15 +804,10 @@
   color: var(--t1);
 }
 
-.ml-cases-nav {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
+.ml-cases-nav { display: flex; gap: 8px; flex-shrink: 0; }
 
 .ml-cases-arrow {
-  width: 42px;
-  height: 42px;
+  width: 42px; height: 42px;
   border-radius: 10px;
   background: var(--card-2);
   color: var(--t2);
@@ -820,16 +815,11 @@
   cursor: pointer;
   font-size: 20px;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   transition: background 0.15s, color 0.15s;
   line-height: 1;
 }
-.ml-cases-arrow:hover {
-  background: var(--card-2);
-  color: var(--t1);
-}
+.ml-cases-arrow:hover { background: #2a2a2a; color: var(--t1); }
 
 .ml-cases-cards {
   display: flex;
@@ -849,15 +839,12 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0;
   scroll-snap-align: start;
   transition: background 0.15s;
 }
 .ml-case-card:hover { background: #2a2a2a; }
 
-.ml-case-image {
-  position: relative;
-}
+.ml-case-image { position: relative; }
 .ml-case-image .ml-illus-frame {
   border-radius: 0;
   border: none;
@@ -866,18 +853,15 @@
 
 .ml-case-chip {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 14px; left: 14px;
   z-index: 1;
-  display: inline-flex;
-  align-items: center;
+  display: inline-flex; align-items: center;
   padding: 3px 10px;
   background: var(--accent-soft);
   color: var(--accent);
   border: 1px solid var(--accent-line);
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 10px; font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   width: fit-content;
@@ -886,51 +870,37 @@
 }
 
 .ml-case-statement {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--t1);
-  line-height: 1.4;
+  font-size: 15px; font-weight: 700;
+  color: var(--t1); line-height: 1.4;
   margin: 0;
-  padding: clamp(20px, 2.2vw, 28px) clamp(20px, 2.2vw, 28px) 0;
+  padding: clamp(18px, 2vw, 24px) clamp(18px, 2vw, 24px) 0;
 }
 
 .ml-case-quote {
   margin: 0;
-  padding: 16px clamp(20px, 2.2vw, 28px) 0;
+  padding: 14px clamp(18px, 2vw, 24px) 0;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
 }
 
 .ml-case-quote-text {
-  font-size: 15px;
-  line-height: 1.65;
-  color: var(--t1);
-  font-style: italic;
-  margin: 0;
+  font-size: 14px; line-height: 1.6;
+  color: var(--t2); font-style: italic; margin: 0;
 }
 
 .ml-case-quote-author {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--t2);
-  letter-spacing: 0.02em;
+  font-size: 13px; font-weight: 600;
+  color: var(--t3); letter-spacing: 0.02em;
 }
 
 .ml-case-footer {
-  display: flex;
-  align-items: center;
-  padding: 16px clamp(20px, 2.2vw, 28px) clamp(20px, 2.2vw, 28px);
+  display: flex; align-items: center;
+  padding: 14px clamp(18px, 2vw, 24px) clamp(18px, 2vw, 24px);
   border-top: 1px solid var(--line);
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
-.ml-case-brand {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--t1);
-}
+.ml-case-brand { font-size: 14px; font-weight: 700; color: var(--t1); }
 
 html.light .ml-case-card { background: #f0f0f0; }
 
@@ -942,7 +912,7 @@ html.light .ml-case-card { background: #f0f0f0; }
   width: 100%;
   max-width: 1360px;
   margin: 0 auto;
-  padding: clamp(72px, 8vw, 120px) clamp(24px, 6vw, 80px) clamp(32px, 3.5vw, 48px);
+  padding: clamp(56px, 6vw, 88px) clamp(24px, 6vw, 80px) clamp(32px, 3.5vw, 48px);
 }
 
 .ml-pillars-inner .ml-section-head {
@@ -951,53 +921,23 @@ html.light .ml-case-card { background: #f0f0f0; }
 
 .ml-pillars-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: clamp(16px, 2vw, 24px);
-}
-
-/* Bento: two cards per row, widths alternate wide/narrow for an asymmetric feel */
-.ml-pillar:nth-child(1) { grid-column: span 7; background: #1f1f1f; }
-.ml-pillar:nth-child(2) { grid-column: span 5; background: #242424; }
-.ml-pillar:nth-child(3) { grid-column: span 5; background: #202020; }
-.ml-pillar:nth-child(4) { grid-column: span 7; background: #262626; }
-
-/* Wide cards have room to spare — lay illustration and copy side by side
-   instead of stacking a landscape image on top of the text. Both are
-   single top-aligned flex items (not a grid-row span), so neither block
-   gets vertically centered against the other's height. */
-.ml-pillar:nth-child(1),
-.ml-pillar:nth-child(4) {
-  flex-direction: row;
-  align-items: center;
-  gap: clamp(24px, 3vw, 40px);
-}
-.ml-pillar:nth-child(1) .ml-pillar-illus,
-.ml-pillar:nth-child(4) .ml-pillar-illus {
-  flex: 0 0 clamp(200px, 34%, 320px);
-  margin-bottom: 0;
-}
-.ml-pillar:nth-child(1) .ml-pillar-copy,
-.ml-pillar:nth-child(4) .ml-pillar-copy {
-  flex: 1;
-  min-width: 0;
-  justify-content: center;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(16px, 2vw, 20px);
 }
 
 .ml-pillar {
   display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line);
+  flex-direction: row;
+  align-items: stretch;
+  height: clamp(200px, 18vw, 260px);
+  background: var(--card-2);
   border-radius: var(--radius-lg);
-  padding: clamp(18px, 2vw, 26px);
-  position: relative;
   overflow: hidden;
-  transition: transform 0.25s cubic-bezier(0.16, 0.84, 0.44, 1), border-color 0.25s;
+  position: relative;
+  transition: transform 0.2s ease, background 0.2s;
 }
 
-.ml-pillar:hover {
-  transform: translateY(-4px);
-  border-color: var(--line-2);
-}
+.ml-pillar:hover { transform: translateY(-3px); background: #2a2a2a; }
 
 .ml-pillar-numeral {
   position: absolute;
@@ -1010,11 +950,6 @@ html.light .ml-case-card { background: #f0f0f0; }
   line-height: 1;
   pointer-events: none;
   user-select: none;
-}
-
-.ml-pillar-copy {
-  display: flex;
-  flex-direction: column;
 }
 
 .ml-pillar-badge {
@@ -1081,14 +1016,24 @@ html.light .ml-case-card { background: #f0f0f0; }
 }
 
 .ml-pillar-illus {
-  position: relative;
-  margin-bottom: 14px;
+  flex: 0 0 clamp(140px, 30%, 200px);
 }
 .ml-pillar-illus .ml-illus-frame {
   background: var(--card-2);
   width: 100%;
-  height: auto;
-  aspect-ratio: 16/9;
+  height: 100%;
+  aspect-ratio: unset;
+  border-radius: 0;
+  border: none;
+  border-right: 1px solid var(--line);
+}
+
+.ml-pillar-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(18px, 2vw, 24px);
 }
 
 /* ── INDUSTRIES COLLAGE ──────────────────────────────────────────── */
