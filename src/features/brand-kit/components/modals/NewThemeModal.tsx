@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronRight, Check } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { Portal } from '@/shared/lib/Portal'
 import { Tip } from '@/shared/components/ui/Tip'
+import { EmptyState } from '@/shared/components/ui/EmptyState'
 import { useBrandStore } from '@/features/brand-kit/store/useBrandStore'
 import { useUIStore } from '@/shared/store/useUIStore'
-import type { BrandKit, BrandTheme } from '@/features/brand-kit/types/brand'
+import type { BrandKit, BrandTheme, ColorSwatch, ImageAsset, LogoVariant } from '@/features/brand-kit/types/brand'
 
 /* ── gradient banks ────────────────────────────────────────── */
 const G0 = ['linear-gradient(160deg,#ec4899,#ffde42)', 'linear-gradient(160deg,#3b82f6,#8b5cf6)', 'linear-gradient(160deg,#14b8a6,#22d3ee)', 'linear-gradient(160deg,#f97316,#ec4899)', 'linear-gradient(160deg,#22c55e,#14b8a6)']
@@ -43,16 +43,91 @@ interface Answers {
   promptRefinement: string
 }
 
+/* Colors and images supplied inside the theme flow. Scoped to this theme —
+   they are never written back to the brand kit. */
+/* An upload keeps both its display name and the original filename + size, so it
+   can be written into the kit in the same shape as the kit's own assets. */
+interface ThemeUpload {
+  name: string
+  fileName: string
+  size: string
+  preview: string
+}
+
+interface ThemeExtras {
+  palette: StarterPalette | null
+  logos: ThemeUpload[]
+  images: ThemeUpload[]
+}
+
+const EMPTY_EXTRAS: ThemeExtras = { palette: null, logos: [], images: [] }
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+/* Offered inline when the kit has no palette at all, so the step still has a real
+   answer. The theme adopts one; the brand kit is untouched. */
+interface StarterPalette {
+  id: string
+  name: string
+  desc: string
+  colors: ColorSwatch[]
+}
+
+const STARTER_PALETTES: StarterPalette[] = [
+  {
+    id: 'mono', name: 'Mono', desc: 'High contrast, lets imagery lead',
+    colors: [
+      { name: 'Ink',      hex: '#0F0F0F', role: 'Backgrounds' },
+      { name: 'Graphite', hex: '#3A3A3A', role: 'Surfaces' },
+      { name: 'Silver',   hex: '#C9C9C9', role: 'Secondary text' },
+      { name: 'Paper',    hex: '#FFFFFF', role: 'Primary text on dark' },
+    ],
+  },
+  {
+    id: 'warm', name: 'Warm', desc: 'Editorial and approachable',
+    colors: [
+      { name: 'Clay',  hex: '#241611', role: 'Backgrounds' },
+      { name: 'Rust',  hex: '#B4471F', role: 'Accents, CTAs' },
+      { name: 'Amber', hex: '#E8A33D', role: 'Highlights' },
+      { name: 'Cream', hex: '#F7F0E6', role: 'Primary text on dark' },
+    ],
+  },
+  {
+    id: 'cool', name: 'Cool', desc: 'Calm and product-forward',
+    colors: [
+      { name: 'Navy',  hex: '#0B1220', role: 'Backgrounds' },
+      { name: 'Azure', hex: '#3B82F6', role: 'Primary actions' },
+      { name: 'Sky',   hex: '#9EC5FF', role: 'Highlights' },
+      { name: 'Mist',  hex: '#EEF2F7', role: 'Primary text on dark' },
+    ],
+  },
+  {
+    id: 'bold', name: 'Bold', desc: 'Loud, campaign-ready',
+    colors: [
+      { name: 'Void',    hex: '#08080A', role: 'Backgrounds' },
+      { name: 'Magenta', hex: '#EC4899', role: 'Primary actions' },
+      { name: 'Volt',    hex: '#D4FF3D', role: 'Highlights' },
+      { name: 'Chalk',   hex: '#FBFBF7', role: 'Primary text on dark' },
+    ],
+  },
+]
+
+const SAVED_TO_KIT_NOTE = 'Saved to your brand kit when you save this theme.'
+
 /* ── data ───────────────────────────────────────────────────── */
 const DECIDE_FOR_ME = '__decide__'
 
 const LOGO_OPTIONS = [
+  { value: 'none',         label: 'No logo',              sub: 'Omit the brand mark from this theme' },
   { value: 'top-left',     label: 'Top left',            sub: 'Standard, professional placement' },
   { value: 'top-center',   label: 'Top center',           sub: 'Centered, editorial feel' },
   { value: 'bottom-left',  label: 'Bottom left',          sub: 'Grounded; common in print and editorial' },
   { value: 'bottom-right', label: 'Bottom right',         sub: 'Subtle signature placement' },
   { value: 'floating',     label: 'Floating / Watermark', sub: 'Light opacity when visuals take priority' },
-  { value: 'none',         label: 'No logo',              sub: 'Omit the brand mark from this theme' },
 ]
 
 const PURPOSE_OPTIONS = [
@@ -85,7 +160,7 @@ function buildThemePrompt(kit: BrandKit, answers: Answers): string {
 
   if (mainElement) {
     const elements = mainElement.split(', ').filter(Boolean)
-    lines.push(`Brand visuals: ${elements.join(' and ')} ${elements.length > 1 ? 'should appear consistently' : 'should appear consistently'} in every layout — use ${elements.length > 1 ? 'them' : 'it'} as the main visual anchor that makes this theme immediately recognizable.`)
+    lines.push(`Brand visuals: ${elements.join(' and ')} should appear consistently in every layout — use ${elements.length > 1 ? 'them' : 'it'} as the main visual anchor that makes this theme immediately recognizable.`)
   } else {
     lines.push('Brand visuals: Not specified — AI may choose the most fitting visual element from the brand kit per layout.')
   }
@@ -174,20 +249,66 @@ function SectionDivider({ label }: { label: string }) {
   )
 }
 
-function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void }) {
+interface WelcomeScreenProps {
+  kit: BrandKit
+  extras: ThemeExtras
+  onStart: () => void
+  onAddColor: () => void
+  onAddType: () => void
+  onAddVoice: () => void
+  onAddLogo: () => void
+  onAddImages: () => void
+}
+
+/* One row of the "what's in this brand kit" checklist. Rows are always rendered,
+   present or not, so an empty kit reads as "nothing here yet" rather than a blank panel. */
+function WelcomeRow({
+  label, filled, emptyLabel, onAdd, addLabel, children,
+}: {
+  label: string
+  filled: boolean
+  emptyLabel: string
+  onAdd: () => void
+  addLabel: string
+  children?: React.ReactNode
+}) {
+  return (
+    <div className={`ntm-welcome-section${filled ? '' : ' ntm-welcome-section--empty'}`}>
+      <div className="ntm-welcome-row-head">
+        <div className="ntm-welcome-section-label">{label}</div>
+        <button className="ntm-welcome-row-add" onClick={onAdd}>
+          {filled ? 'Edit' : addLabel} →
+        </button>
+      </div>
+      {filled ? children : <div className="ntm-welcome-row-empty">{emptyLabel}</div>}
+    </div>
+  )
+}
+
+function WelcomeScreen({ kit, extras, onStart, onAddColor, onAddType, onAddVoice, onAddLogo, onAddImages }: WelcomeScreenProps) {
   const wordsUse    = kit.tone.use?.slice(0, 4) ?? []
   const wordsAvoid  = kit.tone.avoid?.slice(0, 3) ?? []
-  const logoVariants = (kit.logos?.variants ?? []) as Array<{ src?: string }>
-  const hasLogo     = logoVariants.some(v => v.src)
-  const imageryAssets = (kit.imagery?.assets ?? []) as Array<{ name: string; preview?: string }>
+  const kitLogos    = ((kit.logos?.variants ?? []) as Array<{ src?: string }>)
+    .filter(v => v.src)
+    .map(v => ({ src: v.src as string }))
+  const logoThumbs  = [...kitLogos, ...extras.logos.map(l => ({ src: l.preview }))]
+  const hasLogo     = logoThumbs.length > 0
+  const kitImages   = (kit.imagery?.assets ?? []) as Array<{ name: string; preview?: string }>
+  const imageryAssets = [...kitImages, ...extras.images]
   const imageCount  = imageryAssets.length
+
+  const palettes    = kit.colors.palettes
+  const extraColors = extras.palette?.colors ?? []
+  const hasColors   = palettes.length > 0 || extraColors.length > 0
+  const hasType     = Boolean(kit.type.display.family || kit.type.body.family)
+  const hasVoice    = kit.tone.attrs.length > 0
 
   const MAX_VISIBLE = 5
   const [showAllLogos,  setShowAllLogos]  = useState(false)
   const [showAllImages, setShowAllImages] = useState(false)
-  const visibleLogos  = showAllLogos  ? logoVariants.filter(v => v.src)  : logoVariants.filter(v => v.src).slice(0, MAX_VISIBLE)
+  const visibleLogos  = showAllLogos  ? logoThumbs : logoThumbs.slice(0, MAX_VISIBLE)
   const visibleImages = showAllImages ? imageryAssets : imageryAssets.slice(0, MAX_VISIBLE)
-  const hiddenLogos   = logoVariants.filter(v => v.src).length - MAX_VISIBLE
+  const hiddenLogos   = logoThumbs.length - MAX_VISIBLE
   const hiddenImages  = imageryAssets.length - MAX_VISIBLE
 
   return (
@@ -207,119 +328,139 @@ function WelcomeScreen({ kit, onStart }: { kit: BrandKit; onStart: () => void })
         </div>
 
         <div className="ntm-welcome-kit">
-          {kit.colors.palettes.length > 0 && (
-            <div className="ntm-welcome-section">
-              <div className="ntm-welcome-section-label">Colors</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {kit.colors.palettes.map(palette => (
-                  <div key={palette.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      {palette.colors.map((c, i) => (
-                        <div key={i} title={`${c.name}: ${c.hex}`}
-                          style={{ width: 20, height: 20, borderRadius: 5, background: c.hex, border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
-                        />
-                      ))}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--t2)' }}>{palette.name}</span>
-                      {palette.desc && <span style={{ fontSize: 11, color: 'var(--t3)', lineHeight: 1.4 }}>{palette.desc}</span>}
-                    </div>
+          <WelcomeRow
+            label="Colors"
+            filled={hasColors}
+            emptyLabel="No palette yet — AI will pick an on-brand background."
+            onAdd={onAddColor}
+            addLabel="Set up colors"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {palettes.map(palette => (
+                <div key={palette.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {palette.colors.map((c, i) => (
+                      <div key={i} title={`${c.name}: ${c.hex}`}
+                        style={{ width: 20, height: 20, borderRadius: 5, background: c.hex, border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
+                      />
+                    ))}
                   </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--t2)' }}>{palette.name}</span>
+                    {palette.desc && <span style={{ fontSize: 11, color: 'var(--t3)', lineHeight: 1.4 }}>{palette.desc}</span>}
+                  </div>
+                </div>
+              ))}
+              {extraColors.length > 0 && (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {extraColors.map((c, i) => (
+                      <div key={i} title={`${c.name}: ${c.hex}`}
+                        style={{ width: 20, height: 20, borderRadius: 5, background: c.hex, border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
+                      />
+                    ))}
+                  </div>
+                  <span className="ntm-theme-only-tag">Added while building this theme</span>
+                </div>
+              )}
+            </div>
+          </WelcomeRow>
+
+          <WelcomeRow
+            label="Typography"
+            filled={hasType}
+            emptyLabel="No fonts set — AI will use a neutral typeface."
+            onAdd={onAddType}
+            addLabel="Set up typography"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {kit.type.display.family && (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--t1)' }}>{kit.type.display.family}</span>
+                  {kit.type.display.note && <span style={{ fontSize: 11, color: 'var(--t3)' }}>{kit.type.display.note}</span>}
+                </div>
+              )}
+              {kit.type.body.family && (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ fontSize: 13, color: 'var(--t2)' }}>{kit.type.body.family}</span>
+                  {kit.type.body.note && <span style={{ fontSize: 11, color: 'var(--t3)' }}>{kit.type.body.note}</span>}
+                </div>
+              )}
+            </div>
+          </WelcomeRow>
+
+          <WelcomeRow
+            label="Voice & tone"
+            filled={hasVoice}
+            emptyLabel="No voice attributes yet — AI will keep the copy neutral and on-brand."
+            onAdd={onAddVoice}
+            addLabel="Set up voice"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {kit.tone.attrs.map((a, i) => (
+                  <span key={i} className="ntm-welcome-voice-chip">
+                    {(a as { t: string; vs?: string }).t}{(a as { t: string; vs?: string }).vs ? ` (${(a as { t: string; vs?: string }).vs})` : ''}
+                  </span>
                 ))}
               </div>
-            </div>
-          )}
-
-          {(kit.type.display.family || kit.type.body.family) && (
-            <div className="ntm-welcome-section">
-              <div className="ntm-welcome-section-label">Typography</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {kit.type.display.family && (
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--t1)' }}>{kit.type.display.family}</span>
-                    {kit.type.display.note && <span style={{ fontSize: 11, color: 'var(--t3)' }}>{kit.type.display.note}</span>}
-                  </div>
-                )}
-                {kit.type.body.family && (
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: 13, color: 'var(--t2)' }}>{kit.type.body.family}</span>
-                    {kit.type.body.note && <span style={{ fontSize: 11, color: 'var(--t3)' }}>{kit.type.body.note}</span>}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {kit.tone.attrs.length > 0 && (
-            <div className="ntm-welcome-section">
-              <div className="ntm-welcome-section-label">Voice &amp; tone</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                  {kit.tone.attrs.map((a, i) => (
-                    <span key={i} className="ntm-welcome-voice-chip">
-                      {(a as { t: string; vs?: string }).t}{(a as { t: string; vs?: string }).vs ? ` (${(a as { t: string; vs?: string }).vs})` : ''}
-                    </span>
-                  ))}
-                </div>
-                {(wordsUse.length > 0 || wordsAvoid.length > 0) && (
-                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                    {wordsUse.length > 0 && (
-                      <div style={{ fontSize: 11.5, color: 'var(--t3)' }}>
-                        <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Use: </span>{wordsUse.join(', ')}
-                      </div>
-                    )}
-                    {wordsAvoid.length > 0 && (
-                      <div style={{ fontSize: 11.5, color: 'var(--t3)' }}>
-                        <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Avoid: </span>{wordsAvoid.join(', ')}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-
-          {(hasLogo || imageCount > 0) && (
-            <div className="ntm-welcome-section">
-              {hasLogo && (
-                <div style={{ marginBottom: imageCount > 0 ? 14 : 0 }}>
-                  <div className="ntm-welcome-section-label">Logo</div>
-                  <div className="ntm-welcome-asset-grid">
-                    {visibleLogos.map((v, i) => (
-                      <div key={i} className="ntm-welcome-asset-thumb ntm-welcome-asset-thumb--logo">
-                        <img src={v.src} alt={`Logo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
-                      </div>
-                    ))}
-                    {hiddenLogos > 0 && (
-                      <button className="ntm-welcome-show-more" onClick={() => setShowAllLogos(s => !s)}>
-                        {showAllLogos ? 'Show less' : `+${hiddenLogos} more`}
-                      </button>
-                    )}
-                  </div>
+              {(wordsUse.length > 0 || wordsAvoid.length > 0) && (
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  {wordsUse.length > 0 && (
+                    <div style={{ fontSize: 11.5, color: 'var(--t3)' }}>
+                      <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Use: </span>{wordsUse.join(', ')}
+                    </div>
+                  )}
+                  {wordsAvoid.length > 0 && (
+                    <div style={{ fontSize: 11.5, color: 'var(--t3)' }}>
+                      <span style={{ color: 'var(--t2)', fontWeight: 600 }}>Avoid: </span>{wordsAvoid.join(', ')}
+                    </div>
+                  )}
                 </div>
               )}
-              {imageCount > 0 && (
-                <div>
-                  <div className="ntm-welcome-section-label">Brand images</div>
-                  <div className="ntm-welcome-asset-grid">
-                    {visibleImages.map((a, i) => (
-                      <div key={i} className="ntm-welcome-asset-thumb" title={a.name}
-                        style={{ background: a.preview ?? 'var(--card-2)' }} />
-                    ))}
-                    {hiddenImages > 0 && (
-                      <button className="ntm-welcome-show-more" onClick={() => setShowAllImages(s => !s)}>
-                        {showAllImages ? 'Show less' : `+${hiddenImages} more`}
-                      </button>
-                    )}
-                  </div>
+            </div>
+          </WelcomeRow>
+
+          <WelcomeRow
+            label="Logo"
+            filled={hasLogo}
+            emptyLabel="No logo uploaded — AI will lay out without a brand mark."
+            onAdd={onAddLogo}
+            addLabel="Upload a logo"
+          >
+            <div className="ntm-welcome-asset-grid">
+              {visibleLogos.map((v, i) => (
+                <div key={i} className="ntm-welcome-asset-thumb ntm-welcome-asset-thumb--logo">
+                  <img src={v.src} alt={`Logo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
                 </div>
-              )}
-              {imageCount === 0 && !hasLogo && (
-                <div style={{ fontSize: 13, color: 'var(--t3)' }}>No assets yet</div>
+              ))}
+              {hiddenLogos > 0 && (
+                <button className="ntm-welcome-show-more" onClick={() => setShowAllLogos(s => !s)}>
+                  {showAllLogos ? 'Show less' : `+${hiddenLogos} more`}
+                </button>
               )}
             </div>
-          )}
+          </WelcomeRow>
+
+          <WelcomeRow
+            label="Brand images"
+            filled={imageCount > 0}
+            emptyLabel="No images yet — AI will decide the dominant visual."
+            onAdd={onAddImages}
+            addLabel="Upload images"
+          >
+            <div className="ntm-welcome-asset-grid">
+              {visibleImages.map((a, i) => (
+                <div key={i} className="ntm-welcome-asset-thumb" title={a.name}
+                  style={{ background: a.preview ?? 'var(--card-2)' }} />
+              ))}
+              {hiddenImages > 0 && (
+                <button className="ntm-welcome-show-more" onClick={() => setShowAllImages(s => !s)}>
+                  {showAllImages ? 'Show less' : `+${hiddenImages} more`}
+                </button>
+              )}
+            </div>
+          </WelcomeRow>
         </div>
 
         <button className="btn primary" style={{ alignSelf: 'flex-start' }} onClick={onStart}>
@@ -379,6 +520,120 @@ function PromptSidebar({ themeName, themePrompt, onNameChange }: { themeName: st
   )
 }
 
+/* ── in-flow pickers ───────────────────────────────────────────
+   Deliberately local to this flow. ColorPickerModal and CategoryUploadModal
+   can't be reused: the first writes straight into kit.colors.palettes, and the
+   second discards its uploads entirely. Everything added here stays on the
+   theme — the brand kit is never touched. */
+
+function ThemeSheet({ title, desc, onClose, children, footer }: {
+  title: string
+  desc: string
+  onClose: () => void
+  children: React.ReactNode
+  footer?: React.ReactNode
+}) {
+  return (
+    <div className="ntm-sheet-overlay">
+      <div className="ntm-sheet-scrim" onClick={onClose} />
+      <div className="ntm-sheet">
+        <div className="ntm-sheet-head">
+          <div>
+            <div className="ntm-sheet-title">{title}</div>
+            <div className="ntm-sheet-desc">{desc}</div>
+          </div>
+          <button className="ntm-sheet-close" onClick={onClose} aria-label="Close">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ width: 16, height: 16 }}>
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
+          </button>
+        </div>
+        <div className="ntm-sheet-body">{children}</div>
+        <div className="ntm-sheet-foot">
+          <span className="ntm-theme-only-tag">{SAVED_TO_KIT_NOTE}</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {footer}
+            <button className="btn primary" onClick={onClose}>Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ThemeAssetUpload({ images, onAdd, onRemove, onClose, title, desc }: {
+  images: ThemeUpload[]
+  onAdd: (image: ThemeUpload) => void
+  onRemove: (index: number) => void
+  onClose: () => void
+  title: string
+  desc: string
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [dragging, setDragging] = useState(false)
+
+  /* One onAdd per file: FileReader callbacks land out of order, and the parent
+     appends with a functional update, so every file survives a multi-select. */
+  function addFiles(list: FileList | null) {
+    if (!list) return
+    Array.from(list).forEach(f => {
+      const reader = new FileReader()
+      reader.onload = e => {
+        onAdd({
+          name: f.name.replace(/\.[^.]+$/, '').replace(/_/g, ' '),
+          fileName: f.name,
+          size: formatFileSize(f.size),
+          preview: e.target?.result as string,
+        })
+      }
+      reader.readAsDataURL(f)
+    })
+  }
+
+  return (
+    <ThemeSheet title={title} desc={desc} onClose={onClose}>
+      <div
+        className={`ntm-dropzone${dragging ? ' dragging' : ''}`}
+        onClick={() => inputRef.current?.click()}
+        onDragOver={e => { e.preventDefault(); setDragging(true) }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={e => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files) }}
+      >
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ width: 18, height: 18, color: 'var(--t3)' }}>
+          <rect x="2" y="2" width="12" height="12" rx="2" /><circle cx="5.5" cy="5.5" r="1" /><path d="M2 10l3-3 3 3 2-2 4 4" />
+        </svg>
+        <span>Click to upload, or drop images here</span>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        style={{ display: 'none' }}
+        onChange={e => { addFiles(e.target.files); e.target.value = '' }}
+      />
+
+      {images.length > 0 && (
+        <div className="ntm-picker-thumbs">
+          {images.map((img, i) => (
+            <div key={i} className="ntm-picker-thumb">
+              <img src={img.preview} alt={img.name} />
+              <button
+                className="ntm-picker-thumb-remove"
+                onClick={() => onRemove(i)}
+                aria-label={`Remove ${img.name}`}
+              >
+                ×
+              </button>
+              <div className="ntm-picker-thumb-name" title={img.name}>{img.name}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </ThemeSheet>
+  )
+}
+
 /* ── main component ────────────────────────────────────────── */
 interface NewThemeModalProps {
   kit: BrandKit
@@ -386,10 +641,10 @@ interface NewThemeModalProps {
 }
 
 export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
-  const addTheme     = useBrandStore((s) => s.addTheme)
-  const setAppliedId = useBrandStore((s) => s.setAppliedId)
-  const setModal     = useUIStore((s) => s.setModal)
-  const navigate     = useNavigate()
+  const addTheme  = useBrandStore((s) => s.addTheme)
+  const updateKit = useBrandStore((s) => s.updateKit)
+  const setModal = useUIStore((s) => s.setModal)
+  const setPendingSection = useUIStore((s) => s.setPendingSection)
 
   /* welcome */
   const [welcomeDone, setWelcomeDone] = useState(false)
@@ -405,9 +660,31 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   const [answers,  setAnswers]  = useState<Answers>({ backgroundColor: '', backgroundColorName: '', mainElement: '', logoUsage: '', purpose: '', referenceImage: '', promptRefinement: '' })
   const [thinking, setThinking] = useState(false)
 
+  /* colors + images supplied inside this flow; never written back to the kit */
+  const [extras, setExtras] = useState<ThemeExtras>(EMPTY_EXTRAS)
+  const [assetUploadOpen, setAssetUploadOpen] = useState<null | 'logo' | 'images'>(null)
+
+  const addExtraAsset = (key: 'logos' | 'images') => (asset: ThemeUpload) =>
+    setExtras(prev => ({ ...prev, [key]: [...prev[key], asset] }))
+  const removeExtraAsset = (key: 'logos' | 'images') => (index: number) =>
+    setExtras(prev => ({ ...prev, [key]: prev[key].filter((_, i) => i !== index) }))
+
+  /* Images uploaded here were added for this theme on purpose, so they count as
+     chosen — no second pass through a picker. */
+  function addThemeImage(img: ThemeUpload) {
+    addExtraAsset('images')(img)
+    setSelectedElements(prev => prev.includes(img.name) ? prev : [...prev, img.name])
+  }
+  function removeThemeImage(index: number) {
+    const name = extras.images[index]?.name
+    removeExtraAsset('images')(index)
+    if (name) setSelectedElements(prev => prev.filter(n => n !== name))
+  }
+
   /* per-phase selection state */
   const [selectedBgHex,       setSelectedBgHex]       = useState('')
   const [selectedBgName,      setSelectedBgName]       = useState('')
+  const [selectedPaletteId,   setSelectedPaletteId]     = useState('')
   const [selectedElements,    setSelectedElements]     = useState<string[]>([])
   const [selectedLogoUsage,   setSelectedLogoUsage]    = useState('')
   const [selectedPurpose,     setSelectedPurpose]      = useState('')
@@ -459,11 +736,12 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
         append([
           { id: `b-pur-${t}`, type: 'bot', text: "I'll choose the best layout approach automatically." },
           { id: `s2-${t}`, type: 'section', label: 'Visual setup' },
-          { id: `q-bg-${t}`, type: 'bot', text: "What's the background color?", sub: 'Pick from your brand palette — sets the dominant tone.' },
+          { id: `q-bg-${t}`, type: 'bot', text: bgQuestion },
         ])
         setPhase('q-background')
         setSelectedBgHex('')
         setSelectedBgName('')
+        setSelectedPaletteId('')
       }, 700)
 
     } else if (phase === 'q-background') {
@@ -531,7 +809,9 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   }
 
   function handleLogoAnswer() {
-    if (!selectedLogoUsage) return
+    /* Next is enabled with no selection when the kit has no mark to place;
+       that is the same outcome as "Decide for me". */
+    if (!selectedLogoUsage) { handleDecideForMe(); return }
     setAnswers(prev => ({ ...prev, logoUsage: selectedLogoUsage }))
     const label = LOGO_OPTIONS.find(o => o.value === selectedLogoUsage)?.label ?? selectedLogoUsage
     append([{ id: `u-logo-${Date.now()}`, type: 'user', text: label }])
@@ -561,11 +841,12 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
       append([
         { id: `b-pur-${Date.now()}`, type: 'bot', text: purpose ? `**${purpose}** — great choice.` : "Reference image noted." },
         { id: `s2-${Date.now()}`, type: 'section', label: 'Visual setup' },
-        { id: `q-bg-${Date.now()}`, type: 'bot', text: "What's the background color?", sub: 'Pick from your brand palette — sets the dominant tone.' },
+        { id: `q-bg-${Date.now()}`, type: 'bot', text: bgQuestion },
       ])
       setPhase('q-background')
       setSelectedBgHex('')
       setSelectedBgName('')
+      setSelectedPaletteId('')
     }, 700)
   }
 
@@ -661,20 +942,75 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
     }
   }
 
-  function handleCreate() {
-    if (!themeName.trim()) return
-    addTheme(kit.id, buildTheme())
+  function goToSection(sectionId: string) {
+    setPendingSection(sectionId)
     setModal(null)
     onClose()
   }
 
-  function handleCreateAndStart() {
+  /* Colors, logos, and images added inside this flow belong to the kit too —
+     the theme is what uses them, not what owns them. */
+  function persistExtrasToKit() {
+    const { palette, logos, images } = extras
+    if (!palette && logos.length === 0 && images.length === 0) return
+
+    updateKit(kit.id, (k) => {
+      const next: BrandKit = { ...k }
+
+      if (palette) {
+        const paletteId = `palette-${palette.id}-${Date.now()}`
+        next.colors = {
+          ...k.colors,
+          palettes: [
+            ...k.colors.palettes,
+            { id: paletteId, name: palette.name, desc: palette.desc, colors: palette.colors as ColorSwatch[] },
+          ],
+        }
+        next.swatches = [...(k.swatches ?? []), ...palette.colors.map(c => c.hex)]
+        /* A kit with no palette of its own has no identity colour either — take
+           the accent from the palette it just adopted. */
+        if (k.colors.palettes.length === 0) {
+          next.color = palette.colors[1]?.hex ?? palette.colors[0].hex
+        }
+      }
+
+      if (logos.length > 0) {
+        const variants: LogoVariant[] = logos.map(l => ({
+          name: l.name,
+          bg: '#0a0a0a',
+          note: 'Added while building a theme',
+          src: l.preview,
+          size: l.size,
+        }))
+        next.logos = { ...k.logos, variants: [...k.logos.variants, ...variants] }
+        /* First real mark becomes the kit's symbol — never overwrite an existing one. */
+        if (!k.symbolSrc && k.logos.variants.length === 0) next.symbolSrc = logos[0].preview
+      }
+
+      if (images.length > 0) {
+        const assets: ImageAsset[] = images.map(i => ({
+          name: i.fileName,
+          size: i.size,
+          preview: `url(${i.preview}) center/cover`,
+        }))
+        next.imagery = { ...k.imagery, assets: [...(k.imagery.assets ?? []), ...assets] }
+        next.assets = (k.assets ?? 0) + assets.length
+      }
+
+      /* The kit now has real content, so it is past the starter state and the
+         overview should show the real cards instead of the setup screen. */
+      next.onboarding = false
+      next.updated = new Date().toISOString().slice(0, 10)
+      return next
+    })
+  }
+
+  function handleCreate() {
     if (!themeName.trim()) return
+    persistExtrasToKit()
     addTheme(kit.id, buildTheme())
-    setAppliedId(kit.id)
     setModal(null)
     onClose()
-    navigate('/create/presentation')
   }
 
   const canCreate = themeName.trim().length > 0
@@ -683,6 +1019,18 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   /* ── kit assets for q-element ─────────────────────────────── */
   const logoVariants = (kit.logos?.variants ?? []).filter((v: { src?: string }) => v.src)
   const imageryAssets = kit.imagery?.assets ?? []
+  /* Nothing in the kit to choose from: those steps become upload-only, and the
+     upload box has to survive the upload rather than vanishing once it succeeds. */
+  const hasKitLogo   = logoVariants.length > 0
+  const hasKitAssets = logoVariants.length > 0 || imageryAssets.length > 0
+
+  /* A kit with palettes of its own goes straight to picking a color, with every
+     palette merged into one list. Only a kit with no colors has to choose a
+     starter palette first, which makes that step a two-parter. */
+  const needsStarterPalette = kit.colors.palettes.length === 0
+  const bgQuestion = needsStarterPalette
+    ? 'Which colors should this theme use?'
+    : "What's the background color?"
   type KitAsset = { name: string; preview: string; isImage: boolean }
   const kitAssets: KitAsset[] = [
     ...logoVariants.map((v: { src?: string }) => ({ name: 'Logo', preview: v.src ?? '', isImage: true })),
@@ -691,6 +1039,8 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
       preview: a.preview ?? '',
       isImage: false,
     })),
+    ...extras.logos.map(l => ({ name: l.name, preview: l.preview, isImage: true })),
+    ...extras.images.map(img => ({ name: img.name, preview: img.preview, isImage: true })),
   ]
 
   /* ── render thread item ────────────────────────────────────── */
@@ -733,7 +1083,7 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
   }
 
   /* ── bottom sheet ──────────────────────────────────────────── */
-  const PHASE_ORDER: Phase[] = ['q-background', 'q-element', 'q-logo', 'q-purpose-ref']
+  const PHASE_ORDER: Phase[] = ['q-purpose-ref', 'q-background', 'q-element', 'q-logo']
   const stepNum = PHASE_ORDER.indexOf(phase as Phase) + 1
 
   function renderBottomSheet() {
@@ -831,12 +1181,19 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
       )
     }
 
-    /* q-* phases */
-    const allSwatches = kit.colors.palettes.flatMap(p =>
+    /* q-background is two choices, not one: pick a palette, then pick the surface
+       color from it. When the kit has no palette of its own, starter palettes
+       stand in, and are saved into the kit alongside the theme. */
+    const activePalette = STARTER_PALETTES.find(p => p.id === selectedPaletteId) ?? null
+    /* Kits with colors: every palette merged into one list, labelled by origin. */
+    const mergedSwatches = kit.colors.palettes.flatMap(p =>
       p.colors.map((c: { hex: string; name: string }) => ({ ...c, paletteName: p.name as string }))
     )
+
+    /* q-logo is skippable when the kit has no mark to place — the prompt builder
+       already falls back to "AI picks the placement". */
     const canNext = phase === 'q-background' ? !!selectedBgHex
-      : phase === 'q-logo' ? !!selectedLogoUsage
+      : phase === 'q-logo' ? (!hasKitLogo || !!selectedLogoUsage)
       : phase === 'q-purpose-ref' ? !!(selectedPurpose || referenceImageData)
       : true
 
@@ -849,14 +1206,13 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
           <div className="ac2-bac-header">
             <div style={{ flex: 1, minWidth: 0 }}>
               <span className="ac2-bac-q">
-                {phase === 'q-background' && "What's the background color?"}
+                {phase === 'q-background' && bgQuestion}
                 {phase === 'q-element'    && 'Which brand images should appear?'}
                 {phase === 'q-logo'       && 'How should the logo appear?'}
                 {phase === 'q-purpose-ref'&& "What's this theme for?"}
               </span>
-              {(phase === 'q-background' || phase === 'q-element' || phase === 'q-purpose-ref') && (
+              {(phase === 'q-element' || phase === 'q-purpose-ref') && (
                 <p className="ntm-bac-sub">
-                  {phase === 'q-background' && 'Pick from your brand palette — sets the dominant tone.'}
                   {phase === 'q-element'    && 'Pick visuals that represent your brand — product photos, mascots, illustrations, or hero images.'}
                   {phase === 'q-purpose-ref'&& 'Pick a purpose preset, paste a reference image, or both.'}
                 </p>
@@ -870,22 +1226,91 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
           {/* Body */}
           <div className="ac2-bac-body">
 
-            {/* Q1: Background color swatches */}
-            {phase === 'q-background' && (
+            {/* Q2: one step for a stocked kit, two when a starter palette is needed */}
+            {phase === 'q-background' && !needsStarterPalette && (
+              <div className="ntm-swatch-grid">
+                {mergedSwatches.map(c => (
+                  <button
+                    key={c.hex}
+                    className={`ntm-swatch-btn${selectedBgHex === c.hex ? ' selected' : ''}`}
+                    onClick={() => { setSelectedBgHex(c.hex); setSelectedBgName(c.name) }}
+                  >
+                    <div className="ntm-swatch-color" style={{ background: c.hex }} />
+                    <span className="ntm-swatch-name">{c.name}</span>
+                    <span className="ntm-swatch-role">{c.paletteName}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {phase === 'q-background' && needsStarterPalette && (
               <>
-                <div className="ntm-swatch-grid">
-                  {allSwatches.map(c => (
-                    <button
-                      key={c.hex}
-                      className={`ntm-swatch-btn${selectedBgHex === c.hex ? ' selected' : ''}`}
-                      onClick={() => { setSelectedBgHex(c.hex); setSelectedBgName(c.name) }}
-                    >
-                      <div className="ntm-swatch-color" style={{ background: c.hex }} />
-                      <span className="ntm-swatch-name">{c.name}</span>
-                      <span className="ntm-swatch-role">{c.paletteName}</span>
-                    </button>
-                  ))}
+                <div className="ntm-substep">
+                  <div className="ntm-substep-head">
+                    <span className="ntm-substep-num">1</span>
+                    <div>
+                      <div className="ntm-substep-label">Pick a starter palette</div>
+                      <div className="ntm-substep-desc">
+                        This brand kit has no colors yet. Pick a starter set — it's saved to your brand kit along with the theme.
+                      </div>
+                    </div>
+                  </div>
+                  <div className="ntm-palette-row">
+                    {STARTER_PALETTES.map(pal => {
+                      const active = selectedPaletteId === pal.id
+                      return (
+                        <button
+                          key={pal.id}
+                          className={`ntm-palette-card${active ? ' selected' : ''}`}
+                          onClick={() => {
+                            setSelectedPaletteId(active ? '' : pal.id)
+                            setExtras(prev => ({ ...prev, palette: active ? null : pal }))
+                            /* Switching palettes invalidates a color picked from the old one. */
+                            setSelectedBgHex('')
+                            setSelectedBgName('')
+                          }}
+                        >
+                          <div className="ntm-palette-strip">
+                            {pal.colors.map(c => (
+                              <span key={c.hex} style={{ background: c.hex }} />
+                            ))}
+                          </div>
+                          <span className="ntm-palette-name">{pal.name}</span>
+                          {pal.desc && <span className="ntm-palette-desc">{pal.desc}</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
+
+                <div className={`ntm-substep${activePalette ? '' : ' ntm-substep--waiting'}`}>
+                  <div className="ntm-substep-head">
+                    <span className="ntm-substep-num">2</span>
+                    <div>
+                      <div className="ntm-substep-label">Pick the background color</div>
+                      <div className="ntm-substep-desc">
+                        The surface every layout sits on. Text, images, and accents layer on top of it.
+                      </div>
+                    </div>
+                  </div>
+                  {activePalette ? (
+                    <div className="ntm-swatch-grid">
+                      {activePalette.colors.map(c => (
+                        <button
+                          key={c.hex}
+                          className={`ntm-swatch-btn${selectedBgHex === c.hex ? ' selected' : ''}`}
+                          onClick={() => { setSelectedBgHex(c.hex); setSelectedBgName(c.name) }}
+                        >
+                          <div className="ntm-swatch-color" style={{ background: c.hex }} />
+                          <span className="ntm-swatch-name">{c.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="ntm-substep-hint">Choose a palette above to see its colors.</div>
+                  )}
+                </div>
+
                 {selectedBgHex && selectedBgHex !== DECIDE_FOR_ME && (
                   <div className="ntm-swatch-usage">
                     <div className="ntm-swatch-usage-dot" style={{ background: selectedBgHex }} />
@@ -895,48 +1320,106 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
               </>
             )}
 
-            {/* Q2: Key visual — compact trigger, full picker in modal */}
-            {phase === 'q-element' && (
-              kitAssets.length === 0 ? (
-                <div style={{ fontSize: 12.5, color: 'var(--t3)', padding: '6px 0', lineHeight: 1.55 }}>
-                  No brand assets in this kit — AI will decide the dominant visual.
-                </div>
+            {/* Q3 assets: choose from the kit when it has any, otherwise upload only */}
+            {phase === 'q-element' && !hasKitAssets && (
+              extras.images.length === 0 ? (
+                <EmptyState
+                  compact
+                  title="No brand images in this kit"
+                  desc="Upload images to use in this theme. They're added to your brand kit too. Skip and AI will decide the dominant visual."
+                  action={{ label: 'Upload images', onClick: () => setAssetUploadOpen('images') }}
+                />
               ) : (
-                <button className="ntm-az-asset-btn" onClick={() => setKeyVisualPickerOpen(true)}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {selectedElements.length > 0 ? (
-                      <>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          {selectedElements.slice(0, 3).map(name => {
-                            const a = kitAssets.find(x => x.name === name)
-                            return a ? (
-                              a.isImage
-                                ? <img key={name} src={a.preview} alt="" style={{ width: 24, height: 18, borderRadius: 3, objectFit: 'cover', flexShrink: 0 }} />
-                                : <div key={name} style={{ width: 24, height: 18, borderRadius: 3, background: a.preview, flexShrink: 0, border: '1px solid rgba(255,255,255,0.08)' }} />
-                            ) : null
-                          })}
-                        </div>
-                        <span style={{ fontSize: 13, color: 'var(--t1)', fontWeight: 500 }}>
-                          {selectedElements.length === 1 ? selectedElements[0] : `${selectedElements.length} selected`}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="var(--t3)" strokeWidth="1.5" strokeLinecap="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
-                          <rect x="2" y="2" width="12" height="12" rx="2" /><circle cx="5.5" cy="5.5" r="1" /><path d="M2 10l3-3 3 3 2-2 4 4" />
-                        </svg>
-                        <span style={{ fontSize: 13, color: 'var(--t2)' }}>Choose from brand assets</span>
-                      </>
-                    )}
-                  </span>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="var(--t3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-                    <path d="M6 4l4 4-4 4" />
-                  </svg>
-                </button>
+                <>
+                  <div className="ntm-picker-thumbs">
+                    {extras.images.map((img, i) => (
+                      <div key={i} className="ntm-picker-thumb">
+                        <img src={img.preview} alt={img.name} />
+                        <button
+                          className="ntm-picker-thumb-remove"
+                          onClick={() => removeThemeImage(i)}
+                          aria-label={`Remove ${img.name}`}
+                        >
+                          ×
+                        </button>
+                        <div className="ntm-picker-thumb-name" title={img.name}>{img.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="ntm-inline-add" onClick={() => setAssetUploadOpen('images')}>
+                    + Upload more
+                  </button>
+                </>
               )
             )}
 
+            {phase === 'q-element' && hasKitAssets && (
+              <button className="ntm-az-asset-btn" onClick={() => setKeyVisualPickerOpen(true)}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {selectedElements.length > 0 ? (
+                    <>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {selectedElements.slice(0, 3).map(name => {
+                          const a = kitAssets.find(x => x.name === name)
+                          return a ? (
+                            a.isImage
+                              ? <img key={name} src={a.preview} alt="" style={{ width: 24, height: 18, borderRadius: 3, objectFit: 'cover', flexShrink: 0 }} />
+                              : <div key={name} style={{ width: 24, height: 18, borderRadius: 3, background: a.preview, flexShrink: 0, border: '1px solid rgba(255,255,255,0.08)' }} />
+                          ) : null
+                        })}
+                      </div>
+                      <span style={{ fontSize: 13, color: 'var(--t1)', fontWeight: 500 }}>
+                        {selectedElements.length === 1 ? selectedElements[0] : `${selectedElements.length} selected`}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <svg viewBox="0 0 16 16" fill="none" stroke="var(--t3)" strokeWidth="1.5" strokeLinecap="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
+                        <rect x="2" y="2" width="12" height="12" rx="2" /><circle cx="5.5" cy="5.5" r="1" /><path d="M2 10l3-3 3 3 2-2 4 4" />
+                      </svg>
+                      <span style={{ fontSize: 13, color: 'var(--t2)' }}>Choose from brand assets</span>
+                    </>
+                  )}
+                </span>
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--t3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                  <path d="M6 4l4 4-4 4" />
+                </svg>
+              </button>
+            )}
+
             {/* Q3: Logo placement */}
+            {phase === 'q-logo' && !hasKitLogo && (
+              extras.logos.length === 0 ? (
+                <EmptyState
+                  compact
+                  title="No logo in this brand kit"
+                  desc="Upload a logo — it's added to your brand kit too. Or pick a placement anyway and it applies once your kit has one."
+                  action={{ label: 'Upload a logo', onClick: () => setAssetUploadOpen('logo') }}
+                />
+              ) : (
+                <>
+                  <div className="ntm-picker-thumbs">
+                    {extras.logos.map((img, i) => (
+                      <div key={i} className="ntm-picker-thumb ntm-picker-thumb--logo">
+                        <img src={img.preview} alt={img.name} />
+                        <button
+                          className="ntm-picker-thumb-remove"
+                          onClick={() => removeExtraAsset('logos')(i)}
+                          aria-label={`Remove ${img.name}`}
+                        >
+                          ×
+                        </button>
+                        <div className="ntm-picker-thumb-name" title={img.name}>{img.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="ntm-inline-add" onClick={() => setAssetUploadOpen('logo')}>
+                    + Upload another logo
+                  </button>
+                </>
+              )
+            )}
+
             {phase === 'q-logo' && (
               <div className="ac2-bac-options">
                 {LOGO_OPTIONS.map(opt => {
@@ -1012,9 +1495,9 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
           {/* Footer */}
           <div className="ac2-bac-footer">
             <span className="ac2-bac-count">
-              {phase === 'q-background' && (selectedBgHex ? selectedBgName : '0 selected')}
-              {phase === 'q-element'    && (selectedElements.length > 0 ? (selectedElements.length === 1 ? selectedElements[0] : `${selectedElements.length} selected`) : kitAssets.length === 0 ? 'No assets' : '0 selected')}
-              {phase === 'q-logo'       && (selectedLogoUsage ? LOGO_OPTIONS.find(o => o.value === selectedLogoUsage)?.label ?? '' : '0 selected')}
+              {phase === 'q-background' && (selectedBgHex ? selectedBgName : needsStarterPalette && !activePalette ? 'Choose a palette' : 'Choose a color')}
+              {phase === 'q-element'    && (selectedElements.length > 0 ? (selectedElements.length === 1 ? selectedElements[0] : `${selectedElements.length} selected`) : hasKitAssets ? '0 selected' : 'Nothing uploaded')}
+              {phase === 'q-logo'       && (selectedLogoUsage ? LOGO_OPTIONS.find(o => o.value === selectedLogoUsage)?.label ?? '' : hasKitLogo || extras.logos.length > 0 ? '0 selected' : 'No logo in kit')}
               {phase === 'q-purpose-ref'&& ([selectedPurpose, referenceImageData ? 'reference attached' : null].filter(Boolean).join(' · ') || '0 selected')}
             </span>
             <div className="ac2-bac-actions">
@@ -1053,8 +1536,15 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
           <div className="ntm-bar-sep" />
           <span className="ntm-bar-title">New Brand Theme</span>
           <div className="ntm-bar-actions">
-            <button className="btn outline" onClick={handleCreate} disabled={!canCreate} style={{ opacity: canCreate ? 1 : 0.4 }}>Save theme</button>
-            <button className="btn primary" onClick={handleCreateAndStart} disabled={!canCreate} style={{ opacity: canCreate ? 1 : 0.4 }}>Create project with this theme</button>
+            <button
+              className="btn primary"
+              onClick={handleCreate}
+              disabled={!canCreate}
+              style={{ opacity: canCreate ? 1 : 0.4 }}
+              title={canCreate ? undefined : 'Answer the questions and generate your theme to save it'}
+            >
+              Save theme
+            </button>
           </div>
         </div>
 
@@ -1081,7 +1571,16 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
           {/* Left: chat */}
           <div className="ntm-chat-main" style={{ position: 'relative' }}>
             {!welcomeDone ? (
-              <WelcomeScreen kit={kit} onStart={() => setWelcomeDone(true)} />
+              <WelcomeScreen
+                kit={kit}
+                extras={extras}
+                onStart={() => setWelcomeDone(true)}
+                onAddColor={() => goToSection('colors')}
+                onAddType={() => goToSection('typography')}
+                onAddVoice={() => goToSection('tone')}
+                onAddLogo={() => goToSection('logos')}
+                onAddImages={() => goToSection('imagery')}
+              />
             ) : (
               <>
                 <div className={`ntm-messages${showSheet ? ' ntm-messages--has-sheet' : ''}`}>
@@ -1163,6 +1662,28 @@ export function NewThemeModal({ kit, onClose }: NewThemeModalProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {assetUploadOpen === 'logo' && (
+        <ThemeAssetUpload
+          title="Add a logo for this theme"
+          desc="Used to place the brand mark in this theme's layouts, and added to your brand kit."
+          images={extras.logos}
+          onAdd={addExtraAsset('logos')}
+          onRemove={removeExtraAsset('logos')}
+          onClose={() => setAssetUploadOpen(null)}
+        />
+      )}
+
+      {assetUploadOpen === 'images' && (
+        <ThemeAssetUpload
+          title="Add images for this theme"
+          desc="Visuals that should appear consistently across this theme's layouts, and added to your brand kit."
+          images={extras.images}
+          onAdd={addThemeImage}
+          onRemove={removeThemeImage}
+          onClose={() => setAssetUploadOpen(null)}
+        />
       )}
     </Portal>
   )

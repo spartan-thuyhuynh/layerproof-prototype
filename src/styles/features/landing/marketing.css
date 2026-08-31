@@ -183,8 +183,9 @@
   gap: 20px;
 }
 
-/* Push hero down so floating nav doesn't overlap */
-.ml-hero { padding-top: calc(clamp(48px, 5vw, 88px) + 56px); }
+/* Hero has no top padding — illustration starts at page top; the SVG
+   has built-in visual top space. Nav floats above it. */
+.ml-hero { padding-top: 0; }
 
 .ml-nav-logo {
   display: flex;
@@ -445,17 +446,17 @@
 
 .ml-hero-inner {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 clamp(24px, 4vw, 60px) clamp(56px, 6vw, 80px);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  padding: 0 0 clamp(48px, 6vw, 72px);
 }
 
 .ml-hero-left {
+  max-width: 860px;
   width: 100%;
+  padding: clamp(24px, 3vw, 36px) clamp(24px, 4vw, 60px) 0;
 }
 
 .ml-hero-sub {
@@ -472,8 +473,13 @@
 }
 
 .ml-hero-right {
-  width: min(100%, 1280px, calc(64svh * 4 / 3));
-  margin: clamp(28px, 4vh, 64px) auto 0;
+  /* Break out of any containing max-width to fill the viewport */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  margin-left: -50vw;
+  flex: none;
+  line-height: 0;
 }
 
 @keyframes ml-hero-float {
@@ -513,14 +519,13 @@
 
 .ml-hero-h1 {
   font-family: 'Anton', var(--font);
-  font-size: clamp(32px, 3.8vw, 58px);
+  font-size: clamp(36px, 4.2vw, 64px);
   font-weight: 400;
   letter-spacing: 0.01em;
   text-transform: uppercase;
   line-height: 1.05;
   color: var(--t1);
   margin: 0 0 24px;
-  white-space: nowrap;
 }
 
 .ml-hero-h1 .ml-accent { color: var(--accent); }

@@ -201,6 +201,8 @@ export interface BrandKit {
   themes: BrandTheme[]
   guidelineDoc?: string
   visitedSections?: string[]
+  spirit?: BrandSpirit
+  logoGeneration?: LogoGeneration
 }
 
 export interface Category {
@@ -213,7 +215,38 @@ export interface Category {
   rules?: Rule[]
 }
 
-export type ModalType = 'apply' | 'new' | 'doc' | 'new-theme'
+export interface BrandSpirit {
+  archetype: string[]
+  values: string[]
+  differentiator: string
+  visualDirection: string
+  logoStyle: string
+  colorTone: string
+  wizardCompleted: boolean
+}
+
+export interface GeneratedLogo {
+  id: string
+  svg: string
+  style: string
+  variantLabel: string
+}
+
+export interface LogoUseCase {
+  id: string
+  svg: string
+  background: 'dark' | 'light' | 'colored'
+}
+
+export interface LogoGeneration {
+  logoPrompt: string
+  candidates: GeneratedLogo[]
+  selectedId: string
+  useCases: LogoUseCase[]
+  regenerationCount: number
+}
+
+export type ModalType = 'apply' | 'new' | 'doc' | 'new-theme' | 'brand-identity-wizard'
 
 export interface ModalState {
   type: ModalType

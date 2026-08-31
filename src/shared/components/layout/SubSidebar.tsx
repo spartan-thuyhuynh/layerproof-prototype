@@ -191,7 +191,7 @@ export function SubSidebar({
             focusKit(id)
           }}
         >
-          <Plus style={{ width: 15, height: 15 }} /> New Brand Kit
+          <Plus style={{ width: 15, height: 15 }} /> Create new brand
         </button>
       </div>
 

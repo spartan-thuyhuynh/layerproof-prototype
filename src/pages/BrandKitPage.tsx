@@ -1,20 +1,18 @@
 import { useBrandKit } from '@/features/brand-kit/hooks/useBrandKit'
 import { Detail } from '@/features/brand-kit/components/Detail'
+import { Home } from '@/features/brand-kit/components/Home'
 import { ApplyModal } from '@/features/brand-kit/components/modals/ApplyModal'
 import { IntroModal } from '@/features/brand-kit/components/modals/IntroModal'
 import { NewKitModal } from '@/features/brand-kit/components/modals/NewKitModal'
 import { NewThemeModal } from '@/features/brand-kit/components/modals/NewThemeModal'
+import { BrandIdentityWizard } from '@/features/brand-kit/components/modals/BrandIdentityWizard'
 import { Sidebar } from '@/shared/components/layout/Sidebar'
-import { TweaksPanel } from '@/shared/components/tweaks/TweaksPanel'
-import { useTweaks } from '@/shared/hooks/useTweaks'
-
 export function BrandKitPage() {
   const {
     kits,
     appliedId,
     setAppliedId,
     modal,
-    tweaks,
     setModal,
     closeModal,
     focusedKit,
@@ -22,14 +20,15 @@ export function BrandKitPage() {
     dismissIntro,
   } = useBrandKit()
 
-  useTweaks(tweaks)
-
   return (
     <>
       <div className="app">
         <Sidebar showBack />
         <main className="main">
-          <Detail key={focusedKit.id} kit={focusedKit} />
+          {focusedKit
+            ? <Detail key={focusedKit.id} kit={focusedKit} />
+            : <Home />
+          }
         </main>
       </div>
 
@@ -48,11 +47,21 @@ export function BrandKitPage() {
         <NewKitModal onClose={closeModal} />
       )}
 
-      {modal?.type === 'new-theme' && (
+      {modal?.type === 'new-theme' && focusedKit && (
         <NewThemeModal kit={focusedKit} onClose={closeModal} />
       )}
 
-      <TweaksPanel />
+      {modal?.type === 'brand-identity-wizard' && (
+        <BrandIdentityWizard
+          kitId={modal.kitId ?? focusedKit?.id ?? ''}
+          onClose={closeModal}
+          onAfterApply={(action) => {
+            closeModal()
+            if (action === 'new-theme') setModal({ type: 'new-theme' })
+          }}
+        />
+      )}
+
     </>
   )
 }

@@ -53,6 +53,10 @@
   .onb-done-kit-row > div { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,.07); }
   .onb-done-kit-row > div:last-child { border-bottom: none; }
 
+  /* brand studio onboarding — single column */
+  .ob-split { grid-template-columns: 1fr; }
+  .ob-split-card--fresh { order: -1; }
+
   /* Brand kit setup — single column, hide preview */
   .onb-setup-panels     { flex-direction: column; gap: 20px; }
   .onb-setup-preview    { display: none; }
@@ -222,6 +226,15 @@
   .ml-cta-h2 { font-size: 54px; }
   .ml-cta-sub { font-size: 18px; }
   .ml-footer-big { font-size: 240px; }
+
+  /* brand studio onboarding */
+  .ob-page { max-width: 900px; padding: 52px 24px 72px; }
+  .ob-hero-title { font-size: 52px; }
+  .ob-hero-sub { font-size: 15px; max-width: 520px; }
+  .ob-split { gap: 20px; }
+  .ob-split-title { font-size: 22px; }
+  .ob-split-sub { font-size: 14px; }
+  .ob-split-card { padding: 32px 28px; }
 }
 
 /* ── Extra large / 4K: 1800px ───────────────────────────────────── */

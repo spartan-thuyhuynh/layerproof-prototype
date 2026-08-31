@@ -87,84 +87,91 @@ function TeamAvatar({ name }: { name: string }) {
   )
 }
 
-/* ─── Hero illustration: layered product mockup (post preview + brand
-   colors + chat reply + video + analytics) built from CSS-token-colored
-   primitives so it adapts to dark/light mode automatically. ─────── */
+/* ─── Hero illustration: full-bleed crimson hero with phone frames,
+   center featured phone, floating heart badge and stat card. ──────── */
 function HeroIllustration() {
   return (
     <svg
-      viewBox="0 0 640 480"
+      viewBox="0 0 1400 520"
       className="ml-hero-illus"
-      role="img"
-      aria-label="LayerProof turning a brand into posts, video, replies, and reports"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
     >
       <defs>
-        <linearGradient id="heroPostGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="var(--line-2)" />
-          <stop offset="100%" stopColor="var(--card-2)" />
+        <linearGradient id="heroBg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#7B1428" />
+          <stop offset="60%"  stopColor="#3D0A14" />
+          <stop offset="100%" stopColor="#0a0a0a" stopOpacity="0" />
         </linearGradient>
+        <linearGradient id="heroPhotoGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#D4937A" />
+          <stop offset="45%"  stopColor="#B86A52" />
+          <stop offset="100%" stopColor="#6E2E1A" />
+        </linearGradient>
+        <linearGradient id="heroBotFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="45%" stopColor="#0a0a0a" stopOpacity="0" />
+          <stop offset="100%" stopColor="#0a0a0a" />
+        </linearGradient>
+        <clipPath id="heroPhoneClip">
+          <rect x="530" y="0" width="340" height="520" rx="40" />
+        </clipPath>
       </defs>
 
-      {/* central post preview card */}
-      <g>
-        <rect x="200" y="90" width="240" height="300" rx="18" fill="var(--card)" stroke="var(--line-2)" />
-        <rect x="220" y="112" width="200" height="140" rx="12" fill="url(#heroPostGrad)" />
-        <circle cx="236" cy="270" r="12" fill="var(--line-2)" />
-        <rect x="256" y="264" width="90" height="8" rx="4" fill="var(--line-2)" />
-        <rect x="256" y="278" width="60" height="8" rx="4" fill="var(--line-2)" />
-        <rect x="220" y="304" width="200" height="7" rx="3.5" fill="var(--t3)" opacity="0.5" />
-        <rect x="220" y="320" width="160" height="7" rx="3.5" fill="var(--t3)" opacity="0.5" />
-        <g transform="translate(220, 348)">
-          <path d="M8 14 C3 10 3 4 8 2 C11 1 13 3 14 5 C15 3 17 1 20 2 C25 4 25 10 20 14 L14 20 Z" fill="var(--t3)" />
-          <rect x="34" y="6" width="30" height="8" rx="4" fill="var(--line-2)" />
-        </g>
-      </g>
+      {/* Background crimson → dark gradient */}
+      <rect width="1400" height="520" fill="url(#heroBg)" />
 
-      {/* floating brand-kit chip */}
-      <g transform="translate(40, 56)">
-        <g className="ml-hero-float ml-hero-float--1">
-          <rect x="0" y="0" width="132" height="88" rx="14" fill="var(--card)" stroke="var(--line-2)" />
-          <circle cx="27" cy="30" r="12" fill="var(--t1)" opacity="0.85" />
-          <circle cx="55" cy="30" r="12" fill="var(--t2)" />
-          <circle cx="83" cy="30" r="12" fill="var(--t3)" />
-          <circle cx="111" cy="30" r="12" fill="var(--line-2)" />
-          <rect x="18" y="56" width="96" height="7" rx="3.5" fill="var(--line-2)" />
-          <rect x="18" y="70" width="60" height="7" rx="3.5" fill="var(--line-2)" />
-        </g>
-      </g>
+      {/* Far-left ghost phone */}
+      <rect x="20"  y="80"  width="155" height="330" rx="22"
+            fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
 
-      {/* floating auto-reply chip */}
-      <g transform="translate(460, 36)">
+      {/* Left phone (slightly visible) */}
+      <rect x="222" y="30"  width="200" height="410" rx="28"
+            fill="rgba(255,255,255,0.055)" stroke="rgba(255,255,255,0.11)" strokeWidth="1" />
+      <rect x="272" y="50"  width="100" height="14" rx="7"  fill="rgba(0,0,0,0.35)" />
+      <rect x="240" y="76"  width="164" height="290" rx="10" fill="rgba(0,0,0,0.22)" />
+
+      {/* Right phone */}
+      <rect x="978" y="30"  width="200" height="410" rx="28"
+            fill="rgba(255,255,255,0.055)" stroke="rgba(255,255,255,0.11)" strokeWidth="1" />
+      <rect x="1028" y="50" width="100" height="14" rx="7"  fill="rgba(0,0,0,0.35)" />
+      <rect x="996"  y="76" width="164" height="290" rx="10" fill="rgba(0,0,0,0.22)" />
+
+      {/* Far-right ghost phone */}
+      <rect x="1225" y="80" width="155" height="330" rx="22"
+            fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+
+      {/* Center featured phone — photo fill */}
+      <g clipPath="url(#heroPhoneClip)">
+        <rect x="530" y="0" width="340" height="520" fill="url(#heroPhotoGrad)" />
+        {/* skin-tone highlight suggesting a face */}
+        <ellipse cx="700" cy="170" rx="95"  ry="118" fill="rgba(235,195,175,0.32)" />
+        <ellipse cx="700" cy="350" rx="140" ry="90"  fill="rgba(210,165,140,0.18)" />
+      </g>
+      {/* Phone chrome */}
+      <rect x="530" y="0" width="340" height="520" rx="40"
+            fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5" />
+      {/* Notch */}
+      <rect x="645" y="12" width="110" height="22" rx="11" fill="rgba(0,0,0,0.55)" />
+
+      {/* Floating heart badge — outer <g> positions, inner <g> animates */}
+      <g transform="translate(892, 38)">
         <g className="ml-hero-float ml-hero-float--2">
-          <rect x="0" y="0" width="140" height="98" rx="16" fill="var(--card)" stroke="var(--line-2)" />
-          <circle cx="27" cy="30" r="14" fill="var(--t3)" />
-          <rect x="51" y="23" width="66" height="7" rx="3.5" fill="var(--line-2)" />
-          <rect x="51" y="37" width="46" height="7" rx="3.5" fill="var(--line-2)" />
-          <rect x="18" y="60" width="106" height="24" rx="12" fill="var(--card-2)" stroke="var(--line-2)" />
-          <rect x="30" y="68" width="58" height="8" rx="4" fill="var(--t2)" />
+          <rect width="74" height="74" rx="20" fill="#E8183A" />
+          <text x="37" y="52" textAnchor="middle" fontSize="32" fill="white">♥</text>
         </g>
       </g>
 
-      {/* floating video chip */}
-      <g transform="translate(468, 296)">
-        <g className="ml-hero-float ml-hero-float--3">
-          <rect x="0" y="0" width="132" height="132" rx="16" fill="var(--card)" stroke="var(--line-2)" />
-          <rect x="12" y="12" width="108" height="108" rx="10" fill="var(--panel)" />
-          <circle cx="66" cy="66" r="24" fill="var(--line-2)" />
-          <path d="M58 53 L82 66 L58 79 Z" fill="var(--t1)" />
+      {/* Floating stat card — same pattern */}
+      <g transform="translate(360, 295)">
+        <g className="ml-hero-float ml-hero-float--1">
+          <rect width="228" height="80" rx="16" fill="rgba(255,255,255,0.96)" />
+          <text x="18" y="34"  fontSize="26" fontWeight="800" fill="#0a0a0a" fontFamily="system-ui,sans-serif">200%</text>
+          <text x="18" y="58"  fontSize="13" fill="#555"    fontFamily="system-ui,sans-serif">Organic Follower Growth</text>
         </g>
       </g>
 
-      {/* floating analytics chip */}
-      <g transform="translate(48, 322)">
-        <g className="ml-hero-float ml-hero-float--4">
-          <rect x="0" y="0" width="122" height="100" rx="16" fill="var(--card)" stroke="var(--line-2)" />
-          <rect x="18" y="60" width="14" height="26" rx="3" fill="var(--line-2)" />
-          <rect x="41" y="46" width="14" height="40" rx="3" fill="var(--line-2)" />
-          <rect x="64" y="30" width="14" height="56" rx="3" fill="var(--t2)" />
-          <rect x="87" y="52" width="14" height="34" rx="3" fill="var(--line-2)" />
-        </g>
-      </g>
+      {/* Bottom fade to page background */}
+      <rect width="1400" height="520" fill="url(#heroBotFade)" />
     </svg>
   )
 }
@@ -373,6 +380,10 @@ export function MarketingLanding() {
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <section className="ml-hero">
         <div className="ml-hero-inner">
+          <div className="ml-hero-right">
+            <HeroIllustration />
+          </div>
+
           <div className="ml-hero-left">
             <h1 className="ml-hero-h1">
               {content.hero.h1Line1}
@@ -388,14 +399,7 @@ export function MarketingLanding() {
             </div>
             <p className="ml-hero-caveat">{content.hero.caveat}</p>
           </div>
-
-          <div className="ml-hero-right">
-            <HeroIllustration />
-          </div>
         </div>
-        <div className="ml-hero-glow" aria-hidden />
-        <div className="ml-hero-glow ml-hero-glow--2" aria-hidden />
-        <div className="ml-hero-glow ml-hero-glow--3" aria-hidden />
       </section>
 
       {/* ── BRANDS MARQUEE ───────────────────────────────────────── */}

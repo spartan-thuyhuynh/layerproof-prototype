@@ -30,3 +30,4 @@ export {
 export { Separator } from './separator'
 export { Textarea } from './textarea'
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './tooltip'
+export { EmptyState } from './EmptyState'

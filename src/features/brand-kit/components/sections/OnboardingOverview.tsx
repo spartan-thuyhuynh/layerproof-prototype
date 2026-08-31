@@ -6,6 +6,7 @@ import { ColorPickerModal } from '@/features/brand-kit/components/modals/ColorPi
 import { TypographyPickerModal } from '@/features/brand-kit/components/modals/TypographyPickerModal'
 import { VoicePickerModal } from '@/features/brand-kit/components/modals/VoicePickerModal'
 import { ProcessingToast } from '@/features/brand-kit/components/modals/ProcessingToast'
+import { useUIStore } from '@/shared/store/useUIStore'
 
 interface OnboardingOverviewProps {
   kit: BrandKit
@@ -194,9 +195,12 @@ function Tile({ label, icon, defaultImage, onClick }: TileProps) {
 
 /* ── main ─────────────────────────────────────────────────────── */
 export function OnboardingOverview({ kit, ed, go }: OnboardingOverviewProps) {
+  const { setModal } = useUIStore()
   const [url, setUrl] = useState('')
   const [activeModal, setActiveModal] = useState<string | null>(null)   // categoryId
   const [toastCategory, setToastCategory] = useState<string | null>(null)
+  const [showNameModal, setShowNameModal] = useState(false)
+  const [brandNameInput, setBrandNameInput] = useState('')
 
   // Load Anton for the hero title
   useEffect(() => {
@@ -225,70 +229,176 @@ export function OnboardingOverview({ kit, ed, go }: OnboardingOverviewProps) {
     finishOnboarding('url')
   }
 
+  function handleStartBlank() {
+    const name = brandNameInput.trim()
+    if (!name) return
+    ed.setVal(['name'], name)
+    setShowNameModal(false)
+    setBrandNameInput('')
+    completeOnboarding()
+  }
+
   return (
     <div className="fade-in ob-page">
       {/* ── hero ── */}
       <div className="ob-hero">
-        <h1 className="ob-hero-title">Your Brand,<br />Organized in One Place</h1>
+        <h1 className="ob-hero-title">Your Brand Studio</h1>
         <p className="ob-hero-sub">
           Build a Brand Kit to manage your assets, guidelines, and templates.<br />
           Use it for consistent branding across projects and AI outputs.
         </p>
       </div>
 
-      {/* ── import card ── */}
-      <div className="ob-import-card">
-        <div className="ob-import-left">
-          <div className="ob-import-title">Create your Brand Kit <span className="accent">in seconds</span></div>
-          <div className="ob-import-sub">Paste your brand guideline URL or upload a PDF</div>
+      {/* ── 2-col split: have a brand / starting fresh ── */}
+      <div className="ob-split">
 
-          <div className="ob-url-row">
-            <div className="ob-url-input-wrap">
-              <LinkIcon />
+        {/* Left: already have a brand */}
+        <div className="ob-split-card">
+          {/* Decorative illustration — brand guidelines document */}
+          <div className="ob-split-visual" aria-hidden>
+            <svg viewBox="0 0 360 100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+              {/* left: logo + name */}
+              <circle cx="44" cy="50" r="24" fill="var(--accent)" opacity=".12" stroke="var(--accent-line)" strokeWidth="1"/>
+              <text x="44" y="57" textAnchor="middle" fontSize="22" fontWeight="800" fill="var(--accent)" opacity=".7">B</text>
+              {/* brand name lines */}
+              <rect x="80" y="38" width="70" height="7" rx="3.5" fill="var(--line-2)" opacity=".8"/>
+              <rect x="80" y="50" width="46" height="5" rx="2.5" fill="var(--line)" opacity=".55"/>
+              {/* right: color + type */}
+              <text x="196" y="32" fontSize="9" fontWeight="600" fill="var(--t3)" opacity=".7">COLORS</text>
+              <rect x="196" y="38" width="16" height="16" rx="4" fill="var(--accent)" opacity=".85"/>
+              <rect x="216" y="38" width="16" height="16" rx="4" fill="var(--accent)" opacity=".5"/>
+              <rect x="236" y="38" width="16" height="16" rx="4" fill="var(--accent)" opacity=".28"/>
+              <rect x="256" y="38" width="16" height="16" rx="4" fill="var(--line-2)" opacity=".85"/>
+              <rect x="276" y="38" width="16" height="16" rx="4" fill="var(--t3)" opacity=".3"/>
+              <text x="196" y="74" fontSize="9" fontWeight="600" fill="var(--t3)" opacity=".7">TYPOGRAPHY</text>
+              <rect x="196" y="78" width="42" height="6" rx="3" fill="var(--line-2)" opacity=".8"/>
+              <rect x="244" y="79" width="56" height="4" rx="2" fill="var(--line)" opacity=".5"/>
+              {/* decorative dots top-right */}
+              <circle cx="336" cy="22" r="5" fill="var(--accent)" opacity=".3"/>
+              <circle cx="350" cy="22" r="5" fill="var(--accent)" opacity=".15"/>
+              <circle cx="336" cy="36" r="3" fill="var(--line)" opacity=".3"/>
+            </svg>
+          </div>
+
+          <div className="ob-split-eyebrow">Already have a brand?</div>
+          <div className="ob-split-title">Set up your brand kit</div>
+          <div className="ob-split-sub">Import your existing guidelines or build each section from your assets.</div>
+
+          <div className="ob-split-actions">
+            {/* URL input + Import inline */}
+            <div className="ob-split-url-wrap">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13, color: 'var(--t3)', flexShrink: 0 }}>
+                <path d="M7 9a3.5 3.5 0 0 0 5 0l2-2a3.5 3.5 0 0 0-5-5L7.5 3.5"/>
+                <path d="M9 7a3.5 3.5 0 0 0-5 0L2 9a3.5 3.5 0 0 0 5 5L8.5 12.5"/>
+              </svg>
               <input
-                className="ob-url-input"
+                className="ob-split-url-input"
                 type="url"
-                placeholder="https://your-brand-guidelines.com"
+                placeholder="https://your-brand.com"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleUrlImport() }}
               />
-              <button className="ob-url-btn" onClick={handleUrlImport} disabled={!url.trim()}>
-                Import
+              <button className="btn primary sm ob-split-url-btn" onClick={handleUrlImport} disabled={!url.trim()}>
+                Import →
+              </button>
+            </div>
+
+            <div className="ob-split-divider" />
+
+            {/* Grouped secondary: Upload PDF (top) + Set up manually (bottom) */}
+            <div className="ob-split-secondary-group">
+              <label className="ob-split-pdf-secondary" style={{ cursor: 'pointer' }}>
+                <UploadIcon size={13} />
+                Upload brand PDF
+                <input type="file" accept=".pdf" style={{ display: 'none' }}
+                  onChange={() => finishOnboarding('pdf')} />
+              </label>
+              <button className="ob-split-tertiary-btn" onClick={() => setShowNameModal(true)}>
+                Set up manually
               </button>
             </div>
           </div>
-
-          <label className="ob-upload-btn">
-            <UploadIcon />
-            Upload Guideline PDF
-            <input type="file" accept=".pdf" style={{ display: 'none' }}
-              onChange={() => finishOnboarding('pdf')} />
-          </label>
         </div>
 
-        <IllustrationSlot />
+        {/* Right: starting from scratch */}
+        <button
+          className="ob-split-card ob-split-card--fresh"
+          onClick={() => setModal({ type: 'brand-identity-wizard', kitId: kit.id })}
+        >
+          {/* Decorative illustration — brand identity output */}
+          <div className="ob-split-visual ob-split-visual--fresh" aria-hidden>
+            <svg viewBox="0 0 360 100" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+              {/* glow */}
+              <circle cx="50" cy="50" r="38" fill="var(--accent)" opacity=".08"/>
+              {/* logo mark */}
+              <circle cx="50" cy="50" r="28" fill="var(--accent)" opacity=".14" stroke="var(--accent-line)" strokeWidth="1.2"/>
+              <text x="50" y="60" textAnchor="middle" fontSize="30" fontWeight="800" fill="var(--accent)" opacity=".9">A</text>
+              {/* sparkle */}
+              <text x="90" y="28" fontSize="14" fill="var(--accent)" opacity=".5">✦</text>
+              {/* palette row */}
+              <text x="128" y="28" fontSize="9" fontWeight="600" fill="var(--accent)" opacity=".6">PALETTE</text>
+              <circle cx="136" cy="44" r="10" fill="var(--accent)" opacity=".9"/>
+              <circle cx="162" cy="44" r="10" fill="var(--accent)" opacity=".55"/>
+              <circle cx="188" cy="44" r="10" fill="var(--accent)" opacity=".3"/>
+              <circle cx="214" cy="44" r="10" fill="var(--line-2)" opacity=".8"/>
+              <circle cx="240" cy="44" r="10" fill="var(--t3)" opacity=".35"/>
+              {/* type specimen */}
+              <text x="128" y="72" fontSize="9" fontWeight="600" fill="var(--accent)" opacity=".6">TYPOGRAPHY</text>
+              <rect x="128" y="76" width="50" height="7" rx="3.5" fill="var(--accent)" opacity=".25"/>
+              <rect x="184" y="78" width="64" height="4" rx="2" fill="var(--line-2)" opacity=".5"/>
+              {/* decorative right */}
+              <circle cx="316" cy="30" r="6" fill="var(--accent)" opacity=".2"/>
+              <circle cx="334" cy="30" r="6" fill="var(--accent)" opacity=".12"/>
+              <circle cx="350" cy="30" r="6" fill="var(--accent)" opacity=".06"/>
+              <text x="312" y="68" fontSize="20" fill="var(--accent)" opacity=".15">✦</text>
+            </svg>
+          </div>
+
+          <div className="ob-split-eyebrow">No brand yet?</div>
+          <div className="ob-split-title">Build your brand identity</div>
+          <div className="ob-split-sub">Tell us about your business and we'll generate a complete brand — logo, colors, typography and voice — in minutes.</div>
+
+          <div className="ob-gen-features" style={{ marginTop: 'auto', paddingTop: 16 }}>
+            <span className="ob-gen-feature">Logo</span>
+            <span className="ob-gen-feature">Palette</span>
+            <span className="ob-gen-feature">Typography</span>
+            <span className="ob-gen-feature">Voice</span>
+          </div>
+
+          <div className="ob-split-cta">
+            <span>✦</span> Start building →
+          </div>
+
+        </button>
+
       </div>
 
-      {/* ── "or" divider ── */}
-      <div className="ob-or-divider">
-        <div className="ob-or-line" />
-        <span className="ob-or-label">or configure manually</span>
-        <div className="ob-or-line" />
-      </div>
-
-      {/* ── section tiles ── */}
-      <div className="ob-tiles">
-        {SECTION_TILES.map(({ id, label, icon, imageSrc }) => (
-          <Tile
-            key={id}
-            label={label}
-            icon={icon}
-            defaultImage={imageSrc}
-            onClick={() => setActiveModal(id)}
-          />
-        ))}
-      </div>
+      {/* ── Brand name modal ── */}
+      {showNameModal && (
+        <div className="ob-name-modal-backdrop" onClick={() => { setShowNameModal(false); setBrandNameInput('') }}>
+          <div className="ob-name-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ob-name-modal-title">What's your brand called?</div>
+            <div className="ob-name-modal-sub">This is how your brand kit will be labeled in Brand Studio.</div>
+            <input
+              className="ob-name-modal-input"
+              placeholder="e.g. Acme Corp, Studio Noir…"
+              autoFocus
+              value={brandNameInput}
+              onChange={(e) => setBrandNameInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleStartBlank(); if (e.key === 'Escape') { setShowNameModal(false); setBrandNameInput('') } }}
+            />
+            <div className="ob-name-modal-actions">
+              <button className="btn primary" onClick={handleStartBlank} disabled={!brandNameInput.trim()}>
+                Continue →
+              </button>
+              <button className="btn ghost" onClick={() => { setShowNameModal(false); setBrandNameInput('') }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── category modals ── */}
       {activeModal === 'colors' && (

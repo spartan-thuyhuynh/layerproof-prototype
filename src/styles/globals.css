@@ -18,6 +18,7 @@
 @import "./shared/modal.css";
 @import "./shared/saveable.css";
 @import "./shared/doc.css";
+@import "./shared/empty-state.css";
 
 /* App-level layout */
 @import "./layout/app.css";
@@ -26,6 +27,8 @@
 
 /* Brand Kit feature */
 @import "./features/brand-kit/home.css";
+@import "./features/brand-kit/brand-studio-home.css";
+@import "./features/brand-kit/brand-identity-wizard.css";
 @import "./features/brand-kit/overview.css";
 @import "./features/brand-kit/colors.css";
 @import "./features/brand-kit/typography.css";

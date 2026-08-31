@@ -198,7 +198,7 @@ export function Sidebar({ showBack }: SidebarProps) {
 
         <div className="navlabel">Brand</div>
         <button className={`navitem${pathname.startsWith('/brand-kit') ? ' active' : ''}`} onClick={() => navigate('/brand-kit')}>
-          <I.Layers /> Brand Kit <span className="new-badge">NEW</span>
+          <I.Layers /> Brand Studio <span className="new-badge">NEW</span>
         </button>
         <button className="navitem">
           <I.Palette /> Theme

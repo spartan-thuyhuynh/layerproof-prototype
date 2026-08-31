@@ -1,0 +1,576 @@
+/* ============================================================
+   Brand Studio Home — starter screen + kit grid additions
+   Prefix: bsh-
+   ============================================================ */
+
+/* ---- Starter screen shell ---- */
+.bsh-starter {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.bsh-headline {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--t1);
+  margin: 0 0 8px;
+  line-height: 1.15;
+}
+
+.bsh-subtitle {
+  font-size: 15px;
+  color: var(--t2);
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+
+/* ---- Generate with AI — primary card (full-width) ---- */
+.bsh-generate-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  background: linear-gradient(135deg, var(--card) 0%, color-mix(in srgb, var(--accent) 6%, var(--card)) 100%);
+  border: 1.5px solid var(--accent-line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: box-shadow 0.18s, transform 0.12s;
+  margin-bottom: 0;
+}
+
+.bsh-generate-card:hover {
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--app) 40%, transparent);
+  transform: translateY(-1px);
+}
+
+.bsh-generate-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.bsh-generate-icon {
+  font-size: 24px;
+  color: var(--accent);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.bsh-generate-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: 3px;
+}
+
+.bsh-generate-sub {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.4;
+}
+
+.bsh-generate-cta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ---- Brand name modal ---- */
+.ob-name-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+.ob-name-modal {
+  background: var(--panel);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px 24px;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  box-shadow: 0 24px 48px color-mix(in srgb, var(--app) 60%, transparent);
+  animation: slideUp 0.18s ease;
+}
+
+.ob-name-modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--t1);
+  margin-bottom: 6px;
+}
+
+.ob-name-modal-sub {
+  font-size: 13px;
+  color: var(--t2);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.ob-name-modal-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  background: var(--app);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--t1);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+.ob-name-modal-input:focus {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.ob-name-modal-input::placeholder {
+  color: var(--t3);
+}
+
+.ob-name-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
+/* ---- Onboarding split layout ---- */
+.ob-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.ob-split-card {
+  background: color-mix(in srgb, var(--card) 70%, var(--app) 30%);
+  background-image:
+    radial-gradient(ellipse 60% 50% at 90% 10%, color-mix(in srgb, var(--accent) 4%, transparent) 0%, transparent 70%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  text-align: left;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+.ob-split-card--fresh {
+  background: color-mix(in srgb, var(--card) 70%, var(--app) 30%);
+  background-image: none;
+  border-color: var(--line);
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.12s;
+}
+
+.ob-split-card--fresh:hover {
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--app) 30%, transparent);
+  border-color: var(--line-2);
+  transform: translateY(-2px);
+}
+
+/* ---- Decorative SVG visuals — full-width banner above text ---- */
+.ob-split-visual {
+  width: calc(100% + 48px);
+  margin: -28px -24px 20px;
+  height: 100px;
+  background: color-mix(in srgb, var(--app) 60%, transparent);
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ob-split-visual svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ob-split-visual--fresh {
+  background: color-mix(in srgb, var(--app) 60%, transparent);
+  border-bottom-color: var(--line);
+}
+
+.ob-split-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 8px;
+}
+
+.ob-split-card--fresh .ob-split-eyebrow {
+  color: var(--t3);
+}
+
+.ob-split-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--t1);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.ob-split-sub {
+  font-size: 13.5px;
+  color: var(--t2);
+  line-height: 1.55;
+  margin-bottom: 24px;
+}
+
+.ob-split-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.ob-split-action-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t2);
+  margin-bottom: -4px;
+}
+
+/* URL input */
+.ob-split-url-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  background: var(--app);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s;
+}
+
+.ob-split-url-wrap:focus-within {
+  border-color: var(--accent-line);
+}
+
+.ob-split-url-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--t1);
+  font-size: 13px;
+}
+
+.ob-split-url-input::placeholder {
+  color: var(--t3);
+}
+
+.ob-split-url-btn {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+/* Secondary vertical group: Upload PDF + Set up manually stacked */
+.ob-split-secondary-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Upload PDF — secondary button style (more prominent than tertiary) */
+.ob-split-pdf-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t1);
+  background: var(--card-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ob-split-pdf-secondary:hover {
+  background: color-mix(in srgb, var(--accent) 6%, var(--card-2));
+  color: var(--accent);
+}
+
+.ob-split-secondary-group .ob-split-tertiary-btn {
+  border-radius: 0;
+  border: none;
+}
+
+/* PDF link — text link below the button group */
+.ob-split-pdf-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--t3);
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+  text-align: center;
+  border: none;
+  background: none;
+}
+
+.ob-split-pdf-link:hover {
+  color: var(--t2);
+}
+
+/* Tier 2 — Upload PDF: full-width outlined button */
+.ob-split-pdf-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t1);
+  background: var(--card-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ob-split-pdf-btn:hover {
+  border-color: var(--accent-line);
+  background: color-mix(in srgb, var(--accent) 6%, var(--card-2));
+}
+
+/* Tier 3 — "or" separator + configure manually */
+.ob-split-or-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0;
+}
+
+.ob-split-or-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.ob-split-or-text {
+  font-size: 11px;
+  color: var(--t3);
+  flex-shrink: 0;
+}
+
+/* Tertiary — no-outline button */
+.ob-split-tertiary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t2);
+  padding: 0 12px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ob-split-tertiary-btn:hover {
+  background: var(--card-2);
+  color: var(--t1);
+}
+
+.ob-split-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 0;
+}
+
+.ob-split-name-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ob-split-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  border: 1.5px solid var(--accent-line);
+  border-radius: var(--radius-sm);
+  background: none;
+  transition: background 0.15s;
+}
+
+.ob-split-card--fresh:hover .ob-split-cta {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* ---- Generate card — feature chips ---- */
+.ob-gen-features {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ob-gen-feature {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--t2);
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+
+.ob-gen-meta {
+  font-size: 11px;
+  color: var(--t3);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ---- Divider ---- */
+.bsh-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+  color: var(--t3);
+  font-size: 12px;
+}
+
+.bsh-divider::before,
+.bsh-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ---- Two-column secondary row ---- */
+.bsh-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.bsh-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.bsh-card:hover {
+  border-color: var(--line-2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.bsh-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: 6px;
+}
+
+.bsh-card-sub {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.5;
+}
+
+/* ---- Import row (reused from import card) ---- */
+.bsh-import-row {
+  display: flex;
+  gap: 8px;
+}
+
+.bsh-import-input {
+  flex: 1;
+  height: 40px;
+  padding: 0 16px;
+  background: var(--app);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--t1);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.bsh-import-input:focus {
+  border-color: var(--accent-line);
+}
+
+.bsh-import-input::placeholder {
+  color: var(--t3);
+}
+
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .bsh-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .bsh-generate-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bsh-generate-cta {
+    align-self: flex-end;
+  }
+}

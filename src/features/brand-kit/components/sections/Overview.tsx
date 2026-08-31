@@ -54,7 +54,7 @@ function LogosCard({ kit, go }: { kit: BrandKit; go: () => void }) {
     <div className="ov-card" onClick={go}>
       <div className="ov-card-left">
         <div className="ov-card-title">Logos</div>
-        <div className="ov-card-count">{kit.logos.variants.length} variants</div>
+        <div className="ov-card-count">{variants.length} variant{variants.length === 1 ? '' : 's'}</div>
         <button className="ov-link">View all <ArrowRight style={{ width: 12, height: 12 }} /></button>
       </div>
       <div className="ov-thumbs">
@@ -266,15 +266,21 @@ function ImgTile({ idx }: { idx: number }) {
 }
 
 function ImageryCard({ kit, go }: { kit: BrandKit; go: () => void }) {
+  const assets = kit.imagery.assets ?? []
   return (
     <div className="ov-card" onClick={go}>
       <div className="ov-card-left">
         <div className="ov-card-title">Image Assets</div>
-        <div className="ov-card-count">{kit.imagery.tags.length} images</div>
+        <div className="ov-card-count">{assets.length} image{assets.length === 1 ? '' : 's'}</div>
         <button className="ov-link">View all <ArrowRight style={{ width: 12, height: 12 }} /></button>
       </div>
       <div className="ov-thumbs">
-        {[0, 1, 2, 3].map((i) => <ImgTile key={i} idx={i} />)}
+        {[0, 1, 2, 3].map((i) => {
+          const a = assets[i]
+          return a
+            ? <div key={i} className="ov-thumb" style={{ background: a.preview ?? 'var(--card-2)' }} />
+            : <ImgTile key={i} idx={i} />
+        })}
       </div>
     </div>
   )
@@ -298,12 +304,21 @@ export function Overview({ kit, go, ed, showWelcomeBanner, onDismissBanner }: Ov
       )}
 
       {showWelcomeBanner && (
-        <Banner
-          tag="✦ BRAND KIT CREATED"
-          title={<>Your brand kit<br />is ready!</>}
-          description="Keep building — add your logos, fill in colors, set your typography, and define your voice for a complete brand foundation."
-          onDismiss={onDismissBanner}
-        />
+        kit.spirit?.wizardCompleted ? (
+          <Banner
+            tag="✦ BRAND IDENTITY CREATED"
+            title={<>Your brand identity<br />is ready!</>}
+            description="Your logo, palette, and voice have been applied. Keep refining each section or create your first brand theme."
+            onDismiss={onDismissBanner}
+          />
+        ) : (
+          <Banner
+            tag="✏️ KIT CREATED"
+            title={<>Time to fill it in</>}
+            description="You've set up your brand kit. Now add your logos, colors, typography and voice to complete your brand foundation."
+            onDismiss={onDismissBanner}
+          />
+        )
       )}
 
       <div className="ov-grid">

@@ -54,6 +54,8 @@ interface DetailProps {
 export function Detail({ kit }: DetailProps) {
   const { updateKit, appliedId, setAppliedId, markSectionVisited } = useBrandStore()
   const { setModal } = useUIStore()
+  const pendingSection    = useUIStore((s) => s.pendingSection)
+  const setPendingSection = useUIStore((s) => s.setPendingSection)
   const navigate = useNavigate()
   const [section, setSection] = useState('overview')
   const VISIT_TRACKED = ['typography', 'tone', 'imagery']
@@ -61,6 +63,15 @@ export function Detail({ kit }: DetailProps) {
     if (VISIT_TRACKED.includes(id)) markSectionVisited(kit.id, id)
     setSection(id)
   }
+  /* Another surface (e.g. the new-theme welcome screen) asked us to open a
+     specific section. Consume the request so it fires once. */
+  useEffect(() => {
+    if (!pendingSection) return
+    handleSection(pendingSection)
+    setPendingSection(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSection])
+
   const [showAddCat, setShowAddCat] = useState(false)
   const [showDoc, setShowDoc] = useState(false)
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
